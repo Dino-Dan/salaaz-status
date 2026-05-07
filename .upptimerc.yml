@@ -3,7 +3,7 @@ owner: Dino-Dan
 repo: salaaz-status
 
 sites:
-  - name: Webstore
+  - name: Salaaz Marketplace
     url: https://salaaz.com/
     expectedStatusCodes:
       - 200

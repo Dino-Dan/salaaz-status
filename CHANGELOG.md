@@ -7,7 +7,7 @@ All incidents and maintenance events for Salaaz services are recorded here.
 ## May 7, 2026
 
 ### Monitoring Launched
-**Services:** Webstore, Vendor Portal, Ethics Dashboard  
+**Services:** Salaaz Marketplace, Vendor Portal, Ethics Dashboard  
 **Status:** Operational
 
 Upptime monitoring went live for all three Salaaz services. Baseline response
