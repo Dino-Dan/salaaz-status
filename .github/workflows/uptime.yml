@@ -37,14 +37,25 @@ jobs:
           token: ${{ secrets.GH_PAT || github.token }}
       - name: Pull latest master
         run: git pull --rebase origin master
-      - name: Install pre-push rebase hook
-        run: |
-          printf '#!/bin/sh\ngit pull --rebase origin master\n' > .git/hooks/pre-push
-          chmod +x .git/hooks/pre-push
       - name: Check endpoint status
+        id: uptime_action
         uses: upptime/uptime-monitor@v1.41.3
+        continue-on-error: true
         with:
           command: "update"
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
+      - name: Retry push if needed
+        run: |
+          git fetch origin master
+          LOCAL_AHEAD=$(git log origin/master..HEAD --oneline | wc -l | tr -d ' ')
+          if [ "$LOCAL_AHEAD" -gt 0 ]; then
+            for i in 1 2 3; do
+              git pull --rebase origin master && git push origin master && exit 0
+              echo "Push retry $i failed, waiting..."
+              sleep $((i * 15))
+            done
+            exit 1
+          fi
+          if [ "${{ steps.uptime_action.outcome }}" = "failure" ]; then exit 1; fi
