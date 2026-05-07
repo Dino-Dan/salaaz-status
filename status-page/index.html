@@ -451,6 +451,20 @@
 
 <script>
   const RAW = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master';
+
+  const VENDOR_PORTAL_ICON = 'data:image/svg+xml;base64,' + btoa(
+    '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
+    '<circle cx="40" cy="40" r="40" fill="url(#vp-g)"/>' +
+    '<path d="M25 30C25 25.5817 28.5817 22 33 22H47C51.4183 22 55 25.5817 55 30V32C55 36.4183 51.4183 40 47 40H33C28.5817 40 25 43.5817 25 48V50C25 54.4183 28.5817 58 33 58H47C51.4183 58 55 54.4183 55 50" stroke="white" stroke-width="4" stroke-linecap="round"/>' +
+    '<circle cx="60" cy="20" r="3" fill="white" opacity="0.8"/>' +
+    '<circle cx="20" cy="60" r="2" fill="white" opacity="0.6"/>' +
+    '<circle cx="65" cy="65" r="2.5" fill="white" opacity="0.7"/>' +
+    '<defs><linearGradient id="vp-g" x1="0%" y1="0%" x2="100%" y2="100%">' +
+    '<stop offset="0%" style="stop-color:#556B2F;stop-opacity:1"/>' +
+    '<stop offset="50%" style="stop-color:#6B7F3A;stop-opacity:1"/>' +
+    '<stop offset="100%" style="stop-color:#8FB352;stop-opacity:1"/>' +
+    '</linearGradient></defs></svg>'
+  );
   const tooltip = document.getElementById('tooltip');
 
   // ── Tooltip ──
@@ -544,7 +558,7 @@
     const hostname = (() => { try { return new URL(service.url).hostname; } catch(_) { return service.url; } })();
 
     const iconSrc = service.slug === 'vendor-portal'
-      ? '/vendor-portal.svg'
+      ? VENDOR_PORTAL_ICON
       : service.icon;
 
     header.innerHTML = `
