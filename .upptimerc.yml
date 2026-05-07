@@ -20,13 +20,298 @@ status-website:
   cname: status.salaaz.com
   name: Salaaz Status
   logoUrl: https://salaaz.com/logo.png
-  introTitle: "**Salaaz** Service Status"
-  introMessage: "Live status of Salaaz services. Subscribe to incident updates via the GitHub repo."
+  favicon: https://salaaz.com/favicon.ico
+  introTitle: "Salaaz Status"
+  introMessage: "Live status and uptime for all Salaaz services."
+  theme: light
   navbar:
     - title: Status
       href: /
     - title: GitHub
       href: https://github.com/dino-dan/salaaz-status
+  customCSS: |
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+    html, body {
+      background-color: #FAF9F5 !important;
+      color: #141413 !important;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif !important;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    /* Navbar */
+    .navbar {
+      background-color: #FAF9F5 !important;
+      border-bottom: 1px solid #DEDCD1 !important;
+      box-shadow: none !important;
+    }
+
+    .navbar-item, .navbar-link {
+      color: #141413 !important;
+      font-size: 0.875rem !important;
+      font-weight: 500 !important;
+    }
+
+    .navbar-item:hover, .navbar-link:hover {
+      background-color: transparent !important;
+      color: #87867F !important;
+    }
+
+    .navbar-item img {
+      max-height: 1.75rem !important;
+    }
+
+    /* Sections */
+    .section {
+      background-color: #FAF9F5 !important;
+      padding: 2rem 1.5rem !important;
+    }
+
+    /* Container */
+    .container {
+      max-width: 860px !important;
+    }
+
+    /* Status Banner (hero) */
+    .hero {
+      border-radius: 8px !important;
+      margin-bottom: 1.5rem !important;
+    }
+
+    .hero.is-success {
+      background-color: #EBF5D6 !important;
+      border: 1px solid #BEDEA0 !important;
+    }
+
+    .hero.is-success .title,
+    .hero.is-success .subtitle {
+      color: #2D5A0C !important;
+    }
+
+    .hero.is-danger {
+      background-color: #FDEAEA !important;
+      border: 1px solid #F5B5B5 !important;
+    }
+
+    .hero.is-danger .title,
+    .hero.is-danger .subtitle {
+      color: #7A1515 !important;
+    }
+
+    .hero.is-warning {
+      background-color: #FEF5E0 !important;
+      border: 1px solid #F5D78A !important;
+    }
+
+    .hero.is-warning .title,
+    .hero.is-warning .subtitle {
+      color: #7A4E0C !important;
+    }
+
+    .hero-body {
+      padding: 1.5rem 2rem !important;
+    }
+
+    .hero-body .title {
+      font-size: 1.15rem !important;
+      font-weight: 600 !important;
+      margin-bottom: 0.2rem !important;
+    }
+
+    .hero-body .subtitle {
+      font-size: 0.9rem !important;
+      font-weight: 400 !important;
+      margin-top: 0.2rem !important;
+    }
+
+    /* Service Cards */
+    .card {
+      background-color: #FFFFFF !important;
+      border: 1px solid #DEDCD1 !important;
+      border-radius: 8px !important;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04) !important;
+      margin-bottom: 0.75rem !important;
+    }
+
+    .card-content {
+      padding: 1.25rem 1.5rem !important;
+    }
+
+    /* Status Tags */
+    .tag {
+      border-radius: 4px !important;
+      font-size: 0.75rem !important;
+      font-weight: 500 !important;
+      padding: 0.25em 0.75em !important;
+      letter-spacing: 0.01em !important;
+    }
+
+    .tag.is-success {
+      background-color: #76AD2A !important;
+      color: #FFFFFF !important;
+    }
+
+    .tag.is-danger {
+      background-color: #E04343 !important;
+      color: #FFFFFF !important;
+    }
+
+    .tag.is-warning {
+      background-color: #FAA72A !important;
+      color: #FFFFFF !important;
+    }
+
+    .tag.is-info {
+      background-color: #2C84DB !important;
+      color: #FFFFFF !important;
+    }
+
+    /* Service name titles */
+    .title.is-5, .title.is-4 {
+      color: #141413 !important;
+      font-weight: 500 !important;
+      font-size: 1rem !important;
+      margin-bottom: 0 !important;
+    }
+
+    /* Uptime percentage */
+    .uptime-percent, .percent {
+      color: #87867F !important;
+      font-size: 0.8rem !important;
+    }
+
+    /* Uptime bar blocks */
+    .uptime-bar-good, .bar-good {
+      background-color: #76AD2A !important;
+      opacity: 0.85;
+    }
+
+    .uptime-bar-bad, .bar-bad {
+      background-color: #E04343 !important;
+    }
+
+    .uptime-bar-degraded, .bar-degraded {
+      background-color: #FAA72A !important;
+    }
+
+    /* Dividers */
+    hr {
+      background-color: #DEDCD1 !important;
+      height: 1px !important;
+      margin: 1.5rem 0 !important;
+    }
+
+    /* Incidents / Message boxes */
+    .message {
+      border-radius: 8px !important;
+      box-shadow: none !important;
+    }
+
+    .message.is-success {
+      background-color: #EBF5D6 !important;
+      border-color: #BEDEA0 !important;
+    }
+
+    .message.is-danger {
+      background-color: #FDEAEA !important;
+      border-color: #F5B5B5 !important;
+    }
+
+    .message.is-warning {
+      background-color: #FEF5E0 !important;
+      border-color: #F5D78A !important;
+    }
+
+    .message-body {
+      color: #141413 !important;
+      border-color: #DEDCD1 !important;
+      font-size: 0.9rem !important;
+    }
+
+    .message-header {
+      border-radius: 8px 8px 0 0 !important;
+      font-size: 0.875rem !important;
+    }
+
+    /* Tabs */
+    .tabs a {
+      color: #87867F !important;
+      border-bottom-color: #DEDCD1 !important;
+      font-size: 0.875rem !important;
+    }
+
+    .tabs li.is-active a {
+      color: #141413 !important;
+      border-bottom-color: #141413 !important;
+    }
+
+    /* Links */
+    a {
+      color: #2C84DB !important;
+    }
+
+    a:hover {
+      color: #1a6bb5 !important;
+      text-decoration: none !important;
+    }
+
+    /* Footer */
+    .footer, footer {
+      background-color: #FAF9F5 !important;
+      border-top: 1px solid #DEDCD1 !important;
+      color: #87867F !important;
+      padding: 2rem 1.5rem !important;
+      font-size: 0.8rem !important;
+    }
+
+    .footer a, footer a {
+      color: #87867F !important;
+    }
+
+    .footer a:hover, footer a:hover {
+      color: #141413 !important;
+    }
+
+    /* Headings */
+    h1, h2, h3, h4, h5, h6 {
+      color: #141413 !important;
+      font-weight: 600 !important;
+    }
+
+    /* Intro section title */
+    .intro-title {
+      font-size: 1.75rem !important;
+      font-weight: 600 !important;
+      color: #141413 !important;
+    }
+
+    /* Notification */
+    .notification {
+      border-radius: 8px !important;
+    }
+
+    /* Level rows */
+    .level {
+      align-items: center !important;
+    }
+
+    /* Graph images */
+    .response-time-section img, img.graph {
+      border-radius: 4px !important;
+      border: 1px solid #DEDCD1 !important;
+    }
+
+    /* Legend */
+    .legend, small {
+      color: #87867F !important;
+      font-size: 0.75rem !important;
+    }
+
+    /* Smooth scroll */
+    html {
+      scroll-behavior: smooth !important;
+    }
 
 # Upptime also supports notifications, assigning issues, and more
 # See https://upptime.js.org/docs/configuration
