@@ -29,9 +29,8 @@ status-website:
       href: /
     - title: GitHub
       href: https://github.com/dino-dan/salaaz-status
-  customCSS: |
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
-
+  customHeadHtml: '<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">'
+  css: |
     html, body {
       background-color: #FAF9F5 !important;
       color: #141413 !important;
