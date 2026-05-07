@@ -4,15 +4,15 @@ repo: salaaz-status
 
 sites:
   - name: Webstore
-    url: https://salaaz.com/health.json
+    url: https://salaaz.com/
     expectedStatusCodes:
       - 200
   - name: Vendor Portal
-    url: https://vendor.salaaz.com/health.json
+    url: https://vendor.salaaz.com/
     expectedStatusCodes:
       - 200
   - name: Ethics Dashboard
-    url: https://ethics.salaaz.com/health.json
+    url: https://ethics.salaaz.com/
     expectedStatusCodes:
       - 200
 
