@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Changelog — Salaaz Status</title>
+  <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: #FAF9F5;
+      color: #141413;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: #FAF9F5;
+      border-bottom: 1px solid #DEDCD1;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #141413;
+      text-decoration: none;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      color: #87867F;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 1.25rem;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: #141413; }
+    .nav-links a.active { color: #141413; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .page-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      color: #141413;
+      margin-bottom: 0.25rem;
+    }
+
+    .page-sub {
+      font-size: 0.85rem;
+      color: #87867F;
+      margin-bottom: 2rem;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #87867F;
+      margin-bottom: 0.6rem;
+    }
+
+    /* ── Month group ── */
+    .incident-group {
+      margin-bottom: 2rem;
+    }
+
+    .incident-month {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: #141413;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #EDECE8;
+    }
+
+    /* ── Incident card ── */
+    .incident-card {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .incident-card.open {
+      border-left: 3px solid #E04343;
+    }
+
+    .incident-card.closed {
+      border-left: 3px solid #76AD2A;
+    }
+
+    .incident-top {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .incident-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #141413;
+    }
+
+    .incident-title a {
+      color: #141413;
+      text-decoration: none;
+    }
+
+    .incident-title a:hover { text-decoration: underline; }
+
+    .incident-badge {
+      font-size: 0.67rem;
+      font-weight: 600;
+      padding: 0.22em 0.6em;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .badge-ongoing  { background: #FDEAEA; color: #B02020; }
+    .badge-resolved { background: #EBF5D6; color: #2D5A0C; }
+
+    .incident-meta {
+      font-size: 0.72rem;
+      color: #87867F;
+      margin-top: 0.35rem;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 0.25rem 0.75rem;
+    }
+
+    .service-tag {
+      display: inline-block;
+      background: #F0EEE8;
+      color: #5C5A54;
+      font-size: 0.67rem;
+      font-weight: 500;
+      padding: 0.1em 0.5em;
+      border-radius: 3px;
+    }
+
+    .incident-body {
+      font-size: 0.8rem;
+      color: #5C5A54;
+      margin-top: 0.6rem;
+      padding-top: 0.6rem;
+      border-top: 1px solid #F0EEE8;
+      white-space: pre-wrap;
+      line-height: 1.55;
+    }
+
+    /* ── No incidents ── */
+    .no-incidents {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: #87867F;
+      font-size: 0.875rem;
+    }
+
+    .no-incidents-icon {
+      font-size: 1.5rem;
+      margin-bottom: 0.5rem;
+    }
+
+    /* ── Skeleton ── */
+    .skeleton-card {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .skeleton-line {
+      border-radius: 4px;
+      background: linear-gradient(90deg, #EDECE8 25%, #E3E2DE 50%, #EDECE8 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid #DEDCD1;
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #B0ADA4;
+      margin-top: 3rem;
+    }
+
+    footer a { color: #B0ADA4; text-decoration: none; }
+    footer a:hover { color: #141413; }
+
+    @media (max-width: 600px) {
+      main { padding: 1.25rem 1rem 3rem; }
+      .incident-top { flex-direction: column; gap: 0.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect width="18" height="18" rx="4" fill="#141413"/>
+      <circle cx="9" cy="9" r="3.5" fill="#FAF9F5"/>
+    </svg>
+    Salaaz Status
+  </a>
+  <div class="nav-links">
+    <a href="/">Status</a>
+    <a href="/changelog" class="active">Changelog</a>
+    <a href="https://github.com/Dino-Dan/salaaz-status">GitHub</a>
+  </div>
+</nav>
+
+<main>
+  <div class="page-title">Incident History</div>
+  <div class="page-sub">A record of all past and ongoing incidents across Salaaz services.</div>
+
+  <div id="ongoing-section" style="display:none">
+    <div class="section-label">Ongoing</div>
+    <div id="ongoing-list"></div>
+    <div style="margin-bottom:2rem"></div>
+  </div>
+
+  <div class="section-label">Past Incidents</div>
+  <div id="changelog">
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:55%;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="height:11px;width:30%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:65%;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="height:11px;width:25%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:50%;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="height:11px;width:35%"></div>
+    </div>
+  </div>
+</main>
+
+<footer>
+  Powered by <a href="https://upptime.js.org">Upptime</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Dino-Dan/salaaz-status">View on GitHub</a>
+  &nbsp;·&nbsp;
+  © 2026 Salaaz
+</footer>
+
+<script>
+  const API = 'https://api.github.com/repos/Dino-Dan/salaaz-status';
+
+  // ── Helpers ──
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  function fmtDateTime(iso) {
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function monthKey(iso) {
+    return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  }
+
+  function duration(openedIso, closedIso) {
+    const ms = new Date(closedIso) - new Date(openedIso);
+    const mins = Math.round(ms / 60000);
+    if (mins < 60)  return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return rem ? `${hrs}h ${rem}m` : `${hrs}h`;
+  }
+
+  // Extract service name tags from issue labels
+  function serviceLabels(labels) {
+    const serviceNames = { webstore: 'Webstore', 'vendor-portal': 'Vendor Portal', 'ethics-dashboard': 'Ethics Dashboard' };
+    return labels
+      .map(l => serviceNames[l.name])
+      .filter(Boolean);
+  }
+
+  // Strip Upptime bot boilerplate from issue body
+  function cleanBody(body) {
+    if (!body) return '';
+    return body
+      .replace(/<!--[\s\S]*?-->/g, '')
+      .replace(/\*\*Affected\smonitor[s]?\*\*:.*?\n/gi, '')
+      .replace(/\[Upptime\][\s\S]*$/i, '')
+      .trim()
+      .slice(0, 400);
+  }
+
+  function renderCard(issue) {
+    const isOpen = issue.state === 'open';
+    const services = serviceLabels(issue.labels);
+    const body = cleanBody(issue.body);
+
+    const card = document.createElement('div');
+    card.className = `incident-card ${isOpen ? 'open' : 'closed'}`;
+
+    const serviceTags = services.map(s => `<span class="service-tag">${s}</span>`).join(' ');
+
+    const metaParts = [];
+    metaParts.push(`Opened ${fmtDateTime(issue.created_at)}`);
+    if (!isOpen && issue.closed_at) {
+      metaParts.push(`Resolved ${fmtDateTime(issue.closed_at)}`);
+      metaParts.push(`Duration: ${duration(issue.created_at, issue.closed_at)}`);
+    }
+
+    card.innerHTML = `
+      <div class="incident-top">
+        <div class="incident-title">
+          <a href="${issue.html_url}" target="_blank" rel="noopener">${issue.title}</a>
+        </div>
+        <span class="incident-badge ${isOpen ? 'badge-ongoing' : 'badge-resolved'}">
+          ${isOpen ? 'Ongoing' : 'Resolved'}
+        </span>
+      </div>
+      <div class="incident-meta">
+        ${serviceTags}
+        ${metaParts.join('<span style="color:#DEDCD1">·</span>')}
+      </div>
+      ${body ? `<div class="incident-body">${body}</div>` : ''}
+    `;
+
+    return card;
+  }
+
+  async function init() {
+    try {
+      // Fetch up to 100 most recent issues (includes open + closed)
+      const issues = await fetch(
+        `${API}/issues?state=all&per_page=100&sort=created&direction=desc`
+      ).then(r => {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      });
+
+      // Filter out pull requests (GitHub API includes them)
+      const incidents = issues.filter(i => !i.pull_request);
+
+      const ongoing  = incidents.filter(i => i.state === 'open');
+      const resolved = incidents.filter(i => i.state === 'closed');
+
+      // ── Ongoing ──
+      const ongoingSection = document.getElementById('ongoing-section');
+      const ongoingList    = document.getElementById('ongoing-list');
+
+      if (ongoing.length > 0) {
+        ongoingSection.style.display = 'block';
+        ongoing.forEach(i => ongoingList.appendChild(renderCard(i)));
+      }
+
+      // ── Resolved, grouped by month ──
+      const changelogEl = document.getElementById('changelog');
+      changelogEl.innerHTML = '';
+
+      if (resolved.length === 0 && ongoing.length === 0) {
+        changelogEl.innerHTML = `
+          <div class="no-incidents">
+            <div class="no-incidents-icon">✓</div>
+            No incidents recorded yet.
+          </div>`;
+        return;
+      }
+
+      if (resolved.length === 0) {
+        changelogEl.innerHTML = `
+          <div class="no-incidents">No resolved incidents yet.</div>`;
+        return;
+      }
+
+      // Group by month
+      const groups = new Map();
+      resolved.forEach(issue => {
+        const key = monthKey(issue.created_at);
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(issue);
+      });
+
+      groups.forEach((issues, month) => {
+        const group = document.createElement('div');
+        group.className = 'incident-group';
+        group.innerHTML = `<div class="incident-month">${month}</div>`;
+        issues.forEach(i => group.appendChild(renderCard(i)));
+        changelogEl.appendChild(group);
+      });
+
+    } catch (err) {
+      document.getElementById('changelog').innerHTML = `
+        <div class="no-incidents">
+          Could not load incident history.
+          <a href="https://github.com/Dino-Dan/salaaz-status/issues" target="_blank">View on GitHub →</a>
+        </div>`;
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
