@@ -37,6 +37,10 @@ jobs:
           token: ${{ secrets.GH_PAT || github.token }}
       - name: Pull latest master
         run: git pull --rebase origin master
+      - name: Install pre-push rebase hook
+        run: |
+          printf '#!/bin/sh\ngit pull --rebase origin master\n' > .git/hooks/pre-push
+          chmod +x .git/hooks/pre-push
       - name: Check endpoint status
         uses: upptime/uptime-monitor@v1.41.3
         with:
