@@ -21,6 +21,10 @@ on:
   repository_dispatch:
     types: [response_time]
   workflow_dispatch:
+concurrency:
+  group: upptime-master
+  cancel-in-progress: false
+
 jobs:
   release:
     name: Check status
