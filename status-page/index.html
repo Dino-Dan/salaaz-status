@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Salaaz Status</title>
+  <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: #FAF9F5;
+      color: #141413;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    /* ── Nav ── */
+    nav {
+      background: #FAF9F5;
+      border-bottom: 1px solid #DEDCD1;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #141413;
+      text-decoration: none;
+    }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      color: #87867F;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 1.25rem;
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: #141413; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    /* ── Status Banner ── */
+    .status-banner {
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+      border: 1px solid;
+    }
+
+    .status-banner.all-up   { background: #EBF5D6; border-color: #BEDEA0; }
+    .status-banner.some-down { background: #FDEAEA; border-color: #F5B5B5; }
+    .status-banner.degraded  { background: #FEF5E0; border-color: #F5D78A; }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+      margin-top: 5px;
+    }
+
+    .dot-green  { background: #76AD2A; }
+    .dot-red    { background: #E04343; }
+    .dot-amber  { background: #FAA72A; }
+
+    .banner-title {
+      font-size: 0.975rem;
+      font-weight: 600;
+    }
+
+    .all-up .banner-title    { color: #2D5A0C; }
+    .some-down .banner-title { color: #7A1515; }
+    .degraded .banner-title  { color: #7A4E0C; }
+
+    .banner-sub {
+      font-size: 0.8rem;
+      color: #87867F;
+      margin-top: 1px;
+    }
+
+    /* ── Last checked ── */
+    .last-checked {
+      font-size: 0.72rem;
+      color: #B0ADA4;
+      text-align: right;
+      margin-bottom: 0.6rem;
+    }
+
+    /* ── Section label ── */
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #87867F;
+      margin-bottom: 0.6rem;
+    }
+
+    /* ── Service Cards ── */
+    .card {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      margin-bottom: 0.6rem;
+      overflow: hidden;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem 0.75rem;
+    }
+
+    .service-info {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .service-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 3px;
+      object-fit: contain;
+      flex-shrink: 0;
+    }
+
+    .service-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: #141413;
+    }
+
+    .service-url {
+      font-size: 0.73rem;
+      color: #87867F;
+    }
+
+    .tag {
+      font-size: 0.7rem;
+      font-weight: 500;
+      padding: 0.2em 0.65em;
+      border-radius: 4px;
+      color: #fff;
+      letter-spacing: 0.01em;
+      white-space: nowrap;
+    }
+
+    .tag-up       { background: #76AD2A; }
+    .tag-down     { background: #E04343; }
+    .tag-degraded { background: #FAA72A; }
+
+    /* ── Bar strip ── */
+    .bar-section {
+      padding: 0 1.25rem 0.9rem;
+    }
+
+    .bar-strip {
+      display: flex;
+      gap: 2px;
+      height: 28px;
+    }
+
+    .bar {
+      flex: 1;
+      min-width: 2px;
+      border-radius: 2px;
+      cursor: default;
+      transition: opacity 0.1s;
+    }
+
+    .bar:hover { opacity: 0.7; }
+
+    .bar-legend {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+
+    .bar-legend span {
+      font-size: 0.67rem;
+      color: #C0BDB4;
+    }
+
+    .uptime-row {
+      display: flex;
+      justify-content: flex-end;
+      margin-top: 5px;
+    }
+
+    .uptime-pct {
+      font-size: 0.73rem;
+      color: #87867F;
+    }
+
+    /* ── Legend ── */
+    .color-legend {
+      display: flex;
+      gap: 1.25rem;
+      flex-wrap: wrap;
+      margin-top: 1.25rem;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 0.35rem;
+      font-size: 0.72rem;
+      color: #87867F;
+    }
+
+    .legend-swatch {
+      width: 10px;
+      height: 10px;
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    /* ── Divider ── */
+    hr {
+      border: none;
+      border-top: 1px solid #DEDCD1;
+      margin: 2rem 0;
+    }
+
+    /* ── Skeleton loader ── */
+    .skeleton-card {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.6rem;
+    }
+
+    .skeleton-line {
+      border-radius: 4px;
+      background: linear-gradient(90deg, #EDECE8 25%, #E3E2DE 50%, #EDECE8 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    /* ── Tooltip ── */
+    #tooltip {
+      position: fixed;
+      background: #141413;
+      color: #FAF9F5;
+      font-size: 0.7rem;
+      font-family: 'Inter', sans-serif;
+      padding: 0.3em 0.6em;
+      border-radius: 4px;
+      pointer-events: none;
+      white-space: nowrap;
+      z-index: 1000;
+      display: none;
+    }
+
+    /* ── Footer ── */
+    footer {
+      border-top: 1px solid #DEDCD1;
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #B0ADA4;
+      margin-top: 3rem;
+    }
+
+    footer a { color: #B0ADA4; text-decoration: none; }
+    footer a:hover { color: #141413; }
+
+    @media (max-width: 600px) {
+      main { padding: 1.25rem 1rem 3rem; }
+      .card-header { padding: 0.875rem 1rem 0.625rem; }
+      .bar-section { padding: 0 1rem 0.875rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+      <rect width="18" height="18" rx="4" fill="#141413"/>
+      <circle cx="9" cy="9" r="3.5" fill="#FAF9F5"/>
+    </svg>
+    Salaaz Status
+  </a>
+  <div class="nav-links">
+    <a href="/">Status</a>
+    <a href="https://github.com/Dino-Dan/salaaz-status">GitHub</a>
+  </div>
+</nav>
+
+<div id="tooltip"></div>
+
+<main>
+  <div id="banner">
+    <!-- skeleton banner -->
+    <div style="height:68px;border-radius:8px;margin-bottom:1.5rem" class="skeleton-line"></div>
+  </div>
+
+  <div class="last-checked" id="last-checked"></div>
+  <div class="section-label">Services</div>
+
+  <div id="services">
+    <!-- skeleton cards -->
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:120px;margin-bottom:10px"></div>
+      <div class="skeleton-line" style="height:28px;width:100%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:140px;margin-bottom:10px"></div>
+      <div class="skeleton-line" style="height:28px;width:100%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:130px;margin-bottom:10px"></div>
+      <div class="skeleton-line" style="height:28px;width:100%"></div>
+    </div>
+  </div>
+
+  <div class="color-legend">
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#76AD2A"></div>Operational
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#FAA72A"></div>Degraded
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#E04343"></div>Outage
+    </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#D1D0C9"></div>No data
+    </div>
+  </div>
+</main>
+
+<footer>
+  Powered by <a href="https://upptime.js.org">Upptime</a>
+  &nbsp;·&nbsp;
+  <a href="https://github.com/Dino-Dan/salaaz-status">View on GitHub</a>
+  &nbsp;·&nbsp;
+  © 2026 Salaaz
+</footer>
+
+<script>
+  const RAW = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master';
+  const tooltip = document.getElementById('tooltip');
+
+  // ── Tooltip ──
+  document.addEventListener('mousemove', e => {
+    tooltip.style.left = (e.clientX + 14) + 'px';
+    tooltip.style.top  = (e.clientY - 32) + 'px';
+  });
+
+  function showTip(text) { tooltip.textContent = text; tooltip.style.display = 'block'; }
+  function hideTip()      { tooltip.style.display = 'none'; }
+
+  // ── Helpers ──
+  function utcDateStr(d) {
+    return d.toISOString().slice(0, 10);
+  }
+
+  function utcToday() {
+    const n = new Date();
+    return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+  }
+
+  function formatDisplay(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(Date.UTC(y, m - 1, d))
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+  }
+
+  // ── Bar status for a given date ──
+  function dayStatus(dateStr, startDate, dailyMinutesDown) {
+    const d = new Date(dateStr + 'T00:00:00Z');
+    if (!startDate || d < startDate) return 'nodata';
+    const mins = (dailyMinutesDown || {})[dateStr] || 0;
+    if (mins >= 720) return 'down';
+    if (mins > 0)    return 'degraded';
+    return 'up';
+  }
+
+  function barColor(status) {
+    return { up: '#76AD2A', degraded: '#FAA72A', down: '#E04343', nodata: '#D1D0C9' }[status];
+  }
+
+  function barLabel(dateStr, status, mins) {
+    const d = formatDisplay(dateStr);
+    if (status === 'nodata')   return `${d}: No data`;
+    if (status === 'down')     return `${d}: Outage — ${mins} min down`;
+    if (status === 'degraded') return `${d}: Degraded — ${mins} min down`;
+    return `${d}: Operational`;
+  }
+
+  // ── Fetch start date from history YAML ──
+  async function fetchStartDate(slug) {
+    try {
+      const text = await fetch(`${RAW}/history/${slug}.yml`).then(r => r.text());
+      const m = text.match(/startTime:\s*(\S+)/);
+      if (m) {
+        const d = new Date(m[1]);
+        return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
+      }
+    } catch (_) {}
+    return null;
+  }
+
+  // ── Render one service card ──
+  function renderCard(service, startDate) {
+    const today = utcToday();
+    const dm = service.dailyMinutesDown || {};
+
+    // Build 90-day array
+    const days = [];
+    for (let i = 89; i >= 0; i--) {
+      const d = new Date(today);
+      d.setUTCDate(d.getUTCDate() - i);
+      const ds = utcDateStr(d);
+      const status = dayStatus(ds, startDate, dm);
+      const mins = dm[ds] || 0;
+      days.push({ ds, status, mins });
+    }
+
+    const isUp       = service.status === 'up';
+    const isDown     = service.status === 'down';
+    const tagClass   = isUp ? 'tag-up' : isDown ? 'tag-down' : 'tag-degraded';
+    const tagText    = isUp ? 'Operational' : isDown ? 'Down' : 'Degraded';
+
+    const card = document.createElement('div');
+    card.className = 'card';
+
+    // Header
+    const header = document.createElement('div');
+    header.className = 'card-header';
+
+    const hostname = (() => { try { return new URL(service.url).hostname; } catch(_) { return service.url; } })();
+
+    header.innerHTML = `
+      <div class="service-info">
+        <img class="service-icon" src="${service.icon}" onerror="this.style.display='none'" alt="">
+        <div>
+          <div class="service-name">${service.name}</div>
+          <div class="service-url">${hostname}</div>
+        </div>
+      </div>
+      <span class="tag ${tagClass}">${tagText}</span>
+    `;
+
+    // Bar section
+    const barSection = document.createElement('div');
+    barSection.className = 'bar-section';
+
+    const strip = document.createElement('div');
+    strip.className = 'bar-strip';
+
+    days.forEach(({ ds, status, mins }) => {
+      const bar = document.createElement('div');
+      bar.className = 'bar';
+      bar.style.background = barColor(status);
+      bar.addEventListener('mouseenter', () => showTip(barLabel(ds, status, mins)));
+      bar.addEventListener('mouseleave', hideTip);
+      strip.appendChild(bar);
+    });
+
+    const legend = document.createElement('div');
+    legend.className = 'bar-legend';
+    legend.innerHTML = '<span>90 days ago</span><span>Today</span>';
+
+    const uptimeRow = document.createElement('div');
+    uptimeRow.className = 'uptime-row';
+    uptimeRow.innerHTML = `<span class="uptime-pct">${service.uptimeMonth} uptime (30 d) &nbsp;·&nbsp; ${service.time} ms avg</span>`;
+
+    barSection.appendChild(strip);
+    barSection.appendChild(legend);
+    barSection.appendChild(uptimeRow);
+
+    card.appendChild(header);
+    card.appendChild(barSection);
+    return card;
+  }
+
+  // ── Render banner ──
+  function renderBanner(services) {
+    const allUp  = services.every(s => s.status === 'up');
+    const anyDown = services.some(s => s.status === 'down');
+    const el = document.getElementById('banner');
+
+    if (allUp) {
+      el.innerHTML = `<div class="status-banner all-up">
+        <div class="status-dot dot-green"></div>
+        <div>
+          <div class="banner-title">All Systems Operational</div>
+          <div class="banner-sub">Live status and uptime for all Salaaz services.</div>
+        </div>
+      </div>`;
+    } else if (anyDown) {
+      const n = services.filter(s => s.status === 'down').length;
+      el.innerHTML = `<div class="status-banner some-down">
+        <div class="status-dot dot-red"></div>
+        <div>
+          <div class="banner-title">${n} Service${n > 1 ? 's' : ''} Down</div>
+          <div class="banner-sub">We are investigating the issue.</div>
+        </div>
+      </div>`;
+    } else {
+      el.innerHTML = `<div class="status-banner degraded">
+        <div class="status-dot dot-amber"></div>
+        <div>
+          <div class="banner-title">Some Systems Degraded</div>
+          <div class="banner-sub">Performance may be affected.</div>
+        </div>
+      </div>`;
+    }
+  }
+
+  // ── Main ──
+  async function init() {
+    try {
+      const summary = await fetch(`${RAW}/history/summary.json`).then(r => {
+        if (!r.ok) throw new Error('Failed to load summary');
+        return r.json();
+      });
+
+      const startDates = await Promise.all(summary.map(s => fetchStartDate(s.slug)));
+
+      renderBanner(summary);
+
+      const now = new Date();
+      document.getElementById('last-checked').textContent =
+        'Last checked: ' + now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+      const servicesEl = document.getElementById('services');
+      servicesEl.innerHTML = '';
+      summary.forEach((service, i) => {
+        servicesEl.appendChild(renderCard(service, startDates[i]));
+      });
+
+    } catch (err) {
+      document.getElementById('banner').innerHTML = `
+        <div class="status-banner some-down">
+          <div class="status-dot dot-red"></div>
+          <div><div class="banner-title">Could not load status data</div>
+          <div class="banner-sub">Please refresh the page.</div></div>
+        </div>`;
+      document.getElementById('services').innerHTML = '';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
