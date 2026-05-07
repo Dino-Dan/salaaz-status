@@ -462,9 +462,13 @@
 
     const hostname = (() => { try { return new URL(service.url).hostname; } catch(_) { return service.url; } })();
 
+    const iconSrc = service.slug === 'vendor-portal'
+      ? '/vendor-portal.svg'
+      : service.icon;
+
     header.innerHTML = `
       <div class="service-info">
-        <img class="service-icon" src="${service.icon}" onerror="this.style.display='none'" alt="">
+        <img class="service-icon" src="${iconSrc}" onerror="this.style.display='none'" alt="">
         <div>
           <div class="service-name">${service.name}</div>
           <div class="service-url">${hostname}</div>

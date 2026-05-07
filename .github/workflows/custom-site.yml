@@ -6,7 +6,7 @@ on:
     types: [completed]
   push:
     branches: [master]
-    paths: [status-page/index.html, status-page/changelog.html]
+    paths: [status-page/**]
   workflow_dispatch:
 
 jobs:
@@ -30,9 +30,7 @@ jobs:
           token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Copy custom pages
-        run: |
-          cp master/status-page/index.html gh-pages/index.html
-          cp master/status-page/changelog.html gh-pages/changelog.html
+        run: cp -r master/status-page/. gh-pages/
 
       - name: Commit and push
         working-directory: gh-pages
