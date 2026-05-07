@@ -36,32 +36,30 @@ jobs:
           ref: master
           fetch-depth: 0
           token: ${{ secrets.GH_PAT || github.token }}
+      - name: Install git push wrapper
+        run: |
+          mkdir -p "$HOME/bin"
+          cat > "$HOME/bin/git" << 'WRAPPER'
+          #!/bin/bash
+          if [ "$1" = "push" ]; then
+            for i in 1 2 3; do
+              /usr/bin/git "$@" && exit 0
+              echo "[git-wrapper] push attempt $i failed, rebasing..."
+              /usr/bin/git pull --rebase -X ours origin master || \
+                /usr/bin/git rebase --abort 2>/dev/null || true
+              sleep $((i * 5))
+            done
+            /usr/bin/git "$@"
+            exit $?
+          fi
+          exec /usr/bin/git "$@"
+          WRAPPER
+          chmod +x "$HOME/bin/git"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
       - name: Update response time
-        id: uptime_action
         uses: upptime/uptime-monitor@v1.41.3
-        continue-on-error: true
         with:
           command: "response-time"
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
-      - name: Retry push if needed
-        env:
-          GH_PAT: ${{ secrets.GH_PAT || github.token }}
-        run: |
-          git fetch origin master
-          AHEAD=$(git rev-list --count origin/master..HEAD)
-          DIRTY=$(git status --porcelain | wc -l | tr -d ' ')
-          echo "Commits ahead of origin: $AHEAD  |  Dirty files: $DIRTY  |  Action: ${{ steps.uptime_action.outcome }}"
-          if [ "$AHEAD" -gt 0 ]; then
-            for i in 1 2 3; do
-              git pull --rebase origin master && git push origin HEAD:master && exit 0
-              echo "Push retry $i failed, waiting..."
-              sleep $((i * 15))
-            done
-            exit 1
-          fi
-          if [ "$DIRTY" -gt 0 ] && [ "${{ steps.uptime_action.outcome }}" = "failure" ]; then
-            exit 1
-          fi
-          exit 0
