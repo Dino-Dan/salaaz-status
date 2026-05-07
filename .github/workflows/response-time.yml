@@ -51,12 +51,17 @@ jobs:
         run: |
           git fetch origin master
           AHEAD=$(git rev-list --count origin/master..HEAD)
+          DIRTY=$(git status --porcelain | wc -l | tr -d ' ')
+          echo "Commits ahead of origin: $AHEAD  |  Dirty files: $DIRTY  |  Action: ${{ steps.uptime_action.outcome }}"
           if [ "$AHEAD" -gt 0 ]; then
             for i in 1 2 3; do
-              git pull --rebase origin master && git push origin master && exit 0
+              git pull --rebase origin master && git push origin HEAD:master && exit 0
               echo "Push retry $i failed, waiting..."
               sleep $((i * 15))
             done
             exit 1
           fi
-          [ "${{ steps.uptime_action.outcome }}" != "failure" ]
+          if [ "$DIRTY" -gt 0 ] && [ "${{ steps.uptime_action.outcome }}" = "failure" ]; then
+            exit 1
+          fi
+          exit 0
