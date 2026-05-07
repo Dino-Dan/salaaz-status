@@ -286,6 +286,85 @@
       display: none;
     }
 
+    /* ── Past Incidents ── */
+    .incidents-section {
+      margin-top: 2.5rem;
+    }
+
+    .incidents-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.6rem;
+    }
+
+    .incidents-header a {
+      font-size: 0.72rem;
+      color: #87867F;
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .incidents-header a:hover { color: #141413; }
+
+    .incident-row {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 0.85rem 1.25rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .incident-row.open { border-left: 3px solid #E04343; }
+    .incident-row.closed { border-left: 3px solid #76AD2A; }
+
+    .incident-row-title {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #141413;
+    }
+
+    .incident-row-title a {
+      color: #141413;
+      text-decoration: none;
+    }
+
+    .incident-row-title a:hover { text-decoration: underline; }
+
+    .incident-row-meta {
+      font-size: 0.72rem;
+      color: #87867F;
+      margin-top: 0.2rem;
+    }
+
+    .incident-row-badge {
+      font-size: 0.67rem;
+      font-weight: 600;
+      padding: 0.2em 0.55em;
+      border-radius: 4px;
+      white-space: nowrap;
+      flex-shrink: 0;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+
+    .badge-ongoing  { background: #FDEAEA; color: #B02020; }
+    .badge-resolved { background: #EBF5D6; color: #2D5A0C; }
+
+    .no-incidents {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 1.5rem;
+      text-align: center;
+      color: #87867F;
+      font-size: 0.85rem;
+    }
+
     /* ── Footer ── */
     footer {
       border-top: 1px solid #DEDCD1;
@@ -357,6 +436,16 @@
     </div>
   </div>
 
+  <div class="incidents-section">
+    <div class="incidents-header">
+      <div class="section-label" style="margin-bottom:0">Past Incidents</div>
+      <a href="/changelog">View full changelog →</a>
+    </div>
+    <div id="past-incidents">
+      <div class="skeleton-card" style="height:52px;margin-bottom:0.5rem"></div>
+      <div class="skeleton-card" style="height:52px"></div>
+    </div>
+  </div>
 </main>
 
 <footer>
@@ -547,6 +636,54 @@
     }
   }
 
+  // ── Past Incidents ──
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  async function loadIncidents() {
+    const el = document.getElementById('past-incidents');
+    try {
+      const issues = await fetch(
+        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=all&per_page=10&sort=created&direction=desc'
+      ).then(r => r.json());
+
+      const incidents = issues.filter(i => !i.pull_request);
+
+      el.innerHTML = '';
+
+      if (incidents.length === 0) {
+        el.innerHTML = '<div class="no-incidents">No incidents recorded in the past 90 days.</div>';
+        return;
+      }
+
+      incidents.slice(0, 5).forEach(issue => {
+        const isOpen = issue.state === 'open';
+        const row = document.createElement('div');
+        row.className = `incident-row ${isOpen ? 'open' : 'closed'}`;
+        row.innerHTML = `
+          <div>
+            <div class="incident-row-title">
+              <a href="${issue.html_url}" target="_blank" rel="noopener">${issue.title}</a>
+            </div>
+            <div class="incident-row-meta">
+              ${isOpen ? `Opened ${fmtDate(issue.created_at)}` : `Resolved ${fmtDate(issue.closed_at || issue.created_at)}`}
+            </div>
+          </div>
+          <span class="incident-row-badge ${isOpen ? 'badge-ongoing' : 'badge-resolved'}">
+            ${isOpen ? 'Ongoing' : 'Resolved'}
+          </span>
+        `;
+        el.appendChild(row);
+      });
+
+    } catch (_) {
+      el.innerHTML = '<div class="no-incidents">Could not load incident history.</div>';
+    }
+  }
+
   // ── Main ──
   async function init() {
     try {
@@ -568,6 +705,8 @@
       summary.forEach((service, i) => {
         servicesEl.appendChild(renderCard(service, startDates[i]));
       });
+
+      loadIncidents();
 
     } catch (err) {
       document.getElementById('banner').innerHTML = `
