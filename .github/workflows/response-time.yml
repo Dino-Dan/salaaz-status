@@ -33,10 +33,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: master
+          fetch-depth: 0
           token: ${{ secrets.GH_PAT || github.token }}
-      - name: Pull latest master
-        run: git pull --rebase origin master
       - name: Update response time
         id: uptime_action
         uses: upptime/uptime-monitor@v1.41.3
@@ -47,10 +46,12 @@ jobs:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
       - name: Retry push if needed
+        env:
+          GH_PAT: ${{ secrets.GH_PAT || github.token }}
         run: |
           git fetch origin master
-          LOCAL_AHEAD=$(git log origin/master..HEAD --oneline | wc -l | tr -d ' ')
-          if [ "$LOCAL_AHEAD" -gt 0 ]; then
+          AHEAD=$(git rev-list --count origin/master..HEAD)
+          if [ "$AHEAD" -gt 0 ]; then
             for i in 1 2 3; do
               git pull --rebase origin master && git push origin master && exit 0
               echo "Push retry $i failed, waiting..."
@@ -58,4 +59,4 @@ jobs:
             done
             exit 1
           fi
-          if [ "${{ steps.uptime_action.outcome }}" = "failure" ]; then exit 1; fi
+          [ "${{ steps.uptime_action.outcome }}" != "failure" ]
