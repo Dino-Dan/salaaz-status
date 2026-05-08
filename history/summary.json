@@ -5,18 +5,18 @@
     "icon": "https://icons.duckduckgo.com/ip3/salaaz.com.ico",
     "slug": "salaaz-marketplace",
     "status": "up",
-    "uptime": "79.32%",
-    "uptimeDay": "70.45%",
-    "uptimeWeek": "79.32%",
-    "uptimeMonth": "79.32%",
-    "uptimeYear": "79.32%",
+    "uptime": "79.71%",
+    "uptimeDay": "70.94%",
+    "uptimeWeek": "79.71%",
+    "uptimeMonth": "79.71%",
+    "uptimeYear": "79.71%",
     "time": 184,
     "timeDay": 174,
     "timeWeek": 184,
     "timeMonth": 184,
     "timeYear": 184,
     "dailyMinutesDown": {
-      "2026-05-08": 207,
+      "2026-05-08": 200,
       "2026-05-07": 218
     }
   },
@@ -43,17 +43,19 @@
     "url": "https://ethics.salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/ethics.salaaz.com.ico",
     "slug": "ethics-dashboard",
-    "status": "down",
-    "uptime": "100.00%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
-    "time": 135,
-    "timeDay": 125,
-    "timeWeek": 135,
-    "timeMonth": 135,
-    "timeYear": 135,
-    "dailyMinutesDown": {}
+    "status": "up",
+    "uptime": "99.79%",
+    "uptimeDay": "99.66%",
+    "uptimeWeek": "99.79%",
+    "uptimeMonth": "99.79%",
+    "uptimeYear": "99.79%",
+    "time": 137,
+    "timeDay": 129,
+    "timeWeek": 137,
+    "timeMonth": 137,
+    "timeYear": 137,
+    "dailyMinutesDown": {
+      "2026-05-08": 5
+    }
   }
 ]
