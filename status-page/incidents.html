@@ -120,12 +120,40 @@
       color: #141413;
     }
 
-    .incident-title a {
-      color: #141413;
-      text-decoration: none;
+    .incident-chevron {
+      font-size: 0.7rem;
+      color: #B0ADA4;
+      transition: transform 0.18s ease;
+      line-height: 1;
+      flex-shrink: 0;
     }
 
-    .incident-title a:hover { text-decoration: underline; }
+    .incident-chevron.rotated { transform: rotate(180deg); }
+
+    .incident-top { cursor: pointer; user-select: none; }
+
+    .incident-details {
+      display: none;
+      padding-top: 0.7rem;
+      margin-top: 0.7rem;
+      border-top: 1px solid #F0EEE8;
+    }
+
+    .incident-details.expanded { display: block; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.78rem;
+      color: #5C5A54;
+      padding: 0.18rem 0;
+    }
+
+    .detail-label {
+      color: #87867F;
+      font-weight: 500;
+      min-width: 130px;
+    }
 
     .incident-badge {
       font-size: 0.67rem;
@@ -159,16 +187,6 @@
       font-weight: 500;
       padding: 0.1em 0.5em;
       border-radius: 3px;
-    }
-
-    .incident-body {
-      font-size: 0.8rem;
-      color: #5C5A54;
-      margin-top: 0.6rem;
-      padding-top: 0.6rem;
-      border-top: 1px solid #F0EEE8;
-      white-space: pre-wrap;
-      line-height: 1.55;
     }
 
     /* ── Empty state ── */
@@ -285,47 +303,46 @@
     return labels.map(l => map[l.name]).filter(Boolean);
   }
 
-  function cleanBody(body) {
-    if (!body) return '';
-    return body
-      .replace(/<!--[\s\S]*?-->/g, '')
-      .replace(/\*\*Affected\smonitor[s]?\*\*:.*?\n/gi, '')
-      .replace(/\[Upptime\][\s\S]*$/i, '')
-      .trim()
-      .slice(0, 500);
-  }
-
   function renderCard(issue) {
     const isOpen = issue.state === 'open';
     const services = serviceLabels(issue.labels);
-    const body = cleanBody(issue.body);
 
     const card = document.createElement('div');
     card.className = `incident-card ${isOpen ? 'open' : 'closed'}`;
 
     const serviceTags = services.map(s => `<span class="service-tag">${s}</span>`).join(' ');
 
-    const metaParts = [`Opened ${fmtDateTime(issue.created_at)}`];
+    let detailRows = `<div class="detail-row"><span class="detail-label">Went down</span><span>${fmtDateTime(issue.created_at)}</span></div>`;
     if (!isOpen && issue.closed_at) {
-      metaParts.push(`Resolved ${fmtDateTime(issue.closed_at)}`);
-      metaParts.push(`Duration: ${duration(issue.created_at, issue.closed_at)}`);
+      detailRows += `<div class="detail-row"><span class="detail-label">Came back up</span><span>${fmtDateTime(issue.closed_at)}</span></div>`;
+      detailRows += `<div class="detail-row"><span class="detail-label">Total downtime</span><span>${duration(issue.created_at, issue.closed_at)}</span></div>`;
+    } else {
+      detailRows += `<div class="detail-row"><span class="detail-label">Status</span><span>Ongoing</span></div>`;
     }
 
     card.innerHTML = `
       <div class="incident-top">
-        <div class="incident-title">
-          <a href="${issue.html_url}" target="_blank" rel="noopener">${issue.title}</a>
+        <div>
+          <div class="incident-title">${issue.title}</div>
+          ${serviceTags ? `<div style="margin-top:0.3rem">${serviceTags}</div>` : ''}
         </div>
-        <span class="incident-badge ${isOpen ? 'badge-ongoing' : 'badge-resolved'}">
-          ${isOpen ? 'Ongoing' : 'Resolved'}
-        </span>
+        <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0">
+          <span class="incident-badge ${isOpen ? 'badge-ongoing' : 'badge-resolved'}">
+            ${isOpen ? 'Ongoing' : 'Resolved'}
+          </span>
+          <span class="incident-chevron">▾</span>
+        </div>
       </div>
-      <div class="incident-meta">
-        ${serviceTags}
-        ${metaParts.join('<span style="color:#DEDCD1"> · </span>')}
+      <div class="incident-details">
+        ${detailRows}
       </div>
-      ${body ? `<div class="incident-body">${body}</div>` : ''}
     `;
+
+    card.querySelector('.incident-top').addEventListener('click', () => {
+      card.querySelector('.incident-details').classList.toggle('expanded');
+      card.querySelector('.incident-chevron').classList.toggle('rotated');
+    });
+
     return card;
   }
 

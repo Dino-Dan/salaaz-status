@@ -1,9 +1,6 @@
 name: Custom Status Page
 
 on:
-  workflow_run:
-    workflows: ["Static Site CI"]
-    types: [completed]
   push:
     branches: [master]
     paths: [status-page/**]
@@ -13,7 +10,7 @@ jobs:
   deploy:
     name: Deploy custom index to gh-pages
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'workflow_run' || github.event.workflow_run.conclusion == 'success' }}
+    if: true
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
