@@ -234,7 +234,7 @@
   </div>
 
   <div id="ongoing-section" style="display:none">
-    <div class="section-label">Ongoing</div>
+    <div class="section-label">Active Incidents</div>
     <div id="ongoing-list"></div>
     <div style="margin-bottom:2rem"></div>
   </div>
@@ -343,7 +343,7 @@
 
     const badge = document.createElement('span');
     badge.className = 'badge ' + (isOpen ? 'badge-ongoing' : 'badge-resolved');
-    badge.textContent = isOpen ? 'Ongoing' : 'Resolved';
+    badge.textContent = isOpen ? 'Active' : 'Resolved';
 
     const chev = document.createElement('span');
     chev.className = 'chevron';
@@ -372,13 +372,13 @@
       details.appendChild(row);
     }
 
-    addRow('Went down', fmtDateTime(issue.created_at));
+    addRow('Degradation detected', fmtDateTime(issue.created_at));
     if (code) addRow('Status code', code);
     if (!isOpen && issue.closed_at) {
-      addRow('Came back up', fmtDateTime(issue.closed_at));
-      addRow('Total downtime', duration(issue.created_at, issue.closed_at).trim());
+      addRow('Service restored', fmtDateTime(issue.closed_at));
+      addRow('Duration of impact', duration(issue.created_at, issue.closed_at).trim());
     } else {
-      addRow('Duration so far', duration(issue.created_at, new Date().toISOString()).trim());
+      addRow('Impact duration', duration(issue.created_at, new Date().toISOString()).trim());
     }
 
     card.appendChild(details);
