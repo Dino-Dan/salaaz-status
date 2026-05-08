@@ -16,13 +16,11 @@
 
 name: Response Time CI
 on:
+  schedule:
+    - cron: "0 23 * * *"
   repository_dispatch:
     types: [response_time]
   workflow_dispatch:
-concurrency:
-  group: upptime-master
-  cancel-in-progress: false
-
 jobs:
   release:
     name: Check status
@@ -31,30 +29,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: master
-          fetch-depth: 0
+          ref: ${{ github.head_ref }}
           token: ${{ secrets.GH_PAT || github.token }}
-      - name: Install git push wrapper
-        run: |
-          sudo mv /usr/bin/git /usr/bin/git.real
-          sudo tee /usr/bin/git > /dev/null << 'WRAPPER'
-          #!/bin/bash
-          if [ "$1" = "push" ]; then
-            echo "[git-wrapper] intercepting push..."
-            for i in 1 2 3; do
-              /usr/bin/git.real "$@" && exit 0
-              echo "[git-wrapper] push attempt $i failed, rebasing..."
-              /usr/bin/git.real pull --rebase -X ours origin master || \
-                /usr/bin/git.real rebase --abort 2>/dev/null || true
-              sleep $((i * 5))
-            done
-            /usr/bin/git.real "$@"
-            exit $?
-          fi
-          exec /usr/bin/git.real "$@"
-          WRAPPER
-          sudo chmod +x /usr/bin/git
-          git --version
       - name: Update response time
         uses: upptime/uptime-monitor@v1.41.3
         with:
