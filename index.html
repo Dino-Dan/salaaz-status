@@ -315,14 +315,19 @@
       border-radius: 8px;
       padding: 0.85rem 1.25rem;
       margin-bottom: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .incident-row:hover { border-color: #C8C6BC; }
+    .incident-row.open   { border-left: 3px solid #E04343; }
+    .incident-row.closed { border-left: 3px solid #76AD2A; }
+
+    .incident-row-top {
       display: flex;
       align-items: flex-start;
       justify-content: space-between;
       gap: 1rem;
     }
-
-    .incident-row.open { border-left: 3px solid #E04343; }
-    .incident-row.closed { border-left: 3px solid #76AD2A; }
 
     .incident-row-title {
       font-size: 0.875rem;
@@ -330,17 +335,17 @@
       color: #141413;
     }
 
-    .incident-row-title a {
-      color: #141413;
-      text-decoration: none;
-    }
-
-    .incident-row-title a:hover { text-decoration: underline; }
-
     .incident-row-meta {
       font-size: 0.72rem;
       color: #87867F;
       margin-top: 0.2rem;
+    }
+
+    .incident-row-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
     }
 
     .incident-row-badge {
@@ -356,6 +361,40 @@
 
     .badge-ongoing  { background: #FDEAEA; color: #B02020; }
     .badge-resolved { background: #EBF5D6; color: #2D5A0C; }
+
+    .incident-chevron {
+      font-size: 0.7rem;
+      color: #B0ADA4;
+      transition: transform 0.18s ease;
+      flex-shrink: 0;
+    }
+    .incident-chevron.open { transform: rotate(180deg); }
+
+    .incident-details {
+      display: none;
+      margin-top: 0.65rem;
+      padding-top: 0.65rem;
+      border-top: 1px solid #F0EEE8;
+    }
+    .incident-details.visible { display: block; }
+
+    .incident-detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      color: #5C5A54;
+      padding: 0.2rem 0;
+      gap: 1rem;
+    }
+
+    .incident-detail-label {
+      color: #87867F;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 120px;
+    }
 
     .no-incidents {
       background: #FFFFFF;
@@ -439,7 +478,10 @@
   </div>
 
   <div class="incidents-section">
-    <div class="section-label">Past Incidents</div>
+    <div class="incidents-header">
+      <div class="section-label" style="margin-bottom:0">Past Incidents</div>
+      <a href="/incidents.html">View all →</a>
+    </div>
     <div id="past-incidents">
       <div class="skeleton-card" style="height:52px;margin-bottom:0.5rem"></div>
       <div class="skeleton-card" style="height:52px"></div>
@@ -650,46 +692,130 @@
   }
 
   // ── Past Incidents ──
-  function fmtDate(iso) {
-    return new Date(iso).toLocaleDateString('en-US', {
-      month: 'short', day: 'numeric', year: 'numeric'
+  function fmtDateTime(iso) {
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
     });
+  }
+
+  function incidentDuration(a, b) {
+    const secs = Math.round((new Date(b) - new Date(a)) / 1000);
+    if (secs < 60) return secs + 's';
+    const mins = Math.floor(secs / 60), remS = secs % 60;
+    if (mins < 60) return mins + 'm ' + (remS > 0 ? remS + 's' : '');
+    const hrs = Math.floor(mins / 60), remM = mins % 60;
+    return hrs + 'h ' + (remM > 0 ? remM + 'm' : '');
+  }
+
+  function incidentServiceName(title) {
+    let t = title.replace(/^[^\p{L}\p{N}]+/u, '').trim();
+    for (const s of [' is down', ' is degraded', ' has degraded performance']) {
+      if (t.toLowerCase().includes(s)) { t = t.slice(0, t.toLowerCase().indexOf(s)); break; }
+    }
+    return t.trim();
+  }
+
+  function incidentStatusCode(title) {
+    const m = title.match(/\((\d+)\s+in/);
+    return m ? m[1] : null;
+  }
+
+  function makeIncidentCard(issue) {
+    const isOpen = issue.state === 'open';
+    const service = incidentServiceName(issue.title);
+    const code = incidentStatusCode(issue.title);
+
+    const row = document.createElement('div');
+    row.className = 'incident-row ' + (isOpen ? 'open' : 'closed');
+
+    const top = document.createElement('div');
+    top.className = 'incident-row-top';
+
+    const left = document.createElement('div');
+
+    const title = document.createElement('div');
+    title.className = 'incident-row-title';
+    title.textContent = service;
+
+    const meta = document.createElement('div');
+    meta.className = 'incident-row-meta';
+    meta.textContent = isOpen
+      ? 'Since ' + fmtDateTime(issue.created_at)
+      : 'Resolved ' + fmtDateTime(issue.closed_at || issue.created_at);
+
+    left.appendChild(title);
+    left.appendChild(meta);
+
+    const right = document.createElement('div');
+    right.className = 'incident-row-right';
+
+    const badge = document.createElement('span');
+    badge.className = 'incident-row-badge ' + (isOpen ? 'badge-ongoing' : 'badge-resolved');
+    badge.textContent = isOpen ? 'Ongoing' : 'Resolved';
+
+    const chev = document.createElement('span');
+    chev.className = 'incident-chevron';
+    chev.textContent = '▾';
+
+    right.appendChild(badge);
+    right.appendChild(chev);
+
+    top.appendChild(left);
+    top.appendChild(right);
+    row.appendChild(top);
+
+    const details = document.createElement('div');
+    details.className = 'incident-details';
+
+    function addDetailRow(label, value) {
+      const r = document.createElement('div');
+      r.className = 'incident-detail-row';
+      const l = document.createElement('span');
+      l.className = 'incident-detail-label';
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.textContent = value;
+      r.appendChild(l);
+      r.appendChild(v);
+      details.appendChild(r);
+    }
+
+    addDetailRow('Went down', fmtDateTime(issue.created_at));
+    if (code) addDetailRow('Status code', code);
+    if (!isOpen && issue.closed_at) {
+      addDetailRow('Came back up', fmtDateTime(issue.closed_at));
+      addDetailRow('Total downtime', incidentDuration(issue.created_at, issue.closed_at).trim());
+    } else {
+      addDetailRow('Duration so far', incidentDuration(issue.created_at, new Date().toISOString()).trim());
+    }
+
+    row.appendChild(details);
+
+    row.addEventListener('click', function () {
+      const open = details.classList.toggle('visible');
+      chev.classList.toggle('open', open);
+    });
+
+    return row;
   }
 
   async function loadIncidents() {
     const el = document.getElementById('past-incidents');
     try {
       const issues = await fetch(
-        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=all&per_page=10&sort=created&direction=desc'
+        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=all&per_page=10&sort=created&direction=desc&labels=status'
       ).then(r => r.json());
-
-      const incidents = issues.filter(i => !i.pull_request);
 
       el.innerHTML = '';
 
-      if (incidents.length === 0) {
-        el.innerHTML = '<div class="no-incidents">No incidents recorded in the past 90 days.</div>';
+      if (!issues.length) {
+        el.innerHTML = '<div class="no-incidents">No incidents recorded yet.</div>';
         return;
       }
 
-      incidents.slice(0, 5).forEach(issue => {
-        const isOpen = issue.state === 'open';
-        const row = document.createElement('div');
-        row.className = `incident-row ${isOpen ? 'open' : 'closed'}`;
-        row.innerHTML = `
-          <div>
-            <div class="incident-row-title">
-              <a href="${issue.html_url}" target="_blank" rel="noopener">${issue.title}</a>
-            </div>
-            <div class="incident-row-meta">
-              ${isOpen ? `Opened ${fmtDate(issue.created_at)}` : `Resolved ${fmtDate(issue.closed_at || issue.created_at)}`}
-            </div>
-          </div>
-          <span class="incident-row-badge ${isOpen ? 'badge-ongoing' : 'badge-resolved'}">
-            ${isOpen ? 'Ongoing' : 'Resolved'}
-          </span>
-        `;
-        el.appendChild(row);
+      issues.slice(0, 5).forEach(function (issue) {
+        el.appendChild(makeIncidentCard(issue));
       });
 
     } catch (_) {
