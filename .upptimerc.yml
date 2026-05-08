@@ -4,7 +4,7 @@ repo: salaaz-status
 
 sites:
   - name: Salaaz Marketplace
-    url: https://down.salaaz.com/
+    url: https://salaaz.com/
     expectedStatusCodes:
       - 200
   - name: Vendor Portal
