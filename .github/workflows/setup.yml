@@ -30,14 +30,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.head_ref }}
+          ref: master
           token: ${{ secrets.GH_PAT || github.token }}
-      - name: Update template
-        uses: upptime/uptime-monitor@v1.41.3
-        with:
-          command: "update-template"
-        env:
-          GH_PAT: ${{ secrets.GH_PAT || github.token }}
       - name: Update response time
         uses: upptime/uptime-monitor@v1.41.3
         with:
@@ -62,6 +56,10 @@ jobs:
           command: "site"
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
+      - name: Overlay custom pages
+        run: |
+          cp status-page/index.html site/status-page/__sapper__/export/index.html
+          cp status-page/incidents.html site/status-page/__sapper__/export/incidents.html
       - uses: peaceiris/actions-gh-pages@v4
         name: GitHub Pages Deploy
         with:
