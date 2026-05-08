@@ -21,9 +21,6 @@ on:
   repository_dispatch:
     types: [updates]
   workflow_dispatch:
-concurrency:
-  group: upptime-master
-  cancel-in-progress: false
 jobs:
   release:
     name: Deploy updates
