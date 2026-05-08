@@ -406,6 +406,70 @@
       font-size: 0.85rem;
     }
 
+    /* ── Component toggle & panel ── */
+    .card-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 1.25rem;
+      border-top: 1px solid #F0EEE8;
+      cursor: pointer;
+      user-select: none;
+    }
+    .card-toggle:hover { background: #FAFAF7; }
+
+    .card-toggle-label {
+      font-size: 0.72rem;
+      font-weight: 500;
+      color: #87867F;
+    }
+
+    .card-toggle-chev {
+      font-size: 0.65rem;
+      color: #B0ADA4;
+      transition: transform 0.18s ease;
+    }
+    .card-toggle-chev.open { transform: rotate(180deg); }
+
+    .card-components {
+      display: none;
+      padding: 0.25rem 1.25rem 0.75rem;
+      border-top: 1px solid #F0EEE8;
+    }
+    .card-components.visible { display: block; }
+
+    .component-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.32rem 0;
+      border-bottom: 1px solid #F5F4F0;
+    }
+    .component-row:last-child { border-bottom: none; }
+
+    .component-name {
+      font-size: 0.8rem;
+      color: #3A3935;
+    }
+
+    .comp-badge {
+      font-size: 0.62rem;
+      font-weight: 600;
+      padding: 0.18em 0.55em;
+      border-radius: 3px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      flex-shrink: 0;
+    }
+    .comp-operational { background: #EBF5D6; color: #2D5A0C; }
+    .comp-affected    { background: #FDEAEA; color: #B02020; }
+    .comp-degraded    { background: #FEF5E0; color: #7A4E0C; }
+    .comp-planned     { background: #EDECE8; color: #87867F; }
+
+    /* ── Planned service card ── */
+    .card.is-planned { opacity: 0.82; }
+    .tag-planned { background: #E8E6DF; color: #6B6A64; }
+
     /* ── Footer ── */
     footer {
       border-top: 1px solid #DEDCD1;
@@ -475,6 +539,9 @@
     <div class="legend-item">
       <div class="legend-swatch" style="background:#D1D0C9"></div>No data
     </div>
+    <div class="legend-item">
+      <div class="legend-swatch" style="background:#E8E6DF"></div>Planned
+    </div>
   </div>
 
   <div class="incidents-section">
@@ -495,6 +562,98 @@
 
 <script>
   const RAW = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master';
+
+  // ── Sub-components per Upptime slug ──
+  const SUB_COMPONENTS = {
+    'salaaz-marketplace': [
+      'Authentication (Clerk)',
+      'Product Catalog & Browse',
+      'Search',
+      'Cart',
+      'Wishlist',
+      'Checkout',
+      'Payments (Square)',
+      'Order Management',
+      'Shipping & Tracking (StallionExpress)',
+      'Vendor Storefronts',
+      'Ethics Ratings',
+      'Multi-currency & i18n',
+    ],
+    'vendor-portal': [
+      'Authentication (Clerk)',
+      'Dashboard Overview',
+      'Inventory Management',
+      'Bulk Product Upload',
+      'Order Management',
+      'Storefront Builder',
+      'Analytics & Reporting',
+      'Onboarding & Certifications',
+      'Account Settings',
+    ],
+    'ethics-dashboard': [
+      'Authentication (Clerk)',
+      'Vendor Approval',
+      'Product Approval',
+      'Order Oversight',
+      'Customer Management',
+      'Returns Management',
+      'Analytics & Reporting',
+      'Ethics Certifications',
+      'Audit Log',
+    ],
+  };
+
+  // ── Services not yet live — rendered as static "Planned" cards ──
+  const PLANNED_SERVICES = [
+    {
+      name: 'Marketplace API',
+      slug: 'marketplace-api',
+      url: 'api.salaaz.com',
+      components: [
+        'Auth (Clerk JWT)',
+        'Products API',
+        'Cart API',
+        'Wishlist API',
+        'Orders API',
+        'Payments API (Square)',
+        'Shipping API (StallionExpress)',
+        'Analytics API',
+        'Admin API',
+        'Shopify Integration',
+        'Webhooks',
+      ],
+    },
+    {
+      name: 'Salaaz Mobile App',
+      slug: 'mobile-app',
+      url: 'iOS & Android',
+      components: [
+        'Authentication (Clerk)',
+        'Home Feed & Browse',
+        'Product Detail & Ethics Ratings',
+        'Cart',
+        'Wishlist',
+        'Checkout & Payments (Square)',
+        'Order Tracking',
+        'Push Notifications',
+        'Vendor Storefronts',
+      ],
+    },
+    {
+      name: 'Consulting Portal',
+      slug: 'consulting-portal',
+      url: 'consulting.salaaz.com',
+      components: [
+        'Client Authentication',
+        'Migration Request Submission',
+        'Automation Engine (Celery)',
+        'Admin Dashboard',
+        'Request Status Tracking',
+        'Email Notifications',
+        'File Storage (S3)',
+      ],
+    },
+  ];
 
   const VENDOR_PORTAL_ICON = 'data:image/svg+xml;base64,' + btoa(
     '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -654,6 +813,101 @@
 
     card.appendChild(header);
     card.appendChild(barSection);
+
+    // ── Expandable sub-components ──
+    const components = SUB_COMPONENTS[service.slug] || [];
+    if (components.length) {
+      appendComponentPanel(card, components, service.status);
+    }
+
+    return card;
+  }
+
+  // ── Shared helper: append toggle + panel to any card ──
+  function appendComponentPanel(card, components, parentStatus) {
+    const compStatus = parentStatus === 'down'    ? 'affected'
+                     : parentStatus === 'degraded' ? 'degraded'
+                     : parentStatus === 'planned'  ? 'planned'
+                     : 'operational';
+    const compLabel  = compStatus === 'affected'  ? 'Affected'
+                     : compStatus === 'degraded'  ? 'Degraded'
+                     : compStatus === 'planned'   ? 'Planned'
+                     : 'Operational';
+
+    const toggle = document.createElement('div');
+    toggle.className = 'card-toggle';
+
+    const toggleLabel = document.createElement('span');
+    toggleLabel.className = 'card-toggle-label';
+    toggleLabel.textContent = 'Components (' + components.length + ')';
+
+    const chev = document.createElement('span');
+    chev.className = 'card-toggle-chev';
+    chev.textContent = '▾';
+
+    toggle.appendChild(toggleLabel);
+    toggle.appendChild(chev);
+
+    const panel = document.createElement('div');
+    panel.className = 'card-components';
+
+    components.forEach(function (name) {
+      const row = document.createElement('div');
+      row.className = 'component-row';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'component-name';
+      nameEl.textContent = name;
+
+      const badge = document.createElement('span');
+      badge.className = 'comp-badge comp-' + compStatus;
+      badge.textContent = compLabel;
+
+      row.appendChild(nameEl);
+      row.appendChild(badge);
+      panel.appendChild(row);
+    });
+
+    toggle.addEventListener('click', function () {
+      const open = panel.classList.toggle('visible');
+      chev.classList.toggle('open', open);
+    });
+
+    card.appendChild(toggle);
+    card.appendChild(panel);
+  }
+
+  // ── Render a planned (not-yet-live) service card ──
+  function renderPlannedCard(service) {
+    const card = document.createElement('div');
+    card.className = 'card is-planned';
+
+    const header = document.createElement('div');
+    header.className = 'card-header';
+
+    const info = document.createElement('div');
+    info.className = 'service-info';
+
+    const textWrap = document.createElement('div');
+    const nameEl = document.createElement('div');
+    nameEl.className = 'service-name';
+    nameEl.textContent = service.name;
+    const urlEl = document.createElement('div');
+    urlEl.className = 'service-url';
+    urlEl.textContent = service.url;
+    textWrap.appendChild(nameEl);
+    textWrap.appendChild(urlEl);
+    info.appendChild(textWrap);
+
+    const badge = document.createElement('span');
+    badge.className = 'tag tag-planned';
+    badge.textContent = 'Planned';
+
+    header.appendChild(info);
+    header.appendChild(badge);
+    card.appendChild(header);
+
+    appendComponentPanel(card, service.components, 'planned');
     return card;
   }
 
@@ -843,6 +1097,9 @@
       servicesEl.innerHTML = '';
       summary.forEach((service, i) => {
         servicesEl.appendChild(renderCard(service, startDates[i]));
+      });
+      PLANNED_SERVICES.forEach(function (s) {
+        servicesEl.appendChild(renderPlannedCard(s));
       });
 
       loadIncidents();
