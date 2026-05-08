@@ -1,0 +1,95 @@
+name: Discord Site Alerts
+
+on:
+  issues:
+    types: [opened, closed]
+
+jobs:
+  notify-down:
+    name: Notify Down
+    runs-on: ubuntu-latest
+    if: github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'down')
+    steps:
+      - name: Post down alert to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TITLE: ${{ github.event.issue.title }}
+          URL: ${{ github.event.issue.html_url }}
+        run: |
+          python3 -c "
+          import json, os, urllib.request
+          payload = {
+            'content': '@here',
+            'embeds': [{
+              'title': os.environ['TITLE'],
+              'url': os.environ['URL'],
+              'color': 15158332,
+              'description': 'A Salaaz service has gone down. Check the status page for details.'
+            }]
+          }
+          req = urllib.request.Request(
+            os.environ['WEBHOOK'],
+            data=json.dumps(payload).encode(),
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+          )
+          urllib.request.urlopen(req)
+          print('Down alert sent')
+          "
+
+  notify-up:
+    name: Notify Recovery
+    runs-on: ubuntu-latest
+    if: github.event.action == 'closed' && contains(github.event.issue.labels.*.name, 'down')
+    steps:
+      - name: Post recovery alert to Discord
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          TITLE: ${{ github.event.issue.title }}
+          URL: ${{ github.event.issue.html_url }}
+          CREATED_AT: ${{ github.event.issue.created_at }}
+          CLOSED_AT: ${{ github.event.issue.closed_at }}
+        run: |
+          python3 -c "
+          import json, os, urllib.request
+          from datetime import datetime
+
+          created = datetime.fromisoformat(os.environ['CREATED_AT'].replace('Z', '+00:00'))
+          closed = datetime.fromisoformat(os.environ['CLOSED_AT'].replace('Z', '+00:00'))
+          total_seconds = int((closed - created).total_seconds())
+          hours = total_seconds // 3600
+          minutes = (total_seconds % 3600) // 60
+          seconds = total_seconds % 60
+
+          if hours > 0:
+              duration = f'{hours}h {minutes}m'
+          elif minutes > 0:
+              duration = f'{minutes}m {seconds}s'
+          else:
+              duration = f'{seconds}s'
+
+          title = os.environ['TITLE']
+          for suffix in [' is down', ' is degraded']:
+              if suffix in title:
+                  title = title.split(suffix)[0]
+                  break
+          site = title.strip()
+
+          payload = {
+            'content': f'✅ **{site} is back up** — was down for {duration}',
+            'embeds': [{
+              'title': f'{site} has recovered',
+              'url': os.environ['URL'],
+              'color': 3066993,
+              'description': f'Service restored after **{duration}** of downtime.'
+            }]
+          }
+          req = urllib.request.Request(
+            os.environ['WEBHOOK'],
+            data=json.dumps(payload).encode(),
+            headers={'Content-Type': 'application/json'},
+            method='POST'
+          )
+          urllib.request.urlopen(req)
+          print(f'Recovery alert sent. Downtime: {duration}')
+          "

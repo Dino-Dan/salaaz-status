@@ -312,9 +312,5 @@ status-website:
       scroll-behavior: smooth !important;
     }
 
-notifications:
-  - type: discord
-    webhookUrl: $DISCORD_WEBHOOK_URL
-
 # Upptime also supports notifications, assigning issues, and more
 # See https://upptime.js.org/docs/configuration
