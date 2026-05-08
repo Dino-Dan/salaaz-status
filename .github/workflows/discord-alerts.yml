@@ -8,7 +8,7 @@ jobs:
   notify-down:
     name: Notify Down
     runs-on: ubuntu-latest
-    if: github.event.action == 'labeled' && github.event.label.name == 'down'
+    if: github.event.action == 'labeled' && github.event.label.name == 'status' && contains(github.event.issue.title, 'is down')
     steps:
       - name: Post down alert to Discord
         env:
@@ -17,11 +17,13 @@ jobs:
           URL: ${{ github.event.issue.html_url }}
         run: |
           python3 -c "
-          import json, os, urllib.request
+          import json, os, re, urllib.request
+          raw = os.environ['TITLE']
+          site = re.sub(r'^[^\w]+\s*', '', raw.split(' is down')[0].split(' is degraded')[0]).strip()
           payload = {
             'content': '@here',
             'embeds': [{
-              'title': os.environ['TITLE'],
+              'title': f'{site} is down',
               'url': os.environ['URL'],
               'color': 15158332,
               'description': 'A Salaaz service has gone down. Check the status page for details.'
@@ -40,7 +42,7 @@ jobs:
   notify-up:
     name: Notify Recovery
     runs-on: ubuntu-latest
-    if: github.event.action == 'closed' && contains(github.event.issue.labels.*.name, 'down')
+    if: github.event.action == 'closed' && contains(github.event.issue.labels.*.name, 'status') && contains(github.event.issue.title, 'is down')
     steps:
       - name: Post recovery alert to Discord
         env:
@@ -68,12 +70,13 @@ jobs:
           else:
               duration = f'{seconds}s'
 
-          title = os.environ['TITLE']
+          import re
+          raw = os.environ['TITLE']
           for suffix in [' is down', ' is degraded']:
-              if suffix in title:
-                  title = title.split(suffix)[0]
+              if suffix in raw:
+                  raw = raw.split(suffix)[0]
                   break
-          site = title.strip()
+          site = re.sub(r'^[^\w]+\s*', '', raw).strip()
 
           payload = {
             'content': f'✅ **{site} is back up** — was down for {duration}',
