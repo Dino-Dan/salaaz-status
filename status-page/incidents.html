@@ -19,7 +19,6 @@
       min-height: 100vh;
     }
 
-    /* ── Nav ── */
     nav {
       background: #FAF9F5;
       border-bottom: 1px solid #DEDCD1;
@@ -42,7 +41,6 @@
       text-decoration: none;
     }
 
-    /* ── Layout ── */
     main {
       max-width: 860px;
       margin: 0 auto;
@@ -58,11 +56,7 @@
       gap: 0.5rem;
     }
 
-    .page-title {
-      font-size: 1.3rem;
-      font-weight: 600;
-      color: #141413;
-    }
+    .page-title { font-size: 1.3rem; font-weight: 600; }
 
     .back-link {
       font-size: 0.8rem;
@@ -70,10 +64,8 @@
       text-decoration: none;
       font-weight: 500;
     }
-
     .back-link:hover { color: #141413; }
 
-    /* ── Section label ── */
     .section-label {
       font-size: 0.68rem;
       font-weight: 600;
@@ -83,11 +75,10 @@
       margin-bottom: 0.6rem;
     }
 
-    /* ── Month group ── */
     .incident-group { margin-bottom: 2rem; }
 
-    .incident-month {
-      font-size: 0.8rem;
+    .incident-day {
+      font-size: 0.78rem;
       font-weight: 600;
       color: #141413;
       padding-bottom: 0.5rem;
@@ -95,101 +86,96 @@
       border-bottom: 1px solid #EDECE8;
     }
 
-    /* ── Incident card ── */
     .incident-card {
       background: #FFFFFF;
       border: 1px solid #DEDCD1;
       border-radius: 8px;
       padding: 1rem 1.25rem;
       margin-bottom: 0.5rem;
+      cursor: pointer;
+      user-select: none;
     }
+    .incident-card:hover { border-color: #C8C6BC; }
+    .incident-card.is-open   { border-left: 3px solid #E04343; }
+    .incident-card.is-closed { border-left: 3px solid #76AD2A; }
 
-    .incident-card.open   { border-left: 3px solid #E04343; }
-    .incident-card.closed { border-left: 3px solid #76AD2A; }
-
-    .incident-top {
+    .card-top {
       display: flex;
-      align-items: flex-start;
+      align-items: center;
       justify-content: space-between;
       gap: 1rem;
     }
 
-    .incident-title {
+    .card-left { min-width: 0; }
+
+    .card-service {
       font-size: 0.875rem;
       font-weight: 500;
       color: #141413;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
 
-    .incident-chevron {
-      font-size: 0.7rem;
-      color: #B0ADA4;
-      transition: transform 0.18s ease;
-      line-height: 1;
+    .card-time {
+      font-size: 0.72rem;
+      color: #87867F;
+      margin-top: 0.15rem;
+    }
+
+    .card-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
       flex-shrink: 0;
     }
 
-    .incident-chevron.rotated { transform: rotate(180deg); }
-
-    .incident-top { cursor: pointer; user-select: none; }
-
-    .incident-details {
-      display: none;
-      padding-top: 0.7rem;
-      margin-top: 0.7rem;
-      border-top: 1px solid #F0EEE8;
-    }
-
-    .incident-details.expanded { display: block; }
-
-    .detail-row {
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.78rem;
-      color: #5C5A54;
-      padding: 0.18rem 0;
-    }
-
-    .detail-label {
-      color: #87867F;
-      font-weight: 500;
-      min-width: 130px;
-    }
-
-    .incident-badge {
+    .badge {
       font-size: 0.67rem;
       font-weight: 600;
       padding: 0.22em 0.6em;
       border-radius: 4px;
       white-space: nowrap;
-      flex-shrink: 0;
       letter-spacing: 0.03em;
       text-transform: uppercase;
     }
-
     .badge-ongoing  { background: #FDEAEA; color: #B02020; }
     .badge-resolved { background: #EBF5D6; color: #2D5A0C; }
 
-    .incident-meta {
-      font-size: 0.72rem;
-      color: #87867F;
-      margin-top: 0.35rem;
+    .chevron {
+      font-size: 0.7rem;
+      color: #B0ADA4;
+      transition: transform 0.18s ease;
+      flex-shrink: 0;
+    }
+    .chevron.open { transform: rotate(180deg); }
+
+    .card-details {
+      display: none;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #F0EEE8;
+    }
+    .card-details.visible { display: block; }
+
+    .detail-row {
       display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      gap: 0.25rem 0.75rem;
-    }
-
-    .service-tag {
-      display: inline-block;
-      background: #F0EEE8;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
       color: #5C5A54;
-      font-size: 0.67rem;
-      font-weight: 500;
-      padding: 0.1em 0.5em;
-      border-radius: 3px;
+      padding: 0.2rem 0;
+      gap: 1rem;
     }
 
-    /* ── Empty state ── */
+    .detail-label {
+      color: #87867F;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 120px;
+    }
+
     .no-incidents {
       background: #FFFFFF;
       border: 1px solid #DEDCD1;
@@ -200,7 +186,6 @@
       font-size: 0.875rem;
     }
 
-    /* ── Skeleton ── */
     .skeleton-card {
       background: #FFFFFF;
       border: 1px solid #DEDCD1;
@@ -208,20 +193,17 @@
       padding: 1rem 1.25rem;
       margin-bottom: 0.5rem;
     }
-
     .skeleton-line {
       border-radius: 4px;
       background: linear-gradient(90deg, #EDECE8 25%, #E3E2DE 50%, #EDECE8 75%);
       background-size: 400% 100%;
       animation: shimmer 1.4s infinite;
     }
-
     @keyframes shimmer {
       0%   { background-position: 100% 0; }
       100% { background-position: -100% 0; }
     }
 
-    /* ── Footer ── */
     footer {
       border-top: 1px solid #DEDCD1;
       padding: 1.5rem;
@@ -233,7 +215,6 @@
 
     @media (max-width: 600px) {
       main { padding: 1.25rem 1rem 3rem; }
-      .incident-top { flex-direction: column; gap: 0.4rem; }
     }
   </style>
 </head>
@@ -280,6 +261,18 @@
 <script>
   const API = 'https://api.github.com/repos/Dino-Dan/salaaz-status';
 
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  function fmtTime(iso) {
+    return new Date(iso).toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+    });
+  }
+
   function fmtDateTime(iso) {
     return new Date(iso).toLocaleString('en-US', {
       month: 'short', day: 'numeric', year: 'numeric',
@@ -287,60 +280,112 @@
     });
   }
 
-  function monthKey(iso) {
-    return new Date(iso).toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+  function dayKey(iso) {
+    const d = new Date(iso);
+    return d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
-  function duration(openedIso, closedIso) {
-    const mins = Math.round((new Date(closedIso) - new Date(openedIso)) / 60000);
-    if (mins < 60) return `${mins}m`;
-    const hrs = Math.floor(mins / 60), rem = mins % 60;
-    return rem ? `${hrs}h ${rem}m` : `${hrs}h`;
+  function dayLabel(iso) {
+    return new Date(iso).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
   }
 
-  function serviceLabels(labels) {
-    const map = { 'webstore': 'Webstore', 'vendor-portal': 'Vendor Portal', 'ethics-dashboard': 'Ethics Dashboard' };
-    return labels.map(l => map[l.name]).filter(Boolean);
+  function duration(a, b) {
+    const secs = Math.round((new Date(b) - new Date(a)) / 1000);
+    if (secs < 60) return secs + 's';
+    const mins = Math.floor(secs / 60), remS = secs % 60;
+    if (mins < 60) return mins + 'm ' + (remS > 0 ? remS + 's' : '');
+    const hrs = Math.floor(mins / 60), remM = mins % 60;
+    return hrs + 'h ' + (remM > 0 ? remM + 'm' : '');
   }
 
-  function renderCard(issue) {
+  function serviceName(title) {
+    let t = title.replace(/^[^\p{L}\p{N}]+/u, '').trim();
+    for (const s of [' is down', ' is degraded', ' has degraded performance']) {
+      if (t.toLowerCase().includes(s)) { t = t.slice(0, t.toLowerCase().indexOf(s)); break; }
+    }
+    return t.trim();
+  }
+
+  function statusCode(title) {
+    const m = title.match(/\((\d+)\s+in/);
+    return m ? m[1] : null;
+  }
+
+  function makeCard(issue) {
     const isOpen = issue.state === 'open';
-    const services = serviceLabels(issue.labels);
+    const service = serviceName(issue.title);
+    const code = statusCode(issue.title);
 
     const card = document.createElement('div');
-    card.className = `incident-card ${isOpen ? 'open' : 'closed'}`;
+    card.className = 'incident-card ' + (isOpen ? 'is-open' : 'is-closed');
 
-    const serviceTags = services.map(s => `<span class="service-tag">${s}</span>`).join(' ');
+    const top = document.createElement('div');
+    top.className = 'card-top';
 
-    let detailRows = `<div class="detail-row"><span class="detail-label">Went down</span><span>${fmtDateTime(issue.created_at)}</span></div>`;
-    if (!isOpen && issue.closed_at) {
-      detailRows += `<div class="detail-row"><span class="detail-label">Came back up</span><span>${fmtDateTime(issue.closed_at)}</span></div>`;
-      detailRows += `<div class="detail-row"><span class="detail-label">Total downtime</span><span>${duration(issue.created_at, issue.closed_at)}</span></div>`;
-    } else {
-      detailRows += `<div class="detail-row"><span class="detail-label">Status</span><span>Ongoing</span></div>`;
+    const left = document.createElement('div');
+    left.className = 'card-left';
+
+    const svc = document.createElement('div');
+    svc.className = 'card-service';
+    svc.textContent = service;
+
+    const time = document.createElement('div');
+    time.className = 'card-time';
+    time.textContent = fmtTime(issue.created_at);
+
+    left.appendChild(svc);
+    left.appendChild(time);
+
+    const right = document.createElement('div');
+    right.className = 'card-right';
+
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (isOpen ? 'badge-ongoing' : 'badge-resolved');
+    badge.textContent = isOpen ? 'Ongoing' : 'Resolved';
+
+    const chev = document.createElement('span');
+    chev.className = 'chevron';
+    chev.textContent = '▾';
+
+    right.appendChild(badge);
+    right.appendChild(chev);
+
+    top.appendChild(left);
+    top.appendChild(right);
+    card.appendChild(top);
+
+    const details = document.createElement('div');
+    details.className = 'card-details';
+
+    function addRow(label, value) {
+      const row = document.createElement('div');
+      row.className = 'detail-row';
+      const l = document.createElement('span');
+      l.className = 'detail-label';
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.textContent = value;
+      row.appendChild(l);
+      row.appendChild(v);
+      details.appendChild(row);
     }
 
-    card.innerHTML = `
-      <div class="incident-top">
-        <div>
-          <div class="incident-title">${issue.title}</div>
-          ${serviceTags ? `<div style="margin-top:0.3rem">${serviceTags}</div>` : ''}
-        </div>
-        <div style="display:flex;align-items:center;gap:0.5rem;flex-shrink:0">
-          <span class="incident-badge ${isOpen ? 'badge-ongoing' : 'badge-resolved'}">
-            ${isOpen ? 'Ongoing' : 'Resolved'}
-          </span>
-          <span class="incident-chevron">▾</span>
-        </div>
-      </div>
-      <div class="incident-details">
-        ${detailRows}
-      </div>
-    `;
+    addRow('Went down', fmtDateTime(issue.created_at));
+    if (code) addRow('Status code', code);
+    if (!isOpen && issue.closed_at) {
+      addRow('Came back up', fmtDateTime(issue.closed_at));
+      addRow('Total downtime', duration(issue.created_at, issue.closed_at).trim());
+    } else {
+      addRow('Duration so far', duration(issue.created_at, new Date().toISOString()).trim());
+    }
 
-    card.querySelector('.incident-top').addEventListener('click', () => {
-      card.querySelector('.incident-details').classList.toggle('expanded');
-      card.querySelector('.incident-chevron').classList.toggle('rotated');
+    card.appendChild(details);
+
+    card.addEventListener('click', function() {
+      const open = details.classList.toggle('visible');
+      chev.classList.toggle('open', open);
     });
 
     return card;
@@ -349,25 +394,22 @@
   async function init() {
     try {
       const issues = await fetch(
-        `${API}/issues?state=all&per_page=100&sort=created&direction=desc`
-      ).then(r => {
+        API + '/issues?state=all&per_page=100&sort=created&direction=desc&labels=status'
+      ).then(function(r) {
         if (!r.ok) throw new Error(r.status);
         return r.json();
       });
 
-      const incidents = issues.filter(i => !i.pull_request);
-      const ongoing   = incidents.filter(i => i.state === 'open');
-      const resolved  = incidents.filter(i => i.state === 'closed');
+      const ongoing  = issues.filter(function(i) { return i.state === 'open'; });
+      const resolved = issues.filter(function(i) { return i.state === 'closed'; });
 
-      // Ongoing
       const ongoingSection = document.getElementById('ongoing-section');
       const ongoingList    = document.getElementById('ongoing-list');
       if (ongoing.length > 0) {
         ongoingSection.style.display = 'block';
-        ongoing.forEach(i => ongoingList.appendChild(renderCard(i)));
+        ongoing.forEach(function(i) { ongoingList.appendChild(makeCard(i)); });
       }
 
-      // Resolved grouped by month
       const incidentsEl = document.getElementById('incidents');
       incidentsEl.innerHTML = '';
 
@@ -375,33 +417,34 @@
         incidentsEl.innerHTML = '<div class="no-incidents">No incidents recorded yet.</div>';
         return;
       }
-
       if (resolved.length === 0) {
         incidentsEl.innerHTML = '<div class="no-incidents">No resolved incidents yet.</div>';
         return;
       }
 
       const groups = new Map();
-      resolved.forEach(issue => {
-        const key = monthKey(issue.created_at);
-        if (!groups.has(key)) groups.set(key, []);
-        groups.get(key).push(issue);
+      resolved.forEach(function(issue) {
+        const k = dayKey(issue.created_at);
+        if (!groups.has(k)) groups.set(k, { label: dayLabel(issue.created_at), items: [] });
+        groups.get(k).items.push(issue);
       });
 
-      groups.forEach((issues, month) => {
-        const group = document.createElement('div');
-        group.className = 'incident-group';
-        group.innerHTML = `<div class="incident-month">${month}</div>`;
-        issues.forEach(i => group.appendChild(renderCard(i)));
-        incidentsEl.appendChild(group);
+      groups.forEach(function(group) {
+        const section = document.createElement('div');
+        section.className = 'incident-group';
+
+        const heading = document.createElement('div');
+        heading.className = 'incident-day';
+        heading.textContent = group.label;
+        section.appendChild(heading);
+
+        group.items.forEach(function(i) { section.appendChild(makeCard(i)); });
+        incidentsEl.appendChild(section);
       });
 
-    } catch (_) {
-      document.getElementById('incidents').innerHTML = `
-        <div class="no-incidents">
-          Could not load incidents.
-          <a href="${API.replace('api.github.com/repos', 'github.com')}/issues" target="_blank">View on GitHub →</a>
-        </div>`;
+    } catch (err) {
+      document.getElementById('incidents').innerHTML =
+        '<div class="no-incidents">Could not load incident history.</div>';
     }
   }
 
