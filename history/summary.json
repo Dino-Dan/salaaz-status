@@ -5,11 +5,11 @@
     "icon": "https://icons.duckduckgo.com/ip3/down.salaaz.com.ico",
     "slug": "salaaz-marketplace",
     "status": "down",
-    "uptime": "83.18%",
+    "uptime": "83.17%",
     "uptimeDay": "83.40%",
-    "uptimeWeek": "83.18%",
-    "uptimeMonth": "83.18%",
-    "uptimeYear": "83.18%",
+    "uptimeWeek": "83.17%",
+    "uptimeMonth": "83.17%",
+    "uptimeYear": "83.17%",
     "time": 184,
     "timeDay": 174,
     "timeWeek": 184,
@@ -44,18 +44,16 @@
     "icon": "https://icons.duckduckgo.com/ip3/ethics.salaaz.com.ico",
     "slug": "ethics-dashboard",
     "status": "up",
-    "uptime": "99.82%",
-    "uptimeDay": "99.66%",
-    "uptimeWeek": "99.82%",
-    "uptimeMonth": "99.82%",
-    "uptimeYear": "99.82%",
+    "uptime": "100.00%",
+    "uptimeDay": "100.00%",
+    "uptimeWeek": "100.00%",
+    "uptimeMonth": "100.00%",
+    "uptimeYear": "100.00%",
     "time": 139,
     "timeDay": 142,
     "timeWeek": 139,
     "timeMonth": 139,
     "timeYear": 139,
-    "dailyMinutesDown": {
-      "2026-05-08": 5
-    }
+    "dailyMinutesDown": {}
   }
 ]
