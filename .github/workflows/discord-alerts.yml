@@ -16,14 +16,14 @@ jobs:
           TITLE: ${{ github.event.issue.title }}
           URL: ${{ github.event.issue.html_url }}
         run: |
-          python3 -c "
+          python3 << 'PYEOF'
           import json, os, re, urllib.request
           raw = os.environ['TITLE']
-          site = re.sub(r'^[^\w]+\s*', '', raw.split(' is down')[0].split(' is degraded')[0]).strip()
+          site = re.sub(r'^[^\w]+\s*', '', raw.split(' is down')[0]).strip()
           payload = {
             'content': '@here',
             'embeds': [{
-              'title': f'{site} is down',
+              'title': site + ' is down',
               'url': os.environ['URL'],
               'color': 15158332,
               'description': 'A Salaaz service has gone down. Check the status page for details.'
@@ -37,7 +37,7 @@ jobs:
           )
           urllib.request.urlopen(req)
           print('Down alert sent')
-          "
+          PYEOF
 
   notify-up:
     name: Notify Recovery
@@ -52,8 +52,8 @@ jobs:
           CREATED_AT: ${{ github.event.issue.created_at }}
           CLOSED_AT: ${{ github.event.issue.closed_at }}
         run: |
-          python3 -c "
-          import json, os, urllib.request
+          python3 << 'PYEOF'
+          import json, os, re, urllib.request
           from datetime import datetime
 
           created = datetime.fromisoformat(os.environ['CREATED_AT'].replace('Z', '+00:00'))
@@ -64,13 +64,12 @@ jobs:
           seconds = total_seconds % 60
 
           if hours > 0:
-              duration = f'{hours}h {minutes}m'
+              duration = str(hours) + 'h ' + str(minutes) + 'm'
           elif minutes > 0:
-              duration = f'{minutes}m {seconds}s'
+              duration = str(minutes) + 'm ' + str(seconds) + 's'
           else:
-              duration = f'{seconds}s'
+              duration = str(seconds) + 's'
 
-          import re
           raw = os.environ['TITLE']
           for suffix in [' is down', ' is degraded']:
               if suffix in raw:
@@ -79,12 +78,12 @@ jobs:
           site = re.sub(r'^[^\w]+\s*', '', raw).strip()
 
           payload = {
-            'content': f'✅ **{site} is back up** — was down for {duration}',
+            'content': '✅ **' + site + ' is back up** — was down for ' + duration,
             'embeds': [{
-              'title': f'{site} has recovered',
+              'title': site + ' has recovered',
               'url': os.environ['URL'],
               'color': 3066993,
-              'description': f'Service restored after **{duration}** of downtime.'
+              'description': 'Service restored after **' + duration + '** of downtime.'
             }]
           }
           req = urllib.request.Request(
@@ -94,5 +93,5 @@ jobs:
             method='POST'
           )
           urllib.request.urlopen(req)
-          print(f'Recovery alert sent. Downtime: {duration}')
-          "
+          print('Recovery alert sent. Downtime: ' + duration)
+          PYEOF
