@@ -5,17 +5,20 @@
     "icon": "https://icons.duckduckgo.com/ip3/beauty.salaaz.com.ico",
     "slug": "salaaz-marketplace",
     "status": "down",
-    "uptime": "100.00%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
+    "uptime": "68.90%",
+    "uptimeDay": "68.90%",
+    "uptimeWeek": "68.90%",
+    "uptimeMonth": "68.90%",
+    "uptimeYear": "68.90%",
     "time": 255,
     "timeDay": 255,
     "timeWeek": 255,
     "timeMonth": 255,
     "timeYear": 255,
-    "dailyMinutesDown": {}
+    "dailyMinutesDown": {
+      "2026-05-08": 174,
+      "2026-05-07": 218
+    }
   },
   {
     "name": "Vendor Portal",
@@ -28,11 +31,11 @@
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
     "uptimeYear": "100.00%",
-    "time": 134,
-    "timeDay": 134,
-    "timeWeek": 134,
-    "timeMonth": 134,
-    "timeYear": 134,
+    "time": 126,
+    "timeDay": 115,
+    "timeWeek": 126,
+    "timeMonth": 126,
+    "timeYear": 126,
     "dailyMinutesDown": {}
   },
   {
@@ -46,11 +49,11 @@
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
     "uptimeYear": "100.00%",
-    "time": 141,
-    "timeDay": 141,
-    "timeWeek": 141,
-    "timeMonth": 141,
-    "timeYear": 141,
+    "time": 127,
+    "timeDay": 120,
+    "timeWeek": 127,
+    "timeMonth": 127,
+    "timeYear": 127,
     "dailyMinutesDown": {}
   }
 ]
