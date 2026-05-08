@@ -2,13 +2,13 @@ name: Discord Site Alerts
 
 on:
   issues:
-    types: [opened, closed]
+    types: [labeled, closed]
 
 jobs:
   notify-down:
     name: Notify Down
     runs-on: ubuntu-latest
-    if: github.event.action == 'opened' && contains(github.event.issue.labels.*.name, 'down')
+    if: github.event.action == 'labeled' && github.event.label.name == 'down'
     steps:
       - name: Post down alert to Discord
         env:
