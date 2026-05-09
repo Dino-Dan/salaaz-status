@@ -16,13 +16,11 @@
 
 name: Uptime CI
 on:
+  schedule:
+    - cron: "*/5 * * * *"
   repository_dispatch:
     types: [uptime]
   workflow_dispatch:
-concurrency:
-  group: upptime-master
-  cancel-in-progress: false
-
 jobs:
   release:
     name: Check status
@@ -31,30 +29,8 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: master
-          fetch-depth: 0
+          ref: ${{ github.head_ref }}
           token: ${{ secrets.GH_PAT || github.token }}
-      - name: Install git push wrapper
-        run: |
-          sudo mv /usr/bin/git /usr/bin/git.real
-          sudo tee /usr/bin/git > /dev/null << 'WRAPPER'
-          #!/bin/bash
-          if [ "$1" = "push" ]; then
-            echo "[git-wrapper] intercepting push..."
-            for i in 1 2 3; do
-              /usr/bin/git.real "$@" && exit 0
-              echo "[git-wrapper] push attempt $i failed, rebasing..."
-              /usr/bin/git.real pull --rebase -X ours origin master || \
-                /usr/bin/git.real rebase --abort 2>/dev/null || true
-              sleep $((i * 5))
-            done
-            /usr/bin/git.real "$@"
-            exit $?
-          fi
-          exec /usr/bin/git.real "$@"
-          WRAPPER
-          sudo chmod +x /usr/bin/git
-          git --version
       - name: Check endpoint status
         uses: upptime/uptime-monitor@v1.41.3
         with:
@@ -62,27 +38,3 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
-      - name: Remove pre-reset downtime data
-        run: |
-          python3 << 'PYEOF'
-          import json, os
-          RESET_DATE = '2026-05-09'
-          path = 'history/summary.json'
-          if not os.path.exists(path):
-              print('summary.json not found, skipping')
-              exit(0)
-          with open(path) as f:
-              data = json.load(f)
-          for service in data:
-              dm = service.get('dailyMinutesDown', {})
-              cleaned = {k: v for k, v in dm.items() if k >= RESET_DATE}
-              if cleaned != dm:
-                  service['dailyMinutesDown'] = cleaned
-                  total = sum(cleaned.values())
-                  if total == 0:
-                      for key in ['uptime','uptimeDay','uptimeWeek','uptimeMonth','uptimeYear']:
-                          service[key] = '100.00%'
-                  print(f"Cleaned pre-reset data for {service['slug']}")
-          with open(path, 'w') as f:
-              json.dump(data, f, indent=2)
-          PYEOF
