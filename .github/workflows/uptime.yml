@@ -62,3 +62,27 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
           SECRETS_CONTEXT: ${{ toJson(secrets) }}
+      - name: Remove pre-reset downtime data
+        run: |
+          python3 << 'PYEOF'
+          import json, os
+          RESET_DATE = '2026-05-09'
+          path = 'history/summary.json'
+          if not os.path.exists(path):
+              print('summary.json not found, skipping')
+              exit(0)
+          with open(path) as f:
+              data = json.load(f)
+          for service in data:
+              dm = service.get('dailyMinutesDown', {})
+              cleaned = {k: v for k, v in dm.items() if k >= RESET_DATE}
+              if cleaned != dm:
+                  service['dailyMinutesDown'] = cleaned
+                  total = sum(cleaned.values())
+                  if total == 0:
+                      for key in ['uptime','uptimeDay','uptimeWeek','uptimeMonth','uptimeYear']:
+                          service[key] = '100.00%'
+                  print(f"Cleaned pre-reset data for {service['slug']}")
+          with open(path, 'w') as f:
+              json.dump(data, f, indent=2)
+          PYEOF
