@@ -4,21 +4,18 @@
     "url": "https://salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/salaaz.com.ico",
     "slug": "salaaz-marketplace",
-    "status": "down",
-    "uptime": "70.95%",
-    "uptimeDay": "86.16%",
-    "uptimeWeek": "70.95%",
-    "uptimeMonth": "70.95%",
-    "uptimeYear": "70.95%",
+    "status": "up",
+    "uptime": "100.00%",
+    "uptimeDay": "100.00%",
+    "uptimeWeek": "100.00%",
+    "uptimeMonth": "100.00%",
+    "uptimeYear": "100.00%",
     "time": 177,
     "timeDay": 168,
     "timeWeek": 177,
     "timeMonth": 177,
     "timeYear": 177,
-    "dailyMinutesDown": {
-      "2026-05-08": 200,
-      "2026-05-07": 218
-    }
+    "dailyMinutesDown": {}
   },
   {
     "name": "Vendor Portal",
@@ -43,7 +40,7 @@
     "url": "https://ethics.salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/ethics.salaaz.com.ico",
     "slug": "ethics-dashboard",
-    "status": "down",
+    "status": "up",
     "uptime": "100.00%",
     "uptimeDay": "100.00%",
     "uptimeWeek": "100.00%",
