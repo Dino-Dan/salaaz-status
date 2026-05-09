@@ -499,19 +499,22 @@
   function hideTip()      { tooltip.style.display = 'none'; }
 
   // ── Helpers ──
-  function utcDateStr(d) {
-    return d.toISOString().slice(0, 10);
+  function localDateStr(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return y + '-' + m + '-' + day;
   }
 
-  function utcToday() {
+  function localToday() {
     const n = new Date();
-    return new Date(Date.UTC(n.getUTCFullYear(), n.getUTCMonth(), n.getUTCDate()));
+    return new Date(n.getFullYear(), n.getMonth(), n.getDate());
   }
 
   function formatDisplay(dateStr) {
     const [y, m, d] = dateStr.split('-').map(Number);
-    return new Date(Date.UTC(y, m - 1, d))
-      .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+    return new Date(y, m - 1, d)
+      .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
   }
 
   // ── Bar status for a given date ──
@@ -556,7 +559,7 @@
 
   // ── Render one service card ──
   function renderCard(service, startDate) {
-    const today = utcToday();
+    const today = localToday();
     const dm = service.dailyMinutesDown || {};
 
     // Build 90-day array
@@ -564,7 +567,7 @@
     for (let i = 89; i >= 0; i--) {
       const d = new Date(today);
       d.setUTCDate(d.getUTCDate() - i);
-      const ds = utcDateStr(d);
+      const ds = localDateStr(d);
       const status = dayStatus(ds, startDate, dm);
       const mins = dm[ds] || 0;
       days.push({ ds, status, mins });
