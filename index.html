@@ -536,17 +536,22 @@
     return `${d}: Operational`;
   }
 
-  // ── Fetch start date from history YAML ──
-  async function fetchStartDate(slug) {
+  // ── Fetch live status + start date from history YAML ──
+  // The individual YAML files are always written first by Upptime and are
+  // more up-to-date than summary.json, which can hold a stale status from
+  // a previous check cycle. We use the YAML status as the source of truth.
+  async function fetchYamlData(slug) {
     try {
       const text = await fetch(`${RAW}/history/${slug}.yml`).then(r => r.text());
-      const m = text.match(/startTime:\s*(\S+)/);
-      if (m) {
-        const d = new Date(m[1]);
+      const startMatch  = text.match(/startTime:\s*(\S+)/);
+      const statusMatch = text.match(/^status:\s*(\S+)/m);
+      const startDate = startMatch ? (function() {
+        const d = new Date(startMatch[1]);
         return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
-      }
+      })() : null;
+      return { startDate, status: statusMatch ? statusMatch[1] : null };
     } catch (_) {}
-    return null;
+    return { startDate: null, status: null };
   }
 
   // ── Render one service card ──
@@ -772,7 +777,13 @@
         return r.json();
       });
 
-      const startDates = await Promise.all(summary.map(s => fetchStartDate(s.slug)));
+      const yamlData = await Promise.all(summary.map(s => fetchYamlData(s.slug)));
+
+      // Override summary.json status with the live YAML status — the YAML is
+      // written first by Upptime and is never stale from a previous check cycle.
+      summary.forEach(function (service, i) {
+        if (yamlData[i].status) service.status = yamlData[i].status;
+      });
 
       renderBanner(summary);
 
@@ -783,7 +794,7 @@
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
       summary.forEach((service, i) => {
-        servicesEl.appendChild(renderCard(service, startDates[i]));
+        servicesEl.appendChild(renderCard(service, yamlData[i].startDate));
       });
       PLANNED_SERVICES.forEach(function (s) {
         servicesEl.appendChild(renderPlannedCard(s));
