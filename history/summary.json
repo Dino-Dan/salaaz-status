@@ -10,11 +10,11 @@
     "uptimeWeek": "99.95%",
     "uptimeMonth": "99.95%",
     "uptimeYear": "99.95%",
-    "time": 192,
-    "timeDay": 213,
-    "timeWeek": 192,
-    "timeMonth": 192,
-    "timeYear": 192,
+    "time": 194,
+    "timeDay": 214,
+    "timeWeek": 194,
+    "timeMonth": 194,
+    "timeYear": 194,
     "dailyMinutesDown": {
       "2026-05-10": 2
     }
@@ -30,33 +30,33 @@
     "uptimeWeek": "99.82%",
     "uptimeMonth": "99.82%",
     "uptimeYear": "99.82%",
-    "time": 143,
-    "timeDay": 158,
-    "timeWeek": 143,
-    "timeMonth": 143,
-    "timeYear": 143,
+    "time": 147,
+    "timeDay": 176,
+    "timeWeek": 147,
+    "timeMonth": 147,
+    "timeYear": 147,
     "dailyMinutesDown": {
       "2026-05-10": 7
     }
   },
   {
     "name": "Ethics Dashboard",
-    "url": "https://down.ethics.salaaz.com/",
-    "icon": "https://icons.duckduckgo.com/ip3/down.ethics.salaaz.com.ico",
+    "url": "https://ethics.salaaz.com/",
+    "icon": "https://icons.duckduckgo.com/ip3/ethics.salaaz.com.ico",
     "slug": "ethics-dashboard",
-    "status": "down",
-    "uptime": "100.00%",
-    "uptimeDay": "99.99%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
-    "time": 138,
-    "timeDay": 147,
-    "timeWeek": 138,
-    "timeMonth": 138,
-    "timeYear": 138,
+    "status": "up",
+    "uptime": "99.97%",
+    "uptimeDay": "99.90%",
+    "uptimeWeek": "99.97%",
+    "uptimeMonth": "99.97%",
+    "uptimeYear": "99.97%",
+    "time": 140,
+    "timeDay": 154,
+    "timeWeek": 140,
+    "timeMonth": 140,
+    "timeYear": 140,
     "dailyMinutesDown": {
-      "2026-05-10": 0
+      "2026-05-10": 1
     }
   }
 ]
