@@ -353,6 +353,50 @@
     .card.is-planned { opacity: 0.82; }
     .tag-planned { background: #E8E6DF; color: #6B6A64; }
 
+    /* ── Past Incidents ── */
+    .incidents-section { margin-top: 2.5rem; }
+
+    .incidents-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.75rem;
+    }
+    .incidents-header .view-all {
+      font-size: 0.78rem;
+      color: #2C84DB;
+      text-decoration: none;
+    }
+    .incidents-header .view-all:hover { text-decoration: underline; }
+
+    .incident-day-heading {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #87867F;
+      margin: 1.1rem 0 0.5rem;
+    }
+    .incident-day-heading:first-child { margin-top: 0; }
+
+    .incident-row {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 0.875rem 1rem;
+      margin-bottom: 0.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .incident-row-left { display: flex; align-items: center; gap: 0.625rem; }
+    .incident-dot { width: 8px; height: 8px; border-radius: 50%; background: #76AD2A; flex-shrink: 0; }
+    .incident-service { font-size: 0.875rem; font-weight: 500; color: #141413; }
+    .incident-detail { font-size: 0.78rem; color: #87867F; margin-top: 0.1rem; }
+    .incident-meta { font-size: 0.78rem; color: #B0ADA4; white-space: nowrap; }
+    .no-past-incidents { font-size: 0.85rem; color: #87867F; padding: 0.75rem 0; }
+
     /* ── Footer ── */
     footer {
       border-top: 1px solid #DEDCD1;
@@ -380,6 +424,9 @@
     <img src="https://salaaz.com/logo.png" alt="Salaaz" style="height:24px;width:auto;">
     Salaaz Status
   </a>
+  <div class="nav-links">
+    <a href="incidents.html">Incidents</a>
+  </div>
 </nav>
 
 <div id="tooltip"></div>
@@ -406,6 +453,17 @@
     <div class="skeleton-card">
       <div class="skeleton-line" style="height:14px;width:130px;margin-bottom:10px"></div>
       <div class="skeleton-line" style="height:28px;width:100%"></div>
+    </div>
+  </div>
+
+  <div class="incidents-section">
+    <div class="incidents-header">
+      <div class="section-label" style="margin-bottom:0">Past Incidents</div>
+      <a class="view-all" href="incidents.html">View all →</a>
+    </div>
+    <div id="past-incidents">
+      <div class="skeleton-card" style="height:52px;margin-bottom:0.5rem"></div>
+      <div class="skeleton-card" style="height:52px"></div>
     </div>
   </div>
 
@@ -825,7 +883,72 @@
     }
   }
 
+  function extractServiceName(title) {
+    return title
+      .replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}︀-️\s]*/u, '')
+      .replace(/\s+(is down|is degraded|has degraded performance|is slow|is up).*$/i, '')
+      .replace(/\s*\(.*\)\s*$/, '')
+      .trim();
+  }
+
+  function fmtDuration(start, end) {
+    const mins = Math.round((new Date(end) - new Date(start)) / 60000);
+    if (mins < 60) return mins + ' min';
+    const h = Math.floor(mins / 60), m = mins % 60;
+    return m ? `${h}h ${m}m` : `${h}h`;
+  }
+
+  async function loadPastIncidents() {
+    const el = document.getElementById('past-incidents');
+    try {
+      const issues = await fetch(
+        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=closed&per_page=10&sort=updated&direction=desc'
+      ).then(r => r.json());
+
+      if (!Array.isArray(issues) || issues.length === 0) {
+        el.innerHTML = '<div class="no-past-incidents">No incidents recorded yet.</div>';
+        return;
+      }
+
+      const groups = new Map();
+      issues.forEach(issue => {
+        const d = new Date(issue.closed_at);
+        const key = d.getFullYear() + '-' +
+          String(d.getMonth() + 1).padStart(2, '0') + '-' +
+          String(d.getDate()).padStart(2, '0');
+        if (!groups.has(key)) groups.set(key, []);
+        groups.get(key).push(issue);
+      });
+
+      let html = '';
+      groups.forEach((dayIssues, key) => {
+        const d = new Date(key + 'T12:00:00');
+        const dayLabel = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
+        html += `<div class="incident-day-heading">${dayLabel}</div>`;
+        dayIssues.forEach(issue => {
+          const name = extractServiceName(issue.title);
+          const dur = fmtDuration(issue.created_at, issue.closed_at);
+          const dateShort = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          html += `<div class="incident-row">
+            <div class="incident-row-left">
+              <div class="incident-dot"></div>
+              <div>
+                <div class="incident-service">${name}</div>
+                <div class="incident-detail">Resolved · ${dur} impact</div>
+              </div>
+            </div>
+            <div class="incident-meta">${dateShort}</div>
+          </div>`;
+        });
+      });
+      el.innerHTML = html;
+    } catch (e) {
+      el.innerHTML = '<div class="no-past-incidents">Could not load incident history.</div>';
+    }
+  }
+
   init();
+  loadPastIncidents();
 </script>
 </body>
 </html>
