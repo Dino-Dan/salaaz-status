@@ -33,9 +33,7 @@
     "timeWeek": 147,
     "timeMonth": 147,
     "timeYear": 147,
-    "dailyMinutesDown": {
-      "2026-05-10": 7
-    }
+    "dailyMinutesDown": {}
   },
   {
     "name": "Ethics Dashboard",
