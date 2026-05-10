@@ -575,6 +575,14 @@
       days.push({ ds, status, mins });
     }
 
+    // If the service is live-down/degraded but no downtime recorded yet for today
+    // (incident still open), immediately show today's bar as amber
+    const todayBar = days[days.length - 1];
+    if (todayBar && todayBar.status === 'up' && service.status !== 'up') {
+      todayBar.status = 'degraded';
+      todayBar.live = true;
+    }
+
     const isUp       = service.status === 'up';
     const isDown     = service.status === 'down';
     const tagClass   = isUp ? 'tag-up' : isDown ? 'tag-down' : 'tag-degraded';
@@ -611,11 +619,13 @@
     const strip = document.createElement('div');
     strip.className = 'bar-strip';
 
-    days.forEach(({ ds, status, mins }) => {
+    days.forEach(({ ds, status, mins, live }) => {
       const bar = document.createElement('div');
       bar.className = 'bar';
       bar.style.background = barColor(status);
-      bar.addEventListener('mouseenter', () => showTip(barLabel(ds, status, mins)));
+      bar.addEventListener('mouseenter', () => showTip(
+        live ? `${formatDisplay(ds)}: Incident in progress` : barLabel(ds, status, mins)
+      ));
       bar.addEventListener('mouseleave', hideTip);
       strip.appendChild(bar);
     });
