@@ -10,21 +10,21 @@
     "uptimeWeek": "99.95%",
     "uptimeMonth": "99.95%",
     "uptimeYear": "99.95%",
-    "time": 187,
-    "timeDay": 209,
-    "timeWeek": 187,
-    "timeMonth": 187,
-    "timeYear": 187,
+    "time": 182,
+    "timeDay": 190,
+    "timeWeek": 182,
+    "timeMonth": 182,
+    "timeYear": 182,
     "dailyMinutesDown": {
       "2026-05-10": 2
     }
   },
   {
     "name": "Vendor Portal",
-    "url": "https://vendor.salaaz.com/",
-    "icon": "https://icons.duckduckgo.com/ip3/vendor.salaaz.com.ico",
+    "url": "https://down.vendor.salaaz.com/",
+    "icon": "https://icons.duckduckgo.com/ip3/down.vendor.salaaz.com.ico",
     "slug": "vendor-portal",
-    "status": "up",
+    "status": "down",
     "uptime": "100.00%",
     "uptimeDay": "100.00%",
     "uptimeWeek": "100.00%",
@@ -48,11 +48,11 @@
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
     "uptimeYear": "100.00%",
-    "time": 137,
-    "timeDay": 145,
-    "timeWeek": 137,
-    "timeMonth": 137,
-    "timeYear": 137,
+    "time": 136,
+    "timeDay": 141,
+    "timeWeek": 136,
+    "timeMonth": 136,
+    "timeYear": 136,
     "dailyMinutesDown": {}
   }
 ]
