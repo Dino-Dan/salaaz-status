@@ -1,6 +1,7 @@
 # Change these first
 owner: Dino-Dan
 repo: salaaz-status
+skipDeleteIssues: true
 
 sites:
   - name: Salaaz Marketplace
