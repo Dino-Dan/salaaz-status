@@ -288,7 +288,7 @@
       display: none;
     }
 
-    /* ── Component toggle & panel ── */
+    /* ── Component toggle & panel (disabled — re-enable when per-component monitoring is wired up) ──
     .card-toggle {
       display: flex;
       align-items: center;
@@ -347,6 +347,7 @@
     .comp-affected    { background: #FDEAEA; color: #B02020; }
     .comp-degraded    { background: #FEF5E0; color: #7A4E0C; }
     .comp-planned     { background: #EDECE8; color: #87867F; }
+    ── */
 
     /* ── Planned service card ── */
     .card.is-planned { opacity: 0.82; }
@@ -432,8 +433,8 @@
 <script>
   const RAW = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master';
 
-  // ── Sub-components per Upptime slug ──
-  const SUB_COMPONENTS = {
+  // ── Sub-components per Upptime slug (disabled — re-enable when per-component monitoring is wired up) ──
+  /* const SUB_COMPONENTS = {
     'salaaz-marketplace': [
       'Authentication',
       'Product Catalog & Browse',
@@ -470,7 +471,8 @@
       'Ethics Certifications',
       'Audit Log',
     ],
-  };
+  }; */
+  const SUB_COMPONENTS = {};
 
   const PLANNED_SERVICES = [];
 
@@ -641,16 +643,14 @@
     card.appendChild(header);
     card.appendChild(barSection);
 
-    // ── Expandable sub-components ──
-    const components = SUB_COMPONENTS[service.slug] || [];
-    if (components.length) {
-      appendComponentPanel(card, components, service.status);
-    }
+    // ── Expandable sub-components (disabled) ──
+    // const components = SUB_COMPONENTS[service.slug] || [];
+    // if (components.length) { appendComponentPanel(card, components, service.status); }
 
     return card;
   }
 
-  // ── Shared helper: append toggle + panel to any card ──
+  /* ── Shared helper: append toggle + panel to any card (disabled — re-enable when per-component monitoring is wired up) ──
   function appendComponentPanel(card, components, parentStatus) {
     const compStatus = parentStatus === 'down'    ? 'affected'
                      : parentStatus === 'degraded' ? 'degraded'
@@ -703,6 +703,7 @@
     card.appendChild(toggle);
     card.appendChild(panel);
   }
+  ── */
 
   // ── Render a planned (not-yet-live) service card ──
   function renderPlannedCard(service) {
@@ -734,7 +735,7 @@
     header.appendChild(badge);
     card.appendChild(header);
 
-    appendComponentPanel(card, service.components, 'planned');
+    // appendComponentPanel(card, service.components, 'planned');
     return card;
   }
 
