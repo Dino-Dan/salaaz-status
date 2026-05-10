@@ -692,13 +692,9 @@
     legend.className = 'bar-legend';
     legend.innerHTML = '<span>90 days ago</span><span>Today</span>';
 
-    // Calculate true 90-day uptime from bar data
-    const monitoredDays = days.filter(d => d.status !== 'nodata');
-    const totalMins = monitoredDays.length * 1440;
-    const downMins  = monitoredDays.reduce((sum, d) => sum + d.mins, 0);
-    const uptime90  = totalMins > 0
-      ? (((totalMins - downMins) / totalMins) * 100).toFixed(2) + '%'
-      : 'N/A';
+    // Uptime = (90 days - total downtime) / 90 days
+    const downMins = days.reduce((sum, d) => sum + d.mins, 0);
+    const uptime90 = (((90 * 1440 - downMins) / (90 * 1440)) * 100).toFixed(2) + '%';
 
     const uptimeRow = document.createElement('div');
     uptimeRow.className = 'uptime-row';
