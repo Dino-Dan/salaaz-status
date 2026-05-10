@@ -46,7 +46,7 @@
     "slug": "ethics-dashboard",
     "status": "down",
     "uptime": "100.00%",
-    "uptimeDay": "100.00%",
+    "uptimeDay": "99.99%",
     "uptimeWeek": "100.00%",
     "uptimeMonth": "100.00%",
     "uptimeYear": "100.00%",
@@ -55,6 +55,8 @@
     "timeWeek": 138,
     "timeMonth": 138,
     "timeYear": 138,
-    "dailyMinutesDown": {}
+    "dailyMinutesDown": {
+      "2026-05-10": 0
+    }
   }
 ]
