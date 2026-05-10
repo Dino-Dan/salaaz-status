@@ -225,7 +225,8 @@ test.describe('Bar chart', () => {
 
   test('T25 — degraded day bar is amber (#FAA72A)', async ({ page, context }) => {
     const p = await context.newPage();
-    const today = new Date().toISOString().split('T')[0];
+    const n = new Date();
+    const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
     const summary = JSON.parse(FIXTURE('summary-all-up.json'));
     summary[0].dailyMinutesDown = { [today]: 60 };
     await p.route('**/*', async route => {
@@ -243,7 +244,8 @@ test.describe('Bar chart', () => {
 
   test('T26 — outage day bar is red (#E04343) when >= 720 min down', async ({ page, context }) => {
     const p = await context.newPage();
-    const today = new Date().toISOString().split('T')[0];
+    const n = new Date();
+    const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
     const summary = JSON.parse(FIXTURE('summary-all-up.json'));
     summary[0].dailyMinutesDown = { [today]: 720 };
     await p.route('**/*', async route => {
@@ -302,7 +304,7 @@ test.describe('Uptime calculation', () => {
     const p = await context.newPage();
     const d = new Date();
     d.setDate(d.getDate() - 89);
-    const ds = d.toISOString().split('T')[0];
+    const ds = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     const summary = JSON.parse(FIXTURE('summary-all-up.json'));
     summary[0].dailyMinutesDown = { [ds]: 1440 };
     await p.route('**/*', async route => {
@@ -434,7 +436,7 @@ test.describe('Last-checked timestamp', () => {
     await page.waitForSelector('.card');
     const text = await page.locator('#last-checked').textContent();
     expect(text).toMatch(/^Last checked:/);
-    expect(text!.length).toBeGreaterThan('Last checked: '.length);
+    expect((text ?? '').length).toBeGreaterThan('Last checked: '.length);
   });
 });
 

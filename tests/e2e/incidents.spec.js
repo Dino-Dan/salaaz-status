@@ -255,7 +255,7 @@ test.describe('Service name extraction from issue title', () => {
     await loadWithTitle(page, '🟥 Salaaz Marketplace is down');
     const text = await page.locator('.card-service').first().textContent();
     expect(text).not.toMatch(/🟥/);
-    expect(text!.trim()).toBe('Salaaz Marketplace');
+    expect((text ?? '').trim()).toBe('Salaaz Marketplace');
   });
 });
 
