@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1001,
+    "number": 1,
+    "title": "🟥 Salaaz Marketplace is down (200 in 0ms)",
+    "state": "closed",
+    "created_at": "2026-05-09T10:00:00Z",
+    "closed_at": "2026-05-09T11:30:00Z",
+    "labels": [{ "name": "status" }]
+  },
+  {
+    "id": 1002,
+    "number": 2,
+    "title": "🟨 Vendor Portal is degraded",
+    "state": "closed",
+    "created_at": "2026-05-09T14:00:00Z",
+    "closed_at": "2026-05-09T14:45:00Z",
+    "labels": [{ "name": "status" }]
+  }
+]

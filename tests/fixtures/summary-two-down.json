@@ -1,0 +1,29 @@
+[
+  {
+    "slug": "salaaz-marketplace",
+    "name": "Salaaz Marketplace",
+    "url": "https://salaaz.com",
+    "icon": "https://salaaz.com/favicon.ico",
+    "status": "down",
+    "time": 0,
+    "dailyMinutesDown": {}
+  },
+  {
+    "slug": "vendor-portal",
+    "name": "Vendor Portal",
+    "url": "https://vendors.salaaz.com",
+    "icon": null,
+    "status": "down",
+    "time": 0,
+    "dailyMinutesDown": {}
+  },
+  {
+    "slug": "ethics-dashboard",
+    "name": "Ethics Dashboard",
+    "url": "https://ethics.salaaz.com",
+    "icon": "https://ethics.salaaz.com/favicon.ico",
+    "status": "up",
+    "time": 189,
+    "dailyMinutesDown": {}
+  }
+]
