@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Incidents — Salaaz Status</title>
+  <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: #FAF9F5;
+      color: #141413;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    nav {
+      background: #FAF9F5;
+      border-bottom: 1px solid #DEDCD1;
+      height: 56px;
+      display: flex;
+      align-items: center;
+      padding: 0 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+    }
+
+    .nav-brand {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-weight: 600;
+      font-size: 0.9rem;
+      color: #141413;
+      text-decoration: none;
+    }
+
+    main {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 2rem 1.5rem 4rem;
+    }
+
+    .page-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      margin-bottom: 2rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .page-title { font-size: 1.3rem; font-weight: 600; }
+
+    .back-link {
+      font-size: 0.8rem;
+      color: #87867F;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .back-link:hover { color: #141413; }
+
+    .section-label {
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: #87867F;
+      margin-bottom: 0.6rem;
+    }
+
+    .incident-group { margin-bottom: 2rem; }
+
+    .incident-day {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: #141413;
+      padding-bottom: 0.5rem;
+      margin-bottom: 0.5rem;
+      border-bottom: 1px solid #EDECE8;
+    }
+
+    .incident-card {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.5rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .incident-card:hover { border-color: #C8C6BC; }
+    .incident-card.is-open   { border-left: 3px solid #E04343; }
+    .incident-card.is-closed { border-left: 3px solid #76AD2A; }
+
+    .card-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+
+    .card-left { min-width: 0; }
+
+    .card-service {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #141413;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-time {
+      font-size: 0.72rem;
+      color: #87867F;
+      margin-top: 0.15rem;
+    }
+
+    .card-right {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex-shrink: 0;
+    }
+
+    .badge {
+      font-size: 0.67rem;
+      font-weight: 600;
+      padding: 0.22em 0.6em;
+      border-radius: 4px;
+      white-space: nowrap;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+    }
+    .badge-ongoing  { background: #FDEAEA; color: #B02020; }
+    .badge-resolved { background: #EBF5D6; color: #2D5A0C; }
+
+    .chevron {
+      font-size: 0.7rem;
+      color: #B0ADA4;
+      transition: transform 0.18s ease;
+      flex-shrink: 0;
+    }
+    .chevron.open { transform: rotate(180deg); }
+
+    .card-details {
+      display: none;
+      margin-top: 0.75rem;
+      padding-top: 0.75rem;
+      border-top: 1px solid #F0EEE8;
+    }
+    .card-details.visible { display: block; }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      font-size: 0.78rem;
+      color: #5C5A54;
+      padding: 0.2rem 0;
+      gap: 1rem;
+    }
+
+    .detail-label {
+      color: #87867F;
+      font-weight: 500;
+      white-space: nowrap;
+      flex-shrink: 0;
+      min-width: 120px;
+    }
+
+    .no-incidents {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      color: #87867F;
+      font-size: 0.875rem;
+    }
+
+    .skeleton-card {
+      background: #FFFFFF;
+      border: 1px solid #DEDCD1;
+      border-radius: 8px;
+      padding: 1rem 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    .skeleton-line {
+      border-radius: 4px;
+      background: linear-gradient(90deg, #EDECE8 25%, #E3E2DE 50%, #EDECE8 75%);
+      background-size: 400% 100%;
+      animation: shimmer 1.4s infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 100% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    footer {
+      border-top: 1px solid #DEDCD1;
+      padding: 1.5rem;
+      text-align: center;
+      font-size: 0.75rem;
+      color: #B0ADA4;
+      margin-top: 3rem;
+    }
+
+    @media (max-width: 600px) {
+      main { padding: 1.25rem 1rem 3rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-brand" href="/">
+    <img src="https://salaaz.com/logo.png" alt="Salaaz" style="height:24px;width:auto;">
+    Salaaz Status
+  </a>
+</nav>
+
+<main>
+  <div class="page-header">
+    <div class="page-title">All Incidents</div>
+    <a class="back-link" href="/">← Back to Status</a>
+  </div>
+
+  <div id="ongoing-section" style="display:none">
+    <div class="section-label">Active Incidents</div>
+    <div id="ongoing-list"></div>
+    <div style="margin-bottom:2rem"></div>
+  </div>
+
+  <div class="section-label">History</div>
+  <div id="incidents">
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:55%;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="height:11px;width:30%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:65%;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="height:11px;width:25%"></div>
+    </div>
+    <div class="skeleton-card">
+      <div class="skeleton-line" style="height:14px;width:50%;margin-bottom:8px"></div>
+      <div class="skeleton-line" style="height:11px;width:35%"></div>
+    </div>
+  </div>
+</main>
+
+<footer>© 2026 Salaaz</footer>
+
+<script>
+  const API = 'https://api.github.com/repos/Dino-Dan/salaaz-status';
+
+  function fmtDate(iso) {
+    return new Date(iso).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  function fmtTime(iso) {
+    return new Date(iso).toLocaleTimeString('en-US', {
+      hour: '2-digit', minute: '2-digit', timeZoneName: 'short'
+    });
+  }
+
+  function fmtDateTime(iso) {
+    return new Date(iso).toLocaleString('en-US', {
+      month: 'short', day: 'numeric', year: 'numeric',
+      hour: '2-digit', minute: '2-digit'
+    });
+  }
+
+  function dayKey(iso) {
+    const d = new Date(iso);
+    return d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  }
+
+  function dayLabel(iso) {
+    return new Date(iso).toLocaleDateString('en-US', {
+      weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
+    });
+  }
+
+  function duration(a, b) {
+    const secs = Math.round((new Date(b) - new Date(a)) / 1000);
+    if (secs < 60) return secs + 's';
+    const mins = Math.floor(secs / 60), remS = secs % 60;
+    if (mins < 60) return mins + 'm ' + (remS > 0 ? remS + 's' : '');
+    const hrs = Math.floor(mins / 60), remM = mins % 60;
+    return hrs + 'h ' + (remM > 0 ? remM + 'm' : '');
+  }
+
+  function serviceName(title) {
+    let t = title.replace(/^[^\p{L}\p{N}]+/u, '').trim();
+    for (const s of [' is down', ' is degraded', ' has degraded performance']) {
+      if (t.toLowerCase().includes(s)) { t = t.slice(0, t.toLowerCase().indexOf(s)); break; }
+    }
+    return t.trim();
+  }
+
+  function statusCode(title) {
+    const m = title.match(/\((\d+)\s+in/);
+    return m ? m[1] : null;
+  }
+
+  function makeCard(issue) {
+    const isOpen = issue.state === 'open';
+    const service = serviceName(issue.title);
+    const code = statusCode(issue.title);
+
+    const card = document.createElement('div');
+    card.className = 'incident-card ' + (isOpen ? 'is-open' : 'is-closed');
+
+    const top = document.createElement('div');
+    top.className = 'card-top';
+
+    const left = document.createElement('div');
+    left.className = 'card-left';
+
+    const svc = document.createElement('div');
+    svc.className = 'card-service';
+    svc.textContent = service;
+
+    const time = document.createElement('div');
+    time.className = 'card-time';
+    time.textContent = fmtTime(issue.created_at);
+
+    left.appendChild(svc);
+    left.appendChild(time);
+
+    const right = document.createElement('div');
+    right.className = 'card-right';
+
+    const badge = document.createElement('span');
+    badge.className = 'badge ' + (isOpen ? 'badge-ongoing' : 'badge-resolved');
+    badge.textContent = isOpen ? 'Active' : 'Resolved';
+
+    const chev = document.createElement('span');
+    chev.className = 'chevron';
+    chev.textContent = '▾';
+
+    right.appendChild(badge);
+    right.appendChild(chev);
+
+    top.appendChild(left);
+    top.appendChild(right);
+    card.appendChild(top);
+
+    const details = document.createElement('div');
+    details.className = 'card-details';
+
+    function addRow(label, value) {
+      const row = document.createElement('div');
+      row.className = 'detail-row';
+      const l = document.createElement('span');
+      l.className = 'detail-label';
+      l.textContent = label;
+      const v = document.createElement('span');
+      v.textContent = value;
+      row.appendChild(l);
+      row.appendChild(v);
+      details.appendChild(row);
+    }
+
+    addRow('Degradation detected', fmtDateTime(issue.created_at));
+    if (code) addRow('Status code', code);
+    if (!isOpen && issue.closed_at) {
+      addRow('Service restored', fmtDateTime(issue.closed_at));
+      addRow('Duration of impact', duration(issue.created_at, issue.closed_at).trim());
+    } else {
+      addRow('Impact duration', duration(issue.created_at, new Date().toISOString()).trim());
+    }
+
+    card.appendChild(details);
+
+    card.addEventListener('click', function() {
+      const open = details.classList.toggle('visible');
+      chev.classList.toggle('open', open);
+    });
+
+    return card;
+  }
+
+  async function init() {
+    try {
+      const issues = await fetch(
+        API + '/issues?state=all&per_page=100&sort=created&direction=desc&labels=status'
+      ).then(function(r) {
+        if (!r.ok) throw new Error(r.status);
+        return r.json();
+      });
+
+      const ongoing  = issues.filter(function(i) { return i.state === 'open'; });
+      const resolved = issues.filter(function(i) { return i.state === 'closed'; });
+
+      const ongoingSection = document.getElementById('ongoing-section');
+      const ongoingList    = document.getElementById('ongoing-list');
+      if (ongoing.length > 0) {
+        ongoingSection.style.display = 'block';
+        ongoing.forEach(function(i) { ongoingList.appendChild(makeCard(i)); });
+      }
+
+      const incidentsEl = document.getElementById('incidents');
+      incidentsEl.innerHTML = '';
+
+      if (resolved.length === 0 && ongoing.length === 0) {
+        incidentsEl.innerHTML = '<div class="no-incidents">No incidents recorded yet.</div>';
+        return;
+      }
+      if (resolved.length === 0) {
+        incidentsEl.innerHTML = '<div class="no-incidents">No resolved incidents yet.</div>';
+        return;
+      }
+
+      const groups = new Map();
+      resolved.forEach(function(issue) {
+        const k = dayKey(issue.created_at);
+        if (!groups.has(k)) groups.set(k, { label: dayLabel(issue.created_at), items: [] });
+        groups.get(k).items.push(issue);
+      });
+
+      groups.forEach(function(group) {
+        const section = document.createElement('div');
+        section.className = 'incident-group';
+
+        const heading = document.createElement('div');
+        heading.className = 'incident-day';
+        heading.textContent = group.label;
+        section.appendChild(heading);
+
+        group.items.forEach(function(i) { section.appendChild(makeCard(i)); });
+        incidentsEl.appendChild(section);
+      });
+
+    } catch (err) {
+      document.getElementById('incidents').innerHTML =
+        '<div class="no-incidents">Could not load incident history.</div>';
+    }
+  }
+
+  init();
+</script>
+</body>
+</html>
