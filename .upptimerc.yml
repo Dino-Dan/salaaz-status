@@ -9,7 +9,7 @@ sites:
     expectedStatusCodes:
       - 200
   - name: Vendor Portal
-    url: https://down.vendor.salaaz.com/
+    url: https://vendor.salaaz.com/
     expectedStatusCodes:
       - 200
   - name: Ethics Dashboard
