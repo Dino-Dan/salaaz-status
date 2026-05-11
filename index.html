@@ -894,13 +894,14 @@
 
       renderBanner(summary);
 
-      const latestUpdate = yamlData
+      const latestCheck = yamlData
         .map(y => y.lastUpdated)
         .filter(Boolean)
         .sort((a, b) => b - a)[0];
-      document.getElementById('last-checked').textContent = latestUpdate
-        ? 'Last updated: ' + latestUpdate.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
-        : '';
+      const shortFmt = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+      const checkedPart = latestCheck ? ' · Checked ' + latestCheck.toLocaleString('en-US', shortFmt) : '';
+      document.getElementById('last-checked').textContent =
+        'Refreshed ' + new Date().toLocaleString('en-US', shortFmt) + checkedPart;
 
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
