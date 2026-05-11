@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Salaaz Status</title>
+  <meta name="description" content="Live status and uptime for all Salaaz services — Marketplace, Vendor Portal, and Ethics Dashboard.">
+  <meta property="og:title" content="Salaaz Status">
+  <meta property="og:description" content="Live status and uptime for all Salaaz services.">
+  <meta property="og:url" content="https://status.salaaz.com/">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://salaaz.com/logo.png">
+  <link rel="canonical" href="https://status.salaaz.com/">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -410,6 +417,14 @@
     footer a { color: #B0ADA4; text-decoration: none; }
     footer a:hover { color: #141413; }
 
+    /* ── Pulsing dot for live incidents ── */
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.35; }
+    }
+    .dot-pulse { animation: pulse-dot 1.8s ease-in-out infinite; }
+    @media (prefers-reduced-motion: reduce) { .dot-pulse { animation: none; } }
+
     @media (max-width: 600px) {
       main { padding: 1.25rem 1rem 3rem; }
       .card-header { padding: 0.875rem 1rem 0.625rem; }
@@ -456,17 +471,6 @@
     </div>
   </div>
 
-  <div class="incidents-section">
-    <div class="incidents-header">
-      <div class="section-label" style="margin-bottom:0">Past Incidents</div>
-      <a class="view-all" href="incidents.html">View all →</a>
-    </div>
-    <div id="past-incidents">
-      <div class="skeleton-card" style="height:52px;margin-bottom:0.5rem"></div>
-      <div class="skeleton-card" style="height:52px"></div>
-    </div>
-  </div>
-
   <div class="color-legend">
     <div class="legend-item">
       <div class="legend-swatch" style="background:#76AD2A"></div>Operational
@@ -482,10 +486,21 @@
     </div>
   </div>
 
+  <div class="incidents-section">
+    <div class="incidents-header">
+      <div class="section-label" style="margin-bottom:0">Past Incidents</div>
+      <a class="view-all" href="incidents.html">View all →</a>
+    </div>
+    <div id="past-incidents">
+      <div class="skeleton-card" style="height:52px;margin-bottom:0.5rem"></div>
+      <div class="skeleton-card" style="height:52px"></div>
+    </div>
+  </div>
+
 </main>
 
 <footer>
-  © 2026 Salaaz
+  © 2026 <a href="https://salaaz.com" target="_blank" rel="noopener">Salaaz</a>
 </footer>
 
 <script>
@@ -606,27 +621,29 @@
   async function fetchYamlData(slug) {
     try {
       const text = await fetch(`${RAW}/history/${slug}.yml`).then(r => r.text());
-      const startMatch  = text.match(/startTime:\s*(\S+)/);
-      const statusMatch = text.match(/^status:\s*(\S+)/m);
+      const startMatch       = text.match(/startTime:\s*(\S+)/);
+      const statusMatch      = text.match(/^status:\s*(\S+)/m);
+      const lastUpdatedMatch = text.match(/lastUpdated:\s*(\S+)/);
       const startDate = startMatch ? (function() {
         const d = new Date(startMatch[1]);
         return new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()));
       })() : null;
-      return { startDate, status: statusMatch ? statusMatch[1] : null };
+      const lastUpdated = lastUpdatedMatch ? new Date(lastUpdatedMatch[1]) : null;
+      return { startDate, status: statusMatch ? statusMatch[1] : null, lastUpdated };
     } catch (_) {}
-    return { startDate: null, status: null };
+    return { startDate: null, status: null, lastUpdated: null };
   }
 
   // ── Render one service card ──
-  function renderCard(service, startDate) {
+  function renderCard(service, startDate, lastUpdated) {
     const today = localToday();
     const dm = service.dailyMinutesDown || {};
 
-    // Build 90-day array
+    // Build 90-day array — use local date arithmetic (setDate, not setUTCDate)
     const days = [];
     for (let i = 89; i >= 0; i--) {
       const d = new Date(today);
-      d.setUTCDate(d.getUTCDate() - i);
+      d.setDate(d.getDate() - i);
       const ds = localDateStr(d);
       const status = dayStatus(ds, startDate, dm);
       const mins = dm[ds] || 0;
@@ -634,17 +651,21 @@
     }
 
     // If the service is live-down/degraded but no downtime recorded yet for today
-    // (incident still open), immediately show today's bar as amber
+    // (incident still open), immediately show today's bar as amber and estimate elapsed mins
     const todayBar = days[days.length - 1];
     if (todayBar && todayBar.status === 'up' && service.status !== 'up') {
       todayBar.status = 'degraded';
       todayBar.live = true;
+      if (lastUpdated) {
+        todayBar.mins = Math.max(0, Math.round((Date.now() - lastUpdated.getTime()) / 60000));
+        todayBar.liveTime = lastUpdated.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+      }
     }
 
-    const isUp       = service.status === 'up';
-    const isDown     = service.status === 'down';
-    const tagClass   = isUp ? 'tag-up' : isDown ? 'tag-down' : 'tag-degraded';
-    const tagText    = isUp ? 'Operational' : isDown ? 'Down' : 'Degraded';
+    const isUp     = service.status === 'up';
+    const isDown   = service.status === 'down';
+    const tagClass = isUp ? 'tag-up' : isDown ? 'tag-down' : 'tag-degraded';
+    const tagText  = isUp ? '✓ Operational' : isDown ? '✕ Down' : '⚠ Degraded';
 
     const card = document.createElement('div');
     card.className = 'card';
@@ -659,15 +680,18 @@
       ? VENDOR_PORTAL_ICON
       : service.icon;
 
+    // Wrap icon in fixed-size container so hiding it on error doesn't shift layout
     header.innerHTML = `
       <div class="service-info">
-        <img class="service-icon" src="${iconSrc}" onerror="this.style.display='none'" alt="">
+        <div style="width:18px;height:18px;flex-shrink:0">
+          <img class="service-icon" src="${iconSrc}" onerror="this.style.visibility='hidden'" alt="">
+        </div>
         <div>
           <div class="service-name">${service.name}</div>
           <div class="service-url">${hostname}</div>
         </div>
       </div>
-      <span class="tag ${tagClass}">${tagText}</span>
+      <span class="tag ${tagClass}" aria-label="${service.name} status: ${tagText.replace(/^[✓✕⚠]\s/, '')}">${tagText}</span>
     `;
 
     // Bar section
@@ -676,15 +700,25 @@
 
     const strip = document.createElement('div');
     strip.className = 'bar-strip';
+    strip.setAttribute('role', 'img');
+    strip.setAttribute('aria-label', `90-day uptime chart for ${service.name}`);
 
-    days.forEach(({ ds, status, mins, live }) => {
+    days.forEach(({ ds, status, mins, live, liveTime }) => {
+      const tipText = live
+        ? `${formatDisplay(ds)}: Incident in progress${liveTime ? ' since ' + liveTime : ''}`
+        : status === 'nodata'
+          ? `${formatDisplay(ds)}: Monitoring not started yet`
+          : barLabel(ds, status, mins);
+
       const bar = document.createElement('div');
       bar.className = 'bar';
       bar.style.background = barColor(status);
-      bar.addEventListener('mouseenter', () => showTip(
-        live ? `${formatDisplay(ds)}: Incident in progress` : barLabel(ds, status, mins)
-      ));
+      bar.setAttribute('tabindex', '0');
+      bar.setAttribute('aria-label', tipText);
+      bar.addEventListener('mouseenter', () => showTip(tipText));
       bar.addEventListener('mouseleave', hideTip);
+      bar.addEventListener('focus',  () => showTip(tipText));
+      bar.addEventListener('blur',   hideTip);
       strip.appendChild(bar);
     });
 
@@ -692,13 +726,14 @@
     legend.className = 'bar-legend';
     legend.innerHTML = '<span>90 days ago</span><span>Today</span>';
 
-    // Uptime = (90 days - total downtime) / 90 days
+    // Uptime = (90 days − total downtime) / 90 days, clamped 0–100
     const downMins = days.reduce((sum, d) => sum + d.mins, 0);
-    const uptime90 = (((90 * 1440 - downMins) / (90 * 1440)) * 100).toFixed(2) + '%';
+    const uptime90 = Math.min(100, Math.max(0, (90 * 1440 - downMins) / (90 * 1440) * 100)).toFixed(2) + '%';
+    const responseText = isUp ? `${service.time} ms avg` : '—';
 
     const uptimeRow = document.createElement('div');
     uptimeRow.className = 'uptime-row';
-    uptimeRow.innerHTML = `<span class="uptime-pct">${uptime90} uptime (90 d) &nbsp;·&nbsp; ${service.time} ms avg</span>`;
+    uptimeRow.innerHTML = `<span class="uptime-pct">${uptime90} uptime (90 d) &nbsp;·&nbsp; ${responseText}</span>`;
 
     barSection.appendChild(strip);
     barSection.appendChild(legend);
@@ -805,8 +840,9 @@
 
   // ── Render banner ──
   function renderBanner(services) {
-    const allUp  = services.every(s => s.status === 'up');
-    const anyDown = services.some(s => s.status === 'down');
+    const allUp        = services.every(s => s.status === 'up');
+    const downCount    = services.filter(s => s.status === 'down').length;
+    const degradedCount = services.filter(s => s.status === 'degraded').length;
     const el = document.getElementById('banner');
 
     if (allUp) {
@@ -817,21 +853,22 @@
           <div class="banner-sub">Live status and uptime for all Salaaz services.</div>
         </div>
       </div>`;
-    } else if (anyDown) {
-      const n = services.filter(s => s.status === 'down').length;
+    } else if (downCount > 0) {
+      let title = `${downCount} Service${downCount > 1 ? 's' : ''} Down`;
+      if (degradedCount > 0) title += `, ${degradedCount} Degraded`;
       el.innerHTML = `<div class="status-banner some-down">
-        <div class="status-dot dot-red"></div>
+        <div class="status-dot dot-red dot-pulse"></div>
         <div>
-          <div class="banner-title">${n} Service${n > 1 ? 's' : ''} Down</div>
-          <div class="banner-sub">We are investigating the issue.</div>
+          <div class="banner-title">${title}</div>
+          <div class="banner-sub">We are investigating. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
     } else {
       el.innerHTML = `<div class="status-banner degraded">
-        <div class="status-dot dot-amber"></div>
+        <div class="status-dot dot-amber dot-pulse"></div>
         <div>
           <div class="banner-title">Some Systems Degraded</div>
-          <div class="banner-sub">Performance may be affected.</div>
+          <div class="banner-sub">Performance may be affected. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
     }
@@ -855,14 +892,18 @@
 
       renderBanner(summary);
 
-      const now = new Date();
-      document.getElementById('last-checked').textContent =
-        'Last checked: ' + now.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+      const latestUpdate = yamlData
+        .map(y => y.lastUpdated)
+        .filter(Boolean)
+        .sort((a, b) => b - a)[0];
+      document.getElementById('last-checked').textContent = latestUpdate
+        ? 'Last updated: ' + latestUpdate.toLocaleString('en-US', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })
+        : '';
 
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
       summary.forEach((service, i) => {
-        servicesEl.appendChild(renderCard(service, yamlData[i].startDate));
+        servicesEl.appendChild(renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated));
       });
       PLANNED_SERVICES.forEach(function (s) {
         servicesEl.appendChild(renderPlannedCard(s));
@@ -897,12 +938,18 @@
   async function loadPastIncidents() {
     const el = document.getElementById('past-incidents');
     try {
-      const issues = await fetch(
-        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=closed&per_page=10&sort=updated&direction=desc'
+      const allIssues = await fetch(
+        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=closed&per_page=20&sort=created&direction=desc'
       ).then(r => r.json());
 
-      if (!Array.isArray(issues) || issues.length === 0) {
-        el.innerHTML = '<div class="no-past-incidents">No incidents recorded yet.</div>';
+      if (!Array.isArray(allIssues)) throw new Error('bad response');
+
+      // Keep only incidents closed within the last 14 days
+      const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+      const issues = allIssues.filter(i => i.closed_at && new Date(i.closed_at) >= cutoff);
+
+      if (issues.length === 0) {
+        el.innerHTML = '<div class="no-past-incidents">No incidents in the past 14 days.</div>';
         return;
       }
 
@@ -925,9 +972,11 @@
           const name = extractServiceName(issue.title);
           const dur = fmtDuration(issue.created_at, issue.closed_at);
           const dateShort = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+          const isDegraded = /degrad/i.test(issue.title);
+          const dotColor = isDegraded ? '#FAA72A' : '#E04343';
           html += `<div class="incident-row">
             <div class="incident-row-left">
-              <div class="incident-dot"></div>
+              <div class="incident-dot" style="background:${dotColor}"></div>
               <div>
                 <div class="incident-service">${name}</div>
                 <div class="incident-detail">Resolved · ${dur} impact</div>
