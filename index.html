@@ -680,7 +680,9 @@
 
     const iconSrc = service.slug === 'vendor-portal'
       ? VENDOR_PORTAL_ICON
-      : service.icon;
+      : service.slug === 'ethics-dashboard'
+        ? 'https://icons.duckduckgo.com/ip3/salaaz.com.ico'
+        : service.icon;
 
     // Wrap icon in fixed-size container so hiding it on error doesn't shift layout
     header.innerHTML = `
@@ -731,11 +733,11 @@
     // Uptime = (90 days − total downtime) / 90 days, clamped 0–100
     const downMins = days.reduce((sum, d) => sum + d.mins, 0);
     const uptime90 = Math.min(100, Math.max(0, (90 * 1440 - downMins) / (90 * 1440) * 100)).toFixed(2) + '%';
-    const responseText = isUp ? `${service.time} ms avg` : '—';
+    // const responseText = isUp ? `${service.time} ms avg` : '—';
 
     const uptimeRow = document.createElement('div');
     uptimeRow.className = 'uptime-row';
-    uptimeRow.innerHTML = `<span class="uptime-pct">${uptime90} uptime (90 d) &nbsp;·&nbsp; ${responseText}</span>`;
+    uptimeRow.innerHTML = `<span class="uptime-pct">${uptime90} uptime (90 d)</span>`;
 
     barSection.appendChild(strip);
     barSection.appendChild(legend);
