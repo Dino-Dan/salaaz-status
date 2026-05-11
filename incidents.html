@@ -4,6 +4,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Incidents — Salaaz Status</title>
+  <meta name="description" content="Full incident history for all Salaaz services — Marketplace, Vendor Portal, and Ethics Dashboard.">
+  <meta property="og:title" content="Incidents — Salaaz Status">
+  <meta property="og:description" content="Full incident history for all Salaaz services.">
+  <meta property="og:url" content="https://status.salaaz.com/incidents.html">
+  <meta property="og:type" content="website">
+  <meta property="og:image" content="https://salaaz.com/logo.png">
+  <link rel="canonical" href="https://status.salaaz.com/incidents.html">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,11 +32,23 @@
       height: 56px;
       display: flex;
       align-items: center;
+      justify-content: space-between;
       padding: 0 1.5rem;
       position: sticky;
       top: 0;
       z-index: 10;
     }
+
+    .nav-links a {
+      font-size: 0.8rem;
+      color: #87867F;
+      text-decoration: none;
+      font-weight: 500;
+      margin-left: 1.25rem;
+      transition: color 0.15s;
+    }
+    .nav-links a:hover { color: #141413; }
+    .nav-links a.active { color: #141413; }
 
     .nav-brand {
       display: flex;
@@ -225,6 +244,10 @@
     <img src="https://salaaz.com/logo.png" alt="Salaaz" style="height:24px;width:auto;">
     Salaaz Status
   </a>
+  <div class="nav-links">
+    <a href="/">Status</a>
+    <a href="incidents.html" class="active">Incidents</a>
+  </div>
 </nav>
 
 <main>
@@ -256,7 +279,7 @@
   </div>
 </main>
 
-<footer>© 2026 Salaaz</footer>
+<footer>© 2026 <a href="https://salaaz.com" target="_blank" rel="noopener">Salaaz</a></footer>
 
 <script>
   const API = 'https://api.github.com/repos/Dino-Dan/salaaz-status';
@@ -282,7 +305,7 @@
 
   function dayKey(iso) {
     const d = new Date(iso);
-    return d.getFullYear() + '-' + String(d.getMonth()).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+    return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
   }
 
   function dayLabel(iso) {
@@ -333,7 +356,7 @@
 
     const time = document.createElement('div');
     time.className = 'card-time';
-    time.textContent = fmtTime(issue.created_at);
+    time.textContent = isOpen ? fmtDateTime(issue.created_at) : fmtTime(issue.created_at);
 
     left.appendChild(svc);
     left.appendChild(time);
@@ -383,9 +406,15 @@
 
     card.appendChild(details);
 
-    card.addEventListener('click', function() {
+    function toggleCard() {
       const open = details.classList.toggle('visible');
       chev.classList.toggle('open', open);
+    }
+    card.setAttribute('role', 'button');
+    card.setAttribute('tabindex', '0');
+    card.addEventListener('click', toggleCard);
+    card.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCard(); }
     });
 
     return card;
@@ -394,7 +423,7 @@
   async function init() {
     try {
       const issues = await fetch(
-        API + '/issues?state=all&per_page=100&sort=created&direction=desc&labels=status'
+        API + '/issues?state=all&per_page=100&sort=created&direction=desc'
       ).then(function(r) {
         if (!r.ok) throw new Error(r.status);
         return r.json();
@@ -441,6 +470,13 @@
         group.items.forEach(function(i) { section.appendChild(makeCard(i)); });
         incidentsEl.appendChild(section);
       });
+
+      if (issues.length === 100) {
+        const cap = document.createElement('div');
+        cap.style.cssText = 'text-align:center;font-size:0.78rem;color:#B0ADA4;padding:1.25rem 0 0;';
+        cap.textContent = 'Showing the 100 most recent incidents.';
+        incidentsEl.appendChild(cap);
+      }
 
     } catch (err) {
       document.getElementById('incidents').innerHTML =
