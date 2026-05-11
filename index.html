@@ -618,9 +618,11 @@
   // The individual YAML files are always written first by Upptime and are
   // more up-to-date than summary.json, which can hold a stale status from
   // a previous check cycle. We use the YAML status as the source of truth.
+  function cacheBust(url) { return url + '?_=' + Date.now(); }
+
   async function fetchYamlData(slug) {
     try {
-      const text = await fetch(`${RAW}/history/${slug}.yml`).then(r => r.text());
+      const text = await fetch(cacheBust(`${RAW}/history/${slug}.yml`)).then(r => r.text());
       const startMatch       = text.match(/startTime:\s*(\S+)/);
       const statusMatch      = text.match(/^status:\s*(\S+)/m);
       const lastUpdatedMatch = text.match(/lastUpdated:\s*(\S+)/);
@@ -877,7 +879,7 @@
   // ── Main ──
   async function init() {
     try {
-      const summary = await fetch(`${RAW}/history/summary.json`).then(r => {
+      const summary = await fetch(cacheBust(`${RAW}/history/summary.json`)).then(r => {
         if (!r.ok) throw new Error('Failed to load summary');
         return r.json();
       });
@@ -994,6 +996,9 @@
 
   init();
   loadPastIncidents();
+
+  // Re-fetch status data every 5 minutes to match Upptime's check interval
+  setInterval(init, 5 * 60 * 1000);
 </script>
 </body>
 </html>
