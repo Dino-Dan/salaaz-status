@@ -295,7 +295,7 @@
       display: none;
     }
 
-    /* ── Component toggle & panel (disabled — re-enable when per-component monitoring is wired up) ──
+    /* ── Component toggle & panel ── */
     .card-toggle {
       display: flex;
       align-items: center;
@@ -354,7 +354,16 @@
     .comp-affected    { background: #FDEAEA; color: #B02020; }
     .comp-degraded    { background: #FEF5E0; color: #7A4E0C; }
     .comp-planned     { background: #EDECE8; color: #87867F; }
-    ── */
+    .comp-unknown     { background: #EDECE8; color: #87867F; }
+
+    .dep-status-link {
+      font-size: 0.68rem;
+      color: #B0ADA4;
+      text-decoration: none;
+      margin-left: 0.5rem;
+      white-space: nowrap;
+    }
+    .dep-status-link:hover { color: #87867F; }
 
     /* ── Planned service card ── */
     .card.is-planned { opacity: 0.82; }
@@ -548,6 +557,122 @@
   const SUB_COMPONENTS = {};
 
   const PLANNED_SERVICES = [];
+
+  // ── Third-party dependency providers (shown under Salaaz Marketplace) ──
+  const DEPS = [
+    {
+      label: 'Shipping',
+      type: 'statuspage',
+      apiUrl: 'https://status.stallionexpress.ca/api/v2/status.json',
+      statusPage: 'https://status.stallionexpress.ca/',
+    },
+    {
+      label: 'Payments',
+      type: 'statuspage',
+      apiUrl: 'https://www.issquareup.com/api/v2/status.json',
+      statusPage: 'https://www.issquareup.com/',
+    },
+    {
+      label: 'API',
+      type: 'repojson',
+      apiUrl: RAW + '/history/alibaba-ecs-status.json',
+      statusPage: 'https://status.alibabacloud.com/#/?region=us-west-1',
+    },
+  ];
+
+  function indicatorToStatus(indicator) {
+    if (indicator === 'none') return 'up';
+    return 'degraded'; // cap at degraded — provider outages never show red on our page
+  }
+
+  async function fetchDepsStatus() {
+    return Promise.all(DEPS.map(async function (dep) {
+      try {
+        if (dep.type === 'statuspage') {
+          const data = await fetch(dep.apiUrl).then(function (r) { return r.json(); });
+          return Object.assign({}, dep, { status: indicatorToStatus(data.status.indicator) });
+        }
+        if (dep.type === 'repojson') {
+          const data = await fetch(cacheBust(dep.apiUrl)).then(function (r) { return r.json(); });
+          const s = data.status || 'unknown';
+          return Object.assign({}, dep, { status: s === 'down' ? 'degraded' : s });
+        }
+      } catch (_) {}
+      return Object.assign({}, dep, { status: 'unknown' });
+    }));
+  }
+
+  function appendDepsPanel(card, deps) {
+    const toggle = document.createElement('div');
+    toggle.className = 'card-toggle';
+    toggle.setAttribute('role', 'button');
+    toggle.setAttribute('tabindex', '0');
+    toggle.setAttribute('aria-expanded', 'false');
+
+    const label = document.createElement('span');
+    label.className = 'card-toggle-label';
+    label.textContent = 'Dependencies (' + deps.length + ')';
+
+    const chev = document.createElement('span');
+    chev.className = 'card-toggle-chev';
+    chev.textContent = '▾';
+
+    toggle.appendChild(label);
+    toggle.appendChild(chev);
+
+    const panel = document.createElement('div');
+    panel.className = 'card-components';
+
+    deps.forEach(function (dep) {
+      const statusMap = {
+        up:       { cls: 'comp-operational', text: 'Operational' },
+        degraded: { cls: 'comp-degraded',    text: 'Degraded'    },
+        unknown:  { cls: 'comp-unknown',     text: 'Unknown'     },
+      };
+      const s = statusMap[dep.status] || statusMap.unknown;
+
+      const row = document.createElement('div');
+      row.className = 'component-row';
+
+      const nameEl = document.createElement('span');
+      nameEl.className = 'component-name';
+      nameEl.textContent = dep.label;
+
+      const right = document.createElement('div');
+      right.style.cssText = 'display:flex;align-items:center;gap:0.25rem;';
+
+      const badge = document.createElement('span');
+      badge.className = 'comp-badge ' + s.cls;
+      badge.textContent = s.text;
+
+      const link = document.createElement('a');
+      link.className = 'dep-status-link';
+      link.href = dep.statusPage;
+      link.target = '_blank';
+      link.rel = 'noopener';
+      link.textContent = '↗';
+      link.title = 'View provider status page';
+
+      right.appendChild(badge);
+      right.appendChild(link);
+      row.appendChild(nameEl);
+      row.appendChild(right);
+      panel.appendChild(row);
+    });
+
+    function togglePanel() {
+      const open = panel.classList.toggle('visible');
+      chev.classList.toggle('open', open);
+      toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    toggle.addEventListener('click', togglePanel);
+    toggle.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); togglePanel(); }
+    });
+
+    card.appendChild(toggle);
+    card.appendChild(panel);
+  }
 
   const VENDOR_PORTAL_ICON = 'data:image/svg+xml;base64,' + btoa(
     '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
@@ -881,10 +1006,13 @@
   // ── Main ──
   async function init() {
     try {
-      const summary = await fetch(cacheBust(`${RAW}/history/summary.json`)).then(r => {
-        if (!r.ok) throw new Error('Failed to load summary');
-        return r.json();
-      });
+      const [summary, depsData] = await Promise.all([
+        fetch(cacheBust(`${RAW}/history/summary.json`)).then(r => {
+          if (!r.ok) throw new Error('Failed to load summary');
+          return r.json();
+        }),
+        fetchDepsStatus(),
+      ]);
 
       const yamlData = await Promise.all(summary.map(s => fetchYamlData(s.slug)));
 
@@ -903,7 +1031,11 @@
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
       summary.forEach((service, i) => {
-        servicesEl.appendChild(renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated));
+        const card = renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated);
+        if (service.slug === 'salaaz-marketplace') {
+          appendDepsPanel(card, depsData);
+        }
+        servicesEl.appendChild(card);
       });
       PLANNED_SERVICES.forEach(function (s) {
         servicesEl.appendChild(renderPlannedCard(s));
