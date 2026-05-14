@@ -4,6 +4,18 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## May 14, 2026
+
+### Dependency Status Panel
+**Services:** Salaaz Marketplace  
+**Status:** No service impact
+
+- Added third-party dependency badges under the Salaaz Marketplace card: Shipping (Stallion Express), Payments (Square), API (Alibaba ECI)
+- Provider outages show amber — red is reserved for Salaaz's own services being unreachable
+- ECI status is polled every 5 minutes by a GitHub Actions workflow and written to `history/alibaba-ecs-status.json`
+
+---
+
 ## May 8, 2026
 
 ### Infrastructure Updates
