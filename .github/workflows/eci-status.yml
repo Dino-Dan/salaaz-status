@@ -31,17 +31,27 @@ jobs:
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
           HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://ship.stallionexpress.ca/api/v4)
-          if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" != "000" ]; then
+          case "$HTTP_CODE" in
+            2[0-9][0-9]|401|403) STATUS="up" ;;
+            *) STATUS="degraded" ;;
+          esac
+          echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/stallion-status.json
+
+      - name: Ping Square API
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+          if curl -sf --max-time 10 https://www.issquareup.com/api/v2/status.json > /dev/null 2>&1; then
             STATUS="up"
           else
             STATUS="degraded"
           fi
-          echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/stallion-status.json
+          echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/square-status.json
 
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add history/alibaba-ecs-status.json history/stallion-status.json
+          git pull --rebase
+          git add history/alibaba-ecs-status.json history/stallion-status.json history/square-status.json
           git diff --cached --quiet || git commit -m "ci: update dependency status"
           git push
