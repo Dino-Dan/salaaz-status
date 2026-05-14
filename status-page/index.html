@@ -356,14 +356,6 @@
     .comp-planned     { background: #EDECE8; color: #87867F; }
     .comp-unknown     { background: #EDECE8; color: #87867F; }
 
-    .dep-status-link {
-      font-size: 0.68rem;
-      color: #B0ADA4;
-      text-decoration: none;
-      margin-left: 0.5rem;
-      white-space: nowrap;
-    }
-    .dep-status-link:hover { color: #87867F; }
 
     /* ── Planned service card ── */
     .card.is-planned { opacity: 0.82; }
@@ -562,21 +554,18 @@
   const DEPS = [
     {
       label: 'Shipping',
-      type: 'statuspage',
-      apiUrl: 'https://status.stallionexpress.ca/api/v2/status.json',
-      statusPage: 'https://status.stallionexpress.ca/',
+      type: 'repojson',
+      apiUrl: RAW + '/history/stallion-status.json',
     },
     {
       label: 'Payments',
       type: 'statuspage',
       apiUrl: 'https://www.issquareup.com/api/v2/status.json',
-      statusPage: 'https://www.issquareup.com/',
     },
     {
       label: 'API',
       type: 'repojson',
       apiUrl: RAW + '/history/alibaba-ecs-status.json',
-      statusPage: 'https://status.alibabacloud.com/#/?region=us-west-1',
     },
   ];
 
@@ -638,25 +627,12 @@
       nameEl.className = 'component-name';
       nameEl.textContent = dep.label;
 
-      const right = document.createElement('div');
-      right.style.cssText = 'display:flex;align-items:center;gap:0.25rem;';
-
       const badge = document.createElement('span');
       badge.className = 'comp-badge ' + s.cls;
       badge.textContent = s.text;
 
-      const link = document.createElement('a');
-      link.className = 'dep-status-link';
-      link.href = dep.statusPage;
-      link.target = '_blank';
-      link.rel = 'noopener';
-      link.textContent = '↗';
-      link.title = 'View provider status page';
-
-      right.appendChild(badge);
-      right.appendChild(link);
       row.appendChild(nameEl);
-      row.appendChild(right);
+      row.appendChild(badge);
       panel.appendChild(row);
     });
 

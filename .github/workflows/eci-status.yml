@@ -1,4 +1,4 @@
-name: ECI Status Check
+name: Dependency Status Check
 on:
   schedule:
     - cron: '*/5 * * * *'
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   check:
-    name: Check ECI liveness
+    name: Check service liveness
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -27,10 +27,21 @@ jobs:
           fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/alibaba-ecs-status.json
 
+      - name: Ping Stallion Express API
+        run: |
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://ship.stallionexpress.ca/api/v4)
+          if [ -n "$HTTP_CODE" ] && [ "$HTTP_CODE" != "000" ]; then
+            STATUS="up"
+          else
+            STATUS="degraded"
+          fi
+          echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/stallion-status.json
+
       - name: Commit if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add history/alibaba-ecs-status.json
-          git diff --cached --quiet || git commit -m "ci: update ECI status"
+          git add history/alibaba-ecs-status.json history/stallion-status.json
+          git diff --cached --quiet || git commit -m "ci: update dependency status"
           git push
