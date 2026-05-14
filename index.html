@@ -559,8 +559,8 @@
     },
     {
       label: 'Payments',
-      type: 'statuspage',
-      apiUrl: 'https://www.issquareup.com/api/v2/status.json',
+      type: 'repojson',
+      apiUrl: RAW + '/history/square-status.json',
     },
     {
       label: 'API',
@@ -583,8 +583,7 @@
         }
         if (dep.type === 'repojson') {
           const data = await fetch(cacheBust(dep.apiUrl)).then(function (r) { return r.json(); });
-          const s = data.status || 'unknown';
-          return Object.assign({}, dep, { status: s === 'down' ? 'degraded' : s });
+          return Object.assign({}, dep, { status: data.status || 'unknown' });
         }
       } catch (_) {}
       return Object.assign({}, dep, { status: 'unknown' });
