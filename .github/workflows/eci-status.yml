@@ -20,7 +20,7 @@ jobs:
       - name: Ping ECI endpoint
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          if curl -sf --max-time 10 https://salaaz.com/api/status/eci/ > /dev/null 2>&1; then
+          if curl -sf --max-time 10 https://salaaz.com/api/shared/status/eci/ > /dev/null 2>&1; then
             STATUS="up"
           else
             STATUS="degraded"
