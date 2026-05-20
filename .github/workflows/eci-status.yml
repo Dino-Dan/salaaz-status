@@ -17,10 +17,10 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT || github.token }}
 
-      - name: Ping ECI endpoint
+      - name: Ping Django API health
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          if curl -sf --max-time 10 https://salaaz.com/api/shared/status/eci/ > /dev/null 2>&1; then
+          if curl -sf --max-time 10 https://salaaz.com/health/ > /dev/null 2>&1; then
             STATUS="up"
           else
             STATUS="degraded"

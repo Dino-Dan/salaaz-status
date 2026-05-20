@@ -24,6 +24,18 @@ With [Upptime](https://upptime.js.org), you can get your own unlimited and free 
 
 [**Visit our status website →**](https://status.salaaz.com)
 
+## Dependency health checks
+
+In addition to the three main Upptime-monitored services above, a separate GitHub Actions workflow (`eci-status.yml`) polls third-party dependencies every 5 minutes and writes their status to the `history/` directory. These are surfaced as amber badges in the "Dependencies" panel on the Salaaz Marketplace card.
+
+| Badge | What is checked | Source file |
+|-------|----------------|-------------|
+| **API** | `GET https://salaaz.com/health/` — django-health-check aggregating PostgreSQL, migrations, MongoDB, and Redis/RQ | `history/alibaba-ecs-status.json` |
+| **Shipping** | StallionExpress API (`ship.stallionexpress.ca/api/v4`) | `history/stallion-status.json` |
+| **Payments** | Square API (`issquareup.com/api/v2/status.json`) | `history/square-status.json` |
+
+Provider outages are capped at amber — red is reserved for Salaaz's own services being unreachable.
+
 ## 📄 License
 
 - Powered by: [Upptime](https://github.com/upptime/upptime)

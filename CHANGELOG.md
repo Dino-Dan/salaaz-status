@@ -4,6 +4,18 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## May 19, 2026
+
+### API Dependency Check — Replaced ECI ping with django-health-check
+**Services:** Salaaz Marketplace  
+**Status:** No service impact
+
+- The "API" dependency badge under the Salaaz Marketplace card now reflects the health of the Django backend's main components rather than a single ECI infrastructure ping.
+- `eci-status.yml` was updated to poll `https://salaaz.com/health/` (django-health-check) instead of `https://salaaz.com/api/shared/status/eci/`. The endpoint returns `200` only when PostgreSQL, pending migrations, MongoDB, and Redis/RQ are all healthy.
+- A degraded badge now means at least one backend component is unhealthy, not just that the ECI container is unreachable.
+
+---
+
 ## May 14, 2026
 
 ### Dependency Status Panel

@@ -11,13 +11,16 @@ function yml(status, start = '2020-01-01T00:00:00.000Z') {
   return `status: ${status}\nstartTime: ${start}\n`;
 }
 
-async function mockAll(page, summary, mkt = 'up', vnd = 'up', eth = 'up') {
+async function mockAll(page, summary, mkt = 'up', vnd = 'up', eth = 'up', shipping = 'up', payments = 'up', api = 'up') {
   await page.route('**/*', async route => {
     const url = route.request().url();
-    if (url.includes('/history/summary.json'))          return route.fulfill({ body: summary, contentType: 'application/json' });
-    if (url.includes('/history/salaaz-marketplace.yml')) return route.fulfill({ body: yml(mkt), contentType: 'text/plain' });
-    if (url.includes('/history/vendor-portal.yml'))      return route.fulfill({ body: yml(vnd), contentType: 'text/plain' });
-    if (url.includes('/history/ethics-dashboard.yml'))   return route.fulfill({ body: yml(eth), contentType: 'text/plain' });
+    if (url.includes('/history/summary.json'))             return route.fulfill({ body: summary, contentType: 'application/json' });
+    if (url.includes('/history/salaaz-marketplace.yml'))   return route.fulfill({ body: yml(mkt), contentType: 'text/plain' });
+    if (url.includes('/history/vendor-portal.yml'))        return route.fulfill({ body: yml(vnd), contentType: 'text/plain' });
+    if (url.includes('/history/ethics-dashboard.yml'))     return route.fulfill({ body: yml(eth), contentType: 'text/plain' });
+    if (url.includes('/history/stallion-status.json'))     return route.fulfill({ body: JSON.stringify({ status: shipping }), contentType: 'application/json' });
+    if (url.includes('/history/square-status.json'))       return route.fulfill({ body: JSON.stringify({ status: payments }), contentType: 'application/json' });
+    if (url.includes('/history/alibaba-ecs-status.json'))  return route.fulfill({ body: JSON.stringify({ status: api }),      contentType: 'application/json' });
     return route.continue();
   });
 }
@@ -167,13 +170,27 @@ test.describe('Service cards', () => {
 
   test('T19 — each card shows response time and uptime percentage', async ({ page }) => {
     const card = page.locator('.card').filter({ hasText: 'Salaaz Marketplace' });
-    await expect(card.locator('.uptime-pct')).toContainText('ms avg');
+    await expect(card.locator('.uptime-pct')).toContainText('ms');
     await expect(card.locator('.uptime-pct')).toContainText('%');
   });
 
-  test('T20 — no Components panel is rendered (feature is disabled)', async ({ page }) => {
-    expect(await page.locator('.card-toggle').count()).toBe(0);
-    expect(await page.locator('.card-components').count()).toBe(0);
+  test('T57 — down service shows "—" instead of response time', async ({ page, context }) => {
+    const p = await context.newPage();
+    await mockAll(p, FIXTURE('summary-one-down.json'), 'down');
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    const card = p.locator('.card').filter({ hasText: 'Salaaz Marketplace' });
+    await expect(card.locator('.uptime-pct')).toContainText('—');
+    await expect(card.locator('.uptime-pct')).not.toContainText('ms');
+    await p.close();
+  });
+
+  test('T20 — only the Marketplace card has a dependency toggle; other cards do not', async ({ page }) => {
+    expect(await page.locator('.card-toggle').count()).toBe(1);
+    const mktCard = page.locator('.card').filter({ hasText: 'Salaaz Marketplace' });
+    await expect(mktCard.locator('.card-toggle')).toBeVisible();
+    expect(await page.locator('.card').filter({ hasText: 'Vendor Portal' }).locator('.card-toggle').count()).toBe(0);
+    expect(await page.locator('.card').filter({ hasText: 'Ethics Dashboard' }).locator('.card-toggle').count()).toBe(0);
   });
 });
 
@@ -430,13 +447,36 @@ test.describe('Error handling', () => {
 // ── Last-checked timestamp ────────────────────────────────────────────────────
 
 test.describe('Last-checked timestamp', () => {
-  test('T43 — populated after load with "Last checked:" prefix', async ({ page }) => {
+  test('T43 — populated after load with "Last updated:" prefix', async ({ page }) => {
     await mockAll(page, FIXTURE('summary-all-up.json'));
     await page.goto(PAGE);
     await page.waitForSelector('.card');
     const text = await page.locator('#last-checked').textContent();
-    expect(text).toMatch(/^Last checked:/);
-    expect((text ?? '').length).toBeGreaterThan('Last checked: '.length);
+    expect(text).toMatch(/^Last updated:/);
+    expect((text ?? '').length).toBeGreaterThan('Last updated: '.length);
+  });
+
+  test('T44 — uses YAML lastUpdated when present, not page-load time', async ({ page, context }) => {
+    const p = await context.newPage();
+    const knownTime = '2026-01-15T10:30:00.000Z';
+    const ymlWithTs = (status) => `status: ${status}\nstartTime: 2020-01-01T00:00:00.000Z\nlastUpdated: ${knownTime}\n`;
+    await p.route('**/*', async route => {
+      const url = route.request().url();
+      if (url.includes('/history/summary.json'))             return route.fulfill({ body: FIXTURE('summary-all-up.json'), contentType: 'application/json' });
+      if (url.includes('/history/salaaz-marketplace.yml'))   return route.fulfill({ body: ymlWithTs('up'), contentType: 'text/plain' });
+      if (url.includes('/history/vendor-portal.yml'))        return route.fulfill({ body: ymlWithTs('up'), contentType: 'text/plain' });
+      if (url.includes('/history/ethics-dashboard.yml'))     return route.fulfill({ body: ymlWithTs('up'), contentType: 'text/plain' });
+      if (url.includes('/history/stallion-status.json'))     return route.fulfill({ body: JSON.stringify({ status: 'up' }), contentType: 'application/json' });
+      if (url.includes('/history/square-status.json'))       return route.fulfill({ body: JSON.stringify({ status: 'up' }), contentType: 'application/json' });
+      if (url.includes('/history/alibaba-ecs-status.json'))  return route.fulfill({ body: JSON.stringify({ status: 'up' }), contentType: 'application/json' });
+      return route.continue();
+    });
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    const text = await p.locator('#last-checked').textContent();
+    // Jan 15 is in the YAML timestamp — page load time would not contain "Jan 15"
+    expect(text).toContain('Jan 15');
+    await p.close();
   });
 });
 
@@ -449,17 +489,17 @@ test.describe('Accessibility', () => {
     await page.waitForSelector('.card');
   });
 
-  test('T44 — viewport meta tag is present', async ({ page }) => {
+  test('T45 — viewport meta tag is present', async ({ page }) => {
     const content = await page.locator('meta[name="viewport"]').getAttribute('content');
     expect(content).toContain('width=device-width');
   });
 
-  test('T45 — nav logo has an alt attribute', async ({ page }) => {
+  test('T46 — nav logo has an alt attribute', async ({ page }) => {
     const alt = await page.locator('nav img').getAttribute('alt');
     expect(alt).not.toBeNull();
   });
 
-  test('T46 — service icon images have an alt attribute', async ({ page }) => {
+  test('T47 — service icon images have an alt attribute', async ({ page }) => {
     const icons = page.locator('.service-icon');
     for (let i = 0; i < await icons.count(); i++) {
       expect(await icons.nth(i).getAttribute('alt')).not.toBeNull();
@@ -470,7 +510,7 @@ test.describe('Accessibility', () => {
 // ── Responsive layout ─────────────────────────────────────────────────────────
 
 test.describe('Responsive layout', () => {
-  test('T47 — page is usable at 375px wide (mobile)', async ({ page }) => {
+  test('T48 — page is usable at 375px wide (mobile)', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await mockAll(page, FIXTURE('summary-all-up.json'));
     await page.goto(PAGE);
@@ -479,7 +519,7 @@ test.describe('Responsive layout', () => {
     await expect(page.locator('.status-banner')).toBeVisible();
   });
 
-  test('T48 — no horizontal scroll on mobile viewport', async ({ page }) => {
+  test('T49 — no horizontal scroll on mobile viewport', async ({ page }) => {
     await page.setViewportSize({ width: 375, height: 812 });
     await mockAll(page, FIXTURE('summary-all-up.json'));
     await page.goto(PAGE);
@@ -487,5 +527,73 @@ test.describe('Responsive layout', () => {
     const scrollWidth = await page.evaluate(() => document.body.scrollWidth);
     const clientWidth = await page.evaluate(() => document.body.clientWidth);
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1);
+  });
+});
+
+// ── Dependency badges (Marketplace card) ──────────────────────────────────────
+
+test.describe('Dependency badges', () => {
+  test.beforeEach(async ({ page }) => {
+    await mockAll(page, FIXTURE('summary-all-up.json'));
+    await page.goto(PAGE);
+    await page.waitForSelector('.card');
+  });
+
+  test('T50 — Marketplace card has a "Dependencies" toggle', async ({ page }) => {
+    const mktCard = page.locator('.card').filter({ hasText: 'Salaaz Marketplace' });
+    await expect(mktCard.locator('.card-toggle')).toContainText('Dependencies');
+  });
+
+  test('T51 — dependencies panel is collapsed by default', async ({ page }) => {
+    await expect(page.locator('.card-components').first()).not.toHaveClass(/visible/);
+  });
+
+  test('T52 — clicking toggle expands the panel', async ({ page }) => {
+    await page.locator('.card-toggle').first().click();
+    await expect(page.locator('.card-components').first()).toHaveClass(/visible/);
+  });
+
+  test('T53 — panel shows all three dependency labels', async ({ page }) => {
+    await page.locator('.card-toggle').first().click();
+    const panel = page.locator('.card-components').first();
+    for (const label of ['Shipping', 'Payments', 'API']) {
+      await expect(panel).toContainText(label);
+    }
+  });
+
+  test('T54 — "up" dep shows "Operational" badge', async ({ page }) => {
+    await page.locator('.card-toggle').first().click();
+    const row = page.locator('.component-row').filter({ hasText: 'API' });
+    await expect(row.locator('.comp-badge')).toContainText('Operational');
+  });
+
+  test('T55 — "degraded" dep shows "Degraded" badge', async ({ page, context }) => {
+    const p = await context.newPage();
+    await mockAll(p, FIXTURE('summary-all-up.json'), 'up', 'up', 'up', 'up', 'up', 'degraded');
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await p.locator('.card-toggle').first().click();
+    const row = p.locator('.component-row').filter({ hasText: 'API' });
+    await expect(row.locator('.comp-badge')).toContainText('Degraded');
+    await p.close();
+  });
+
+  test('T56 — failed dep fetch shows "Unknown" badge', async ({ page, context }) => {
+    const p = await context.newPage();
+    await p.route('**/*', async route => {
+      const url = route.request().url();
+      if (url.includes('/history/summary.json'))             return route.fulfill({ body: FIXTURE('summary-all-up.json'), contentType: 'application/json' });
+      if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: yml('up'), contentType: 'text/plain' });
+      if (url.includes('stallion-status.json'))              return route.fulfill({ body: JSON.stringify({ status: 'up' }), contentType: 'application/json' });
+      if (url.includes('square-status.json'))                return route.fulfill({ body: JSON.stringify({ status: 'up' }), contentType: 'application/json' });
+      if (url.includes('alibaba-ecs-status.json'))           return route.abort('failed');
+      return route.continue();
+    });
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await p.locator('.card-toggle').first().click();
+    const row = p.locator('.component-row').filter({ hasText: 'API' });
+    await expect(row.locator('.comp-badge')).toContainText('Unknown');
+    await p.close();
   });
 });
