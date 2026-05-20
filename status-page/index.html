@@ -133,8 +133,9 @@
       background: #FFFFFF;
       border: 1px solid #DEDCD1;
       border-radius: 8px;
-      margin-bottom: 0.6rem;
+      margin-bottom: 0.4rem;
       overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.03);
     }
 
     .card-header {
@@ -172,8 +173,8 @@
     .tag {
       font-size: 0.7rem;
       font-weight: 500;
-      padding: 0.2em 0.65em;
-      border-radius: 4px;
+      padding: 0.2em 0.75em;
+      border-radius: 999px;
       color: #fff;
       letter-spacing: 0.01em;
       white-space: nowrap;
@@ -191,7 +192,7 @@
     .bar-strip {
       display: flex;
       gap: 2px;
-      height: 28px;
+      height: 20px;
       overflow: hidden;
       width: 100%;
     }
@@ -226,6 +227,7 @@
     .uptime-pct {
       font-size: 0.73rem;
       color: #87867F;
+      font-variant-numeric: tabular-nums;
     }
 
     /* ── Legend ── */
@@ -314,11 +316,15 @@
     }
 
     .card-toggle-chev {
-      font-size: 0.65rem;
-      color: #B0ADA4;
+      width: 8px;
+      height: 8px;
+      border-right: 1.5px solid #B0ADA4;
+      border-bottom: 1.5px solid #B0ADA4;
+      transform: rotate(45deg);
       transition: transform 0.18s ease;
+      flex-shrink: 0;
     }
-    .card-toggle-chev.open { transform: rotate(180deg); }
+    .card-toggle-chev.open { transform: rotate(-135deg); }
 
     .card-components {
       display: none;
@@ -396,13 +402,14 @@
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.03);
     }
     .incident-row-left { display: flex; align-items: center; gap: 0.625rem; }
     .incident-dot { width: 8px; height: 8px; border-radius: 50%; background: #76AD2A; flex-shrink: 0; }
     .incident-service { font-size: 0.875rem; font-weight: 500; color: #141413; }
     .incident-detail { font-size: 0.78rem; color: #87867F; margin-top: 0.1rem; }
     .incident-meta { font-size: 0.78rem; color: #B0ADA4; white-space: nowrap; }
-    .no-past-incidents { font-size: 0.85rem; color: #87867F; padding: 0.75rem 0; }
+    .no-past-incidents { font-size: 0.8rem; color: #B0ADA4; padding: 1.5rem 0; text-align: center; }
 
     /* ── Footer ── */
     footer {
@@ -439,6 +446,7 @@
     <img src="https://salaaz.com/logo.png" alt="Salaaz" style="height:24px;width:auto;">
     Salaaz Status
   </a>
+  <span id="nav-status-chip" style="font-size:0.72rem;font-weight:500;padding:0.2em 0.6em;border-radius:999px;display:none"></span>
   <div class="nav-links">
     <a href="incidents.html">Incidents</a>
   </div>
@@ -459,15 +467,15 @@
     <!-- skeleton cards -->
     <div class="skeleton-card">
       <div class="skeleton-line" style="height:14px;width:120px;margin-bottom:10px"></div>
-      <div class="skeleton-line" style="height:28px;width:100%"></div>
+      <div class="skeleton-line" style="height:20px;width:100%"></div>
     </div>
     <div class="skeleton-card">
       <div class="skeleton-line" style="height:14px;width:140px;margin-bottom:10px"></div>
-      <div class="skeleton-line" style="height:28px;width:100%"></div>
+      <div class="skeleton-line" style="height:20px;width:100%"></div>
     </div>
     <div class="skeleton-card">
       <div class="skeleton-line" style="height:14px;width:130px;margin-bottom:10px"></div>
-      <div class="skeleton-line" style="height:28px;width:100%"></div>
+      <div class="skeleton-line" style="height:20px;width:100%"></div>
     </div>
   </div>
 
@@ -602,7 +610,6 @@
 
     const chev = document.createElement('span');
     chev.className = 'card-toggle-chev';
-    chev.textContent = '▾';
 
     toggle.appendChild(label);
     toggle.appendChild(chev);
@@ -957,15 +964,17 @@
     const downCount    = services.filter(s => s.status === 'down').length;
     const degradedCount = services.filter(s => s.status === 'degraded').length;
     const el = document.getElementById('banner');
+    const chip = document.getElementById('nav-status-chip');
 
     if (allUp) {
       el.innerHTML = `<div class="status-banner all-up">
-        <div class="status-dot dot-green"></div>
+        <div class="status-dot dot-green dot-pulse"></div>
         <div>
           <div class="banner-title">All Systems Operational</div>
           <div class="banner-sub">Live status and uptime for all Salaaz services.</div>
         </div>
       </div>`;
+      if (chip) { chip.textContent = '● All systems operational'; chip.style.color = '#2D5A0C'; chip.style.background = '#EBF5D6'; chip.style.display = ''; }
     } else if (downCount > 0) {
       let title = `${downCount} Service${downCount > 1 ? 's' : ''} Down`;
       if (degradedCount > 0) title += `, ${degradedCount} Degraded`;
@@ -976,6 +985,7 @@
           <div class="banner-sub">We are investigating. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
+      if (chip) { chip.textContent = '● Outage'; chip.style.color = '#7A1515'; chip.style.background = '#FDEAEA'; chip.style.display = ''; }
     } else {
       el.innerHTML = `<div class="status-banner degraded">
         <div class="status-dot dot-amber dot-pulse"></div>
@@ -984,6 +994,7 @@
           <div class="banner-sub">Performance may be affected. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
+      if (chip) { chip.textContent = '● Degraded'; chip.style.color = '#7A4E0C'; chip.style.background = '#FEF5E0'; chip.style.display = ''; }
     }
   }
 
