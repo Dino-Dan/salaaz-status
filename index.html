@@ -1051,6 +1051,15 @@
     }
   }
 
+  function escHtml(s) {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#39;');
+  }
+
   function extractServiceName(title) {
     return title
       .replace(/^[\u{1F300}-\u{1FFFF}\u{2600}-\u{27BF}︀-️\s]*/u, '')
@@ -1109,7 +1118,7 @@
             <div class="incident-row-left">
               <div class="incident-dot" style="background:${dotColor}"></div>
               <div>
-                <div class="incident-service">${name}</div>
+                <div class="incident-service">${escHtml(name)}</div>
                 <div class="incident-detail">Resolved · ${dur} impact</div>
               </div>
             </div>
@@ -1127,7 +1136,7 @@
   loadPastIncidents();
 
   // Re-fetch status data every 5 minutes to match Upptime's check interval
-  setInterval(init, 5 * 60 * 1000);
+  setInterval(() => { init(); loadPastIncidents(); }, 5 * 60 * 1000);
 </script>
 </body>
 </html>
