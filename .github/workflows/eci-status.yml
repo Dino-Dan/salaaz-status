@@ -24,7 +24,7 @@ jobs:
             -H "Accept: application/json" https://salaaz.com/health/)
           BODY=$(cat /tmp/health-body.txt)
           if [ "$HTTP_CODE" = "200" ] && \
-             echo "$BODY" | grep -q '"DatabaseBackend"' && \
+             echo "$BODY" | grep -q '"MongoDBHealthCheck"' && \
              ! echo "$BODY" | grep -q '"unavailable"'; then
             STATUS="up"
           else
