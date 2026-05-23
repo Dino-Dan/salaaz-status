@@ -32,7 +32,8 @@ jobs:
 
       - name: Install Playwright + Chromium
         run: |
-          npm install -g playwright
+          npm install playwright
+          echo "NODE_PATH=$(pwd)/node_modules" >> $GITHUB_ENV
           npx playwright install chromium --with-deps
 
       - name: Wait for deploy to propagate
