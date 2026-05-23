@@ -5,6 +5,9 @@ on:
   schedule:
     - cron: "*/15 * * * *"
   workflow_dispatch:
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
 
 permissions:
   contents: write
