@@ -31,7 +31,9 @@ jobs:
           key: playwright-chromium-v1
 
       - name: Install Playwright + Chromium
-        run: npx playwright install chromium --with-deps
+        run: |
+          npm install playwright
+          npx playwright install chromium --with-deps
 
       - name: Wait for deploy to propagate
         if: github.event_name == 'repository_dispatch'
