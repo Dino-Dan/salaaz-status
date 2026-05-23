@@ -32,7 +32,7 @@ jobs:
 
       - name: Install Playwright + Chromium
         run: |
-          npm install playwright
+          npm install -g playwright
           npx playwright install chromium --with-deps
 
       - name: Wait for deploy to propagate
