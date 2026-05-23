@@ -67,17 +67,14 @@ jobs:
             echo "status=degraded" >> $GITHUB_OUTPUT
           fi
 
-      - name: Write result
-        run: |
-          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          echo "{\"status\":\"${{ steps.smoke.outputs.status }}\",\"lastUpdated\":\"$TIMESTAMP\"}" \
-            > history/vendor-portal-render-status.json
-
-      - name: Commit if changed
+      - name: Commit result
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git pull --rebase
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+          echo "{\"status\":\"${{ steps.smoke.outputs.status }}\",\"lastUpdated\":\"$TIMESTAMP\"}" \
+            > history/vendor-portal-render-status.json
           git add history/vendor-portal-render-status.json
           git diff --cached --quiet || git commit -m "ci: update vendor portal render status"
           git push
