@@ -22,6 +22,9 @@ jobs:
         with:
           token: ${{ secrets.GH_PAT || github.token }}
 
+      - name: Pull latest
+        run: git pull --rebase
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -75,7 +78,6 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git pull --rebase
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
           echo "{\"status\":\"${{ steps.smoke.outputs.status }}\",\"lastUpdated\":\"$TIMESTAMP\"}" \
             > history/vendor-portal-render-status.json
