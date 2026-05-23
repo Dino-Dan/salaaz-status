@@ -12,6 +12,7 @@ sites:
     url: https://vendor.salaaz.com/
     expectedStatusCodes:
       - 200
+    body: id="root"
   - name: Ethics Dashboard
     url: https://ethics.salaaz.com/
     expectedStatusCodes:
