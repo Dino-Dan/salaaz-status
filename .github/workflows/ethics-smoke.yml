@@ -1,0 +1,84 @@
+name: Ethics Dashboard Smoke Check
+on:
+  repository_dispatch:
+    types: [ethics-push]
+  workflow_dispatch:
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  smoke:
+    name: Playwright smoke
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout status repo
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-v1
+
+      - name: Install Playwright + Chromium
+        run: |
+          npm install playwright
+          echo "NODE_PATH=$(pwd)/node_modules" >> $GITHUB_ENV
+          npx playwright install chromium --with-deps
+
+      - name: Wait for deploy to propagate
+        if: github.event_name == 'repository_dispatch'
+        run: sleep 180
+
+      - name: Run smoke test
+        id: smoke
+        run: |
+          if node - <<'EOF'
+          const { chromium } = require('playwright');
+          (async () => {
+            const browser = await chromium.launch();
+            const page = await browser.newPage();
+            try {
+              await page.goto('https://ethics.salaaz.com/', {
+                waitUntil: 'networkidle',
+                timeout: 20000
+              });
+              const visible = await page.locator('form').first().isVisible();
+              await browser.close();
+              process.exit(visible ? 0 : 1);
+            } catch (e) {
+              await browser.close();
+              process.exit(1);
+            }
+          })();
+          EOF
+          then
+            echo "status=up" >> $GITHUB_OUTPUT
+          else
+            echo "status=degraded" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Commit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+          echo "{\"status\":\"${{ steps.smoke.outputs.status }}\",\"lastUpdated\":\"$TIMESTAMP\"}" \
+            > history/ethics-render-status.json
+          git add history/ethics-render-status.json
+          git diff --cached --quiet || git commit -m "ci: update ethics dashboard render status"
+          git push
