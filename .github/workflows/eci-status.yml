@@ -21,10 +21,10 @@ jobs:
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
           HTTP_CODE=$(curl -s --max-time 10 -o /tmp/health-body.txt -w "%{http_code}" \
-            -H "Accept: application/json" https://salaaz.com/health/)
+            -H "Accept: application/json" https://salaaz.com/api/health/)
           BODY=$(cat /tmp/health-body.txt)
           if [ "$HTTP_CODE" = "200" ] && \
-             echo "$BODY" | grep -q '"MongoDBHealthCheck"' && \
+             echo "$BODY" | grep -q '"mongodb"' && \
              ! echo "$BODY" | grep -q '"unavailable"'; then
             STATUS="up"
           else
@@ -35,7 +35,7 @@ jobs:
       - name: Ping Stallion Express API
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://ship.stallionexpress.ca/api/v4)
+          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://ship.stallionexpress.ca/api/v4/shipments)
           case "$HTTP_CODE" in
             2[0-9][0-9]|401|403) STATUS="up" ;;
             *) STATUS="degraded" ;;
