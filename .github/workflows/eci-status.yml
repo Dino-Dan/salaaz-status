@@ -38,7 +38,7 @@ jobs:
       - name: Ping Stallion Express API
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://ship.stallionexpress.ca/api/v4/shipments)
+          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://sandbox.stallion.ca/api/v4/locations)
           case "$HTTP_CODE" in
             2[0-9][0-9]|401|403) STATUS="up" ;;
             *) STATUS="degraded" ;;
