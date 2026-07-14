@@ -1,0 +1,61 @@
+name: Status Page Design Guard
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  guard:
+    name: Detect and recover custom design
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v4
+        with:
+          ref: master
+          fetch-depth: 0
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Check gh-pages for the custom design marker
+        id: check
+        run: |
+          git fetch origin gh-pages --quiet
+          if git show origin/gh-pages:index.html 2>/dev/null | grep -q "salaaz-custom-status-page"; then
+            echo "reverted=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "reverted=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Redeploy custom status page
+        if: steps.check.outputs.reverted == 'true'
+        run: |
+          set -e
+          git config user.name "Upptime Bot"
+          git config user.email "73812536+upptime-bot@users.noreply.github.com"
+          WORKDIR="$(mktemp -d)"
+          git worktree add --detach "$WORKDIR" origin/gh-pages
+          cd "$WORKDIR"
+          git rm -rf --quiet .
+          cp "$GITHUB_WORKSPACE/status-page/index.html" .
+          cp "$GITHUB_WORKSPACE/status-page/incidents.html" .
+          cp "$GITHUB_WORKSPACE/status-page/vendor-portal.svg" .
+          echo "status.salaaz.com" > CNAME
+          touch .nojekyll
+          git add -A
+          git commit -q -m "ci: design-guard auto-recovered custom status page [skip ci]"
+          git push origin HEAD:gh-pages
+
+      - name: Notify Discord on recovery
+        if: steps.check.outputs.reverted == 'true' && env.DISCORD_WEBHOOK_URL != ''
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
+        run: |
+          curl -sf -H "Content-Type: application/json" -X POST \
+            -d '{"content": "⚠️ status.salaaz.com had reverted to the stock Upptime template — design-guard auto-redeployed the custom design. Check .github/workflows for anything re-triggering setup/updates."}' \
+            "$DISCORD_WEBHOOK_URL"
