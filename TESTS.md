@@ -143,14 +143,27 @@ Full-page tests for `status-page/index.html`. All GitHub raw requests are mocked
 
 | ID  | What it checks |
 |-----|----------------|
-| T13 | Exactly 3 service cards are rendered |
-| T14 | All three expected services are present by name |
+| T13 | Exactly 2 service cards are rendered (internal-only services are filtered out) |
+| T14 | Both public services are present by name |
 | T15 | An `"up"` service displays a green `"Operational"` tag |
 | T16 | A `"down"` service displays a red `"Down"` tag |
 | T17 | A `"degraded"` service displays an amber `"Degraded"` tag |
 | T18 | Each card shows the service hostname (not the full URL) |
 | T19 | Each card shows response time in `ms` and a `%` uptime figure |
 | T20 | No Components panel is rendered (the feature is commented out) |
+
+### Internal-only services
+
+Services listed in `HIDDEN_SLUGS` / `HIDDEN_SERVICE_NAMES` are still monitored by
+Upptime and still present in `summary.json`, but must never reach the public page.
+The fixtures deliberately still contain them — that is what makes these tests meaningful.
+
+| ID  | What it checks |
+|-----|----------------|
+| T58 | A hidden service is not rendered even though `summary.json` still contains it |
+| T59 | No network request is made for the hidden service (filtered before the YAML fetch) |
+| T60 | Banner stays green when *only* the hidden service is down — no leak via the banner |
+| T61 | Hidden-service incidents are filtered out of the Past Incidents list |
 
 ### Bar chart
 
@@ -183,7 +196,7 @@ Full-page tests for `status-page/index.html`. All GitHub raw requests are mocked
 | T35 | YAML says `"down"` but `summary.json` says `"up"` → card shows `"Down"` |
 | T36 | YAML says `"up"` but `summary.json` says `"down"` → card shows `"Operational"` |
 | T37 | Banner reflects YAML status, not the stale `summary.json` status |
-| T38 | Only the overridden service changes; the other two cards are unaffected |
+| T38 | Only the overridden service changes; the other card is unaffected |
 
 ### Error handling
 
@@ -191,7 +204,7 @@ Full-page tests for `status-page/index.html`. All GitHub raw requests are mocked
 |-----|----------------|
 | T39 | `summary.json` fetch failure → error banner with `"Could not load status data"` and `"Please refresh the page."` |
 | T40 | On fetch error the `#services` container is empty (no cards rendered) |
-| T41 | All YAML fetches fail → page still renders 3 cards using `summary.json` status |
+| T41 | All YAML fetches fail → page still renders 2 cards using `summary.json` status |
 | T42 | No uncaught JS errors during a normal successful load |
 
 ### Last-checked timestamp
@@ -278,8 +291,17 @@ Full-page tests for `status-page/incidents.html`. All GitHub API requests are mo
 |-----|----------------|
 | T27 | `"🟥 Salaaz Marketplace is down (200 in 0ms)"` → displayed name is `"Salaaz Marketplace"` |
 | T28 | `"🟨 Vendor Portal is degraded"` → displayed name is `"Vendor Portal"` |
-| T29 | `"Ethics Dashboard has degraded performance"` → displayed name is `"Ethics Dashboard"` |
+| T29 | `"Salaaz Marketplace has degraded performance"` → displayed name is `"Salaaz Marketplace"` |
 | T30 | Leading emoji is stripped from the displayed service name |
+
+### Internal-only services
+
+Upptime keeps opening issues for internal services; they must not be listed here.
+
+| ID  | What it checks |
+|-----|----------------|
+| T33 | Resolved hidden-service incidents are not listed |
+| T34 | An open hidden-service incident does not reveal the ongoing section |
 
 ### Error handling
 

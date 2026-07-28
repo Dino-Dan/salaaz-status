@@ -247,8 +247,8 @@ test.describe('Service name extraction from issue title', () => {
   });
 
   test('T29 — "X has degraded performance" → card shows only "X"', async ({ page }) => {
-    await loadWithTitle(page, 'Ethics Dashboard has degraded performance');
-    await expect(page.locator('.card-service').first()).toHaveText('Ethics Dashboard');
+    await loadWithTitle(page, 'Salaaz Marketplace has degraded performance');
+    await expect(page.locator('.card-service').first()).toHaveText('Salaaz Marketplace');
   });
 
   test('T30 — leading emoji is stripped from displayed name', async ({ page }) => {
@@ -256,6 +256,41 @@ test.describe('Service name extraction from issue title', () => {
     const text = await page.locator('.card-service').first().textContent();
     expect(text).not.toMatch(/🟥/);
     expect((text ?? '').trim()).toBe('Salaaz Marketplace');
+  });
+});
+
+// ── Internal-only services ────────────────────────────────────────────────────
+// Upptime keeps opening issues for the internal Ethics Dashboard; they must not
+// be listed here.
+
+test.describe('Internal-only services are hidden', () => {
+  const issue = (id, title, state) => ({
+    id, number: id, title, state,
+    created_at: '2026-05-09T10:00:00Z',
+    closed_at: state === 'closed' ? '2026-05-09T11:00:00Z' : null,
+    labels: [],
+  });
+
+  test('T33 — resolved hidden-service incidents are not listed', async ({ page }) => {
+    await mockIssues(page, JSON.stringify([
+      issue(9001, '🟥 Ethics Dashboard is down (500 in 10ms)', 'closed'),
+      issue(9002, '🟥 Vendor Portal is down (500 in 10ms)', 'closed'),
+    ]));
+    await page.goto(PAGE);
+    await page.waitForSelector('.incident-card');
+    expect(await page.locator('.incident-card').count()).toBe(1);
+    await expect(page.locator('.card-service').first()).toHaveText('Vendor Portal');
+    await expect(page.locator('#incidents')).not.toContainText('Ethics');
+  });
+
+  test('T34 — an open hidden-service incident does not show the ongoing section', async ({ page }) => {
+    await mockIssues(page, JSON.stringify([
+      issue(9003, '🟥 Ethics Dashboard is down (500 in 10ms)', 'open'),
+    ]));
+    await page.goto(PAGE);
+    await waitForLoad(page);
+    await expect(page.locator('#ongoing-section')).toBeHidden();
+    await expect(page.locator('#incidents')).toContainText('No incidents recorded yet.');
   });
 });
 

@@ -5,7 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Salaaz Status</title>
-  <meta name="description" content="Live status and uptime for all Salaaz services — Marketplace, Vendor Portal, and Ethics Dashboard.">
+  <meta name="description" content="Live status and uptime for all Salaaz services — Marketplace and Vendor Portal.">
   <meta property="og:title" content="Salaaz Status">
   <meta property="og:description" content="Live status and uptime for all Salaaz services.">
   <meta property="og:url" content="https://status.salaaz.com/">
@@ -515,6 +515,13 @@
 <script>
   const RAW = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master';
 
+  // ── Internal-only services ──
+  // Still monitored by Upptime and still alerted on internally, but never shown
+  // on this public page. Filtered out as early as possible in the data flow so
+  // the slug never reaches a network request or the status banner.
+  const HIDDEN_SLUGS = ['ethics-dashboard'];
+  const HIDDEN_SERVICE_NAMES = ['Ethics Dashboard'];
+
   // ── Sub-components per Upptime slug (disabled — re-enable when per-component monitoring is wired up) ──
   /* const SUB_COMPONENTS = {
     'salaaz-marketplace': [
@@ -542,17 +549,6 @@
       'Onboarding & Certifications',
       'Account Settings',
     ],
-    'ethics-dashboard': [
-      'Authentication',
-      'Vendor Approval',
-      'Product Approval',
-      'Order Oversight',
-      'Customer Management',
-      'Returns Management',
-      'Analytics & Reporting',
-      'Ethics Certifications',
-      'Audit Log',
-    ],
   }; */
   const SUB_COMPONENTS = {};
 
@@ -579,11 +575,6 @@
       label: 'Vendor Portal',
       type: 'repojson',
       apiUrl: RAW + '/history/vendor-portal-render-status.json',
-    },
-    {
-      label: 'Ethics Dashboard',
-      type: 'repojson',
-      apiUrl: RAW + '/history/ethics-render-status.json',
     },
   ];
 
@@ -799,9 +790,7 @@
 
     const iconSrc = service.slug === 'vendor-portal'
       ? VENDOR_PORTAL_ICON
-      : service.slug === 'ethics-dashboard'
-        ? 'https://icons.duckduckgo.com/ip3/salaaz.com.ico'
-        : service.icon;
+      : service.icon;
 
     // Wrap icon in fixed-size container so hiding it on error doesn't shift layout
     header.innerHTML = `
@@ -1020,15 +1009,20 @@
         fetchDepsStatus(),
       ]);
 
-      const yamlData = await Promise.all(summary.map(s => fetchYamlData(s.slug)));
+      // Drop internal-only services before anything else touches the data —
+      // this keeps their slugs out of the YAML fetches below, out of the
+      // banner math, and out of the rendered cards.
+      const visible = summary.filter(s => !HIDDEN_SLUGS.includes(s.slug));
+
+      const yamlData = await Promise.all(visible.map(s => fetchYamlData(s.slug)));
 
       // Override summary.json status with the live YAML status — the YAML is
       // written first by Upptime and is never stale from a previous check cycle.
-      summary.forEach(function (service, i) {
+      visible.forEach(function (service, i) {
         if (yamlData[i].status) service.status = yamlData[i].status;
       });
 
-      renderBanner(summary);
+      renderBanner(visible);
 
       const shortFmt = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
       document.getElementById('last-checked').textContent =
@@ -1036,7 +1030,7 @@
 
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
-      summary.forEach((service, i) => {
+      visible.forEach((service, i) => {
         const card = renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated, yamlData[i].responseTime);
         if (service.slug === 'salaaz-marketplace') {
           appendDepsPanel(card, depsData);
@@ -1091,9 +1085,15 @@
 
       if (!Array.isArray(allIssues)) throw new Error('bad response');
 
+      // Drop incidents for internal-only services before the cutoff filter, so
+      // the empty state below is accurate when the only recent incidents were theirs.
+      const publicIssues = allIssues.filter(
+        i => !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
+      );
+
       // Keep only incidents closed within the last 14 days
       const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-      const issues = allIssues.filter(i => i.closed_at && new Date(i.closed_at) >= cutoff);
+      const issues = publicIssues.filter(i => i.closed_at && new Date(i.closed_at) >= cutoff);
 
       if (issues.length === 0) {
         el.innerHTML = '<div class="no-past-incidents">No incidents in the past 14 days.</div>';

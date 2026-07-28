@@ -130,12 +130,12 @@ test.describe('Service cards', () => {
     await page.waitForSelector('.card');
   });
 
-  test('T13 — renders exactly 3 service cards', async ({ page }) => {
-    expect(await page.locator('.card').count()).toBe(3);
+  test('T13 — renders exactly 2 service cards', async ({ page }) => {
+    expect(await page.locator('.card').count()).toBe(2);
   });
 
   test('T14 — each expected service is present', async ({ page }) => {
-    for (const name of ['Salaaz Marketplace', 'Vendor Portal', 'Ethics Dashboard']) {
+    for (const name of ['Salaaz Marketplace', 'Vendor Portal']) {
       await expect(page.locator('.card').filter({ hasText: name })).toBeVisible();
     }
   });
@@ -190,7 +190,63 @@ test.describe('Service cards', () => {
     const mktCard = page.locator('.card').filter({ hasText: 'Salaaz Marketplace' });
     await expect(mktCard.locator('.card-toggle')).toBeVisible();
     expect(await page.locator('.card').filter({ hasText: 'Vendor Portal' }).locator('.card-toggle').count()).toBe(0);
-    expect(await page.locator('.card').filter({ hasText: 'Ethics Dashboard' }).locator('.card-toggle').count()).toBe(0);
+  });
+});
+
+// ── Internal-only services ────────────────────────────────────────────────────
+// Ethics Dashboard is still monitored by Upptime (and still present in
+// summary.json), but must never surface on the public page.
+
+test.describe('Internal-only services are hidden', () => {
+  test('T58 — hidden service is not rendered even though summary.json contains it', async ({ page }) => {
+    // Guard the premise: the fixture must still list it, or this proves nothing.
+    expect(JSON.parse(FIXTURE('summary-all-up.json')).some(s => s.slug === 'ethics-dashboard')).toBe(true);
+
+    await mockAll(page, FIXTURE('summary-all-up.json'));
+    await page.goto(PAGE);
+    await page.waitForSelector('.card');
+    expect(await page.locator('.card').filter({ hasText: 'Ethics Dashboard' }).count()).toBe(0);
+    await expect(page.locator('#services')).not.toContainText('Ethics');
+  });
+
+  test('T59 — no network request is made for the hidden service', async ({ page }) => {
+    const requested = [];
+    page.on('request', r => requested.push(r.url()));
+    await mockAll(page, FIXTURE('summary-all-up.json'));
+    await page.goto(PAGE);
+    await page.waitForSelector('.card');
+    expect(requested.filter(u => u.includes('ethics'))).toEqual([]);
+  });
+
+  test('T60 — banner stays green when only the hidden service is down', async ({ page }) => {
+    const summary = JSON.parse(FIXTURE('summary-all-up.json'));
+    summary.find(s => s.slug === 'ethics-dashboard').status = 'down';
+    await mockAll(page, JSON.stringify(summary));
+    await page.goto(PAGE);
+    await page.waitForSelector('.status-banner');
+    await expect(page.locator('.status-banner')).toHaveClass(/all-up/);
+    await expect(page.locator('.banner-title')).toContainText('All Systems Operational');
+  });
+
+  test('T61 — hidden-service incidents are filtered out of Past Incidents', async ({ page }) => {
+    const closed  = new Date(Date.now() - 2 * 24 * 60 * 60 * 1000);
+    const created = new Date(closed.getTime() - 30 * 60 * 1000);
+    await mockAll(page, FIXTURE('summary-all-up.json'));
+    // Registered after mockAll's catch-all, so it takes priority.
+    await page.route(/api\.github\.com/, route => route.fulfill({
+      contentType: 'application/json',
+      body: JSON.stringify([
+        { title: '🟥 Ethics Dashboard is down (500 in 1234ms)', state: 'closed',
+          created_at: created.toISOString(), closed_at: closed.toISOString() },
+        { title: '🟥 Vendor Portal is down (500 in 1234ms)', state: 'closed',
+          created_at: created.toISOString(), closed_at: closed.toISOString() },
+      ]),
+    }));
+    await page.goto(PAGE);
+    await page.waitForSelector('.incident-row');
+    expect(await page.locator('.incident-row').count()).toBe(1);
+    await expect(page.locator('#past-incidents')).toContainText('Vendor Portal');
+    await expect(page.locator('#past-incidents')).not.toContainText('Ethics');
   });
 });
 
@@ -403,7 +459,6 @@ test.describe('YAML overrides summary.json status', () => {
     await page.goto(PAGE);
     await page.waitForSelector('.card');
     await expect(page.locator('.card').filter({ hasText: 'Vendor Portal' }).locator('.tag-up')).toContainText('Operational');
-    await expect(page.locator('.card').filter({ hasText: 'Ethics Dashboard' }).locator('.tag-up')).toContainText('Operational');
   });
 });
 
@@ -431,7 +486,7 @@ test.describe('Error handling', () => {
     await page.route('**/*.yml', route => route.abort('failed'));
     await page.goto(PAGE);
     await page.waitForSelector('.card');
-    expect(await page.locator('.card').count()).toBe(3);
+    expect(await page.locator('.card').count()).toBe(2);
   });
 
   test('T42 — no uncaught JS errors during a normal load', async ({ page }) => {

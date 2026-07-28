@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Incidents — Salaaz Status</title>
-  <meta name="description" content="Full incident history for all Salaaz services — Marketplace, Vendor Portal, and Ethics Dashboard.">
+  <meta name="description" content="Full incident history for all Salaaz services — Marketplace and Vendor Portal.">
   <meta property="og:title" content="Incidents — Salaaz Status">
   <meta property="og:description" content="Full incident history for all Salaaz services.">
   <meta property="og:url" content="https://status.salaaz.com/incidents.html">
@@ -286,6 +286,9 @@
 <script>
   const API = 'https://api.github.com/repos/Dino-Dan/salaaz-status';
 
+  // Internal-only services — monitored and alerted on, but never listed publicly.
+  const HIDDEN_SERVICE_NAMES = ['Ethics Dashboard'];
+
   function fmtDate(iso) {
     return new Date(iso).toLocaleDateString('en-US', {
       weekday: 'long', month: 'long', day: 'numeric', year: 'numeric'
@@ -424,11 +427,17 @@
 
   async function init() {
     try {
-      const issues = await fetch(
+      const allIssues = await fetch(
         API + '/issues?state=all&per_page=100&sort=created&direction=desc'
       ).then(function(r) {
         if (!r.ok) throw new Error(r.status);
         return r.json();
+      });
+
+      // Drop incidents for internal-only services at a single point, so the
+      // ongoing section, empty states and day groupings all stay consistent.
+      const issues = allIssues.filter(function(i) {
+        return HIDDEN_SERVICE_NAMES.indexOf(serviceName(i.title || '')) === -1;
       });
 
       const ongoing  = issues.filter(function(i) { return i.state === 'open'; });
@@ -473,7 +482,8 @@
         incidentsEl.appendChild(section);
       });
 
-      if (issues.length === 100) {
+      // Test the unfiltered length — this notice means "the API page was full".
+      if (allIssues.length === 100) {
         const cap = document.createElement('div');
         cap.style.cssText = 'text-align:center;font-size:0.78rem;color:#B0ADA4;padding:1.25rem 0 0;';
         cap.textContent = 'Showing the 100 most recent incidents.';

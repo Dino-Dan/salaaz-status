@@ -4,6 +4,19 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## July 28, 2026
+
+### Public Status Page Now Lists Customer-Facing Services Only
+**Services:** Salaaz Marketplace, Vendor Portal  
+**Status:** No service impact
+
+- The status page and incidents page now list only customer-facing services. Internal tooling is no longer shown.
+- Monitoring itself is unchanged — internal services are still checked every 5 minutes and still raise internal alerts. This is a display change only; no check, schedule, or alert route was modified.
+- Services hidden from the page are also excluded from the overall status banner, so a purely internal issue no longer changes what customers see.
+- Driven by `HIDDEN_SLUGS` / `HIDDEN_SERVICE_NAMES` in `status-page/index.html` and `status-page/incidents.html`; filtering happens before any per-service data is fetched.
+
+---
+
 ## May 19, 2026
 
 ### API Dependency Check — Replaced ECI ping with django-health-check
