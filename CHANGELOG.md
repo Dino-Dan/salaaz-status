@@ -4,6 +4,28 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## July 29, 2026
+
+### Status Page Deployment — Removed the Stock Template Clobber
+**Services:** None (status page infrastructure)  
+**Status:** Resolved a recurring status-page display issue
+
+- Changes to the custom status page now deploy automatically. A new
+  `deploy-status-page.yml` workflow publishes `status-page/` to `gh-pages` on
+  every push, and is the only workflow that writes to that branch.
+- Removed `site.yml`, which built Upptime's stock Sapper site and published it
+  over the custom design. It was triggered externally, so the daily clobber
+  could not be stopped by changing schedules in the repo.
+- This was causing status.salaaz.com to serve the generic Upptime template for
+  18 minutes to 3 hours 39 minutes each day, until `design-guard.yml` noticed
+  and restored the custom pages. Those windows are now gone.
+- `design-guard.yml` is unchanged and stays as a watchdog. It should no longer
+  fire in normal operation — if its Discord alert appears, something unexpected
+  overwrote `gh-pages`.
+- No monitoring, check, or alert configuration was touched.
+
+---
+
 ## July 28, 2026
 
 ### Public Status Page Now Lists Customer-Facing Services Only

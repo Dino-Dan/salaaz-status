@@ -74,6 +74,8 @@ jobs:
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
       # Stock Sapper site generation + GitHub Pages deploy intentionally removed:
-      # status.salaaz.com uses the hand-built status-page/ design, deployed by site.yml.
+      # status.salaaz.com uses the hand-built status-page/ design, deployed by
+      # deploy-status-page.yml — the only workflow that writes to gh-pages.
       # These steps used to force-push the generated Sapper site over it on every
-      # .upptimerc.yml change. See design-guard.yml for the recovery watchdog.
+      # .upptimerc.yml change. site.yml did the same on a schedule until it was
+      # deleted on 2026-07-29. See design-guard.yml for the recovery watchdog.
