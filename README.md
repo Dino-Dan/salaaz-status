@@ -31,7 +31,7 @@ In addition to the three main Upptime-monitored services above, a separate GitHu
 | Badge        | What is checked                                                                                                  | Source file                       |
 | ------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------- |
 | **API**      | `GET https://salaaz.com/health/` — django-health-check aggregating PostgreSQL, migrations, MongoDB, and Redis/RQ | `history/alibaba-ecs-status.json` |
-| **Shipping** | StallionExpress API (`ship.stallionexpress.ca/api/v4`)                                                           | `history/stallion-status.json`    |
+| **Shipping** | Stallion Express public status page (`status.stallionexpress.ca`)                                                | `history/stallion-status.json`    |
 | **Payments** | Square API (`issquareup.com/api/v2/status.json`)                                                                 | `history/square-status.json`      |
 
 Provider outages are capped at amber — red is reserved for Salaaz's own services being unreachable.

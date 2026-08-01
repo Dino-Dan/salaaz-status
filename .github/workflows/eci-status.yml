@@ -35,14 +35,16 @@ jobs:
           fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/alibaba-ecs-status.json
 
-      - name: Ping Stallion Express API
+      - name: Ping Stallion Express status page
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" https://sandbox.stallion.ca/api/v4/locations)
-          case "$HTTP_CODE" in
-            2[0-9][0-9]|401|403) STATUS="up" ;;
-            *) STATUS="degraded" ;;
-          esac
+          PAGE=$(curl -sf --max-time 10 -A "Mozilla/5.0 (compatible; SalaazStatusBot/1.0)" https://status.stallionexpress.ca/ || echo "")
+          ICON=$(echo "$PAGE" | grep -o 'favicons/[a-z-]*-' | head -1 | sed -E 's#favicons/([a-z-]+)-#\1#')
+          if [ "$ICON" = "operational" ]; then
+            STATUS="up"
+          else
+            STATUS="degraded"
+          fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/stallion-status.json
 
       - name: Ping Square API
