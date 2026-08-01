@@ -5,11 +5,11 @@
     "icon": "https://icons.duckduckgo.com/ip3/salaaz.com.ico",
     "slug": "salaaz-marketplace",
     "status": "down",
-    "uptime": "99.99%",
-    "uptimeDay": "99.97%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "99.99%",
+    "uptime": "99.98%",
+    "uptimeDay": "99.67%",
+    "uptimeWeek": "99.95%",
+    "uptimeMonth": "99.99%",
+    "uptimeYear": "99.98%",
     "time": 191,
     "timeDay": 437,
     "timeWeek": 371,
@@ -17,7 +17,7 @@
     "timeYear": 191,
     "dailyMinutesDown": {
       "2026-06-07": 15,
-      "2026-08-01": 0
+      "2026-08-01": 5
     }
   },
   {
@@ -43,20 +43,21 @@
     "url": "https://ethics.salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/ethics.salaaz.com.ico",
     "slug": "ethics-dashboard",
-    "status": "down",
+    "status": "up",
     "uptime": "99.99%",
-    "uptimeDay": "100.00%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
+    "uptimeDay": "99.70%",
+    "uptimeWeek": "99.96%",
+    "uptimeMonth": "99.99%",
     "uptimeYear": "99.99%",
-    "time": 164,
-    "timeDay": 235,
-    "timeWeek": 203,
-    "timeMonth": 184,
-    "timeYear": 164,
+    "time": 163,
+    "timeDay": 207,
+    "timeWeek": 198,
+    "timeMonth": 183,
+    "timeYear": 163,
     "dailyMinutesDown": {
       "2026-05-11": 10,
-      "2026-06-07": 3
+      "2026-06-07": 3,
+      "2026-08-01": 4
     }
   }
 ]
