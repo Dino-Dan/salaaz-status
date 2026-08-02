@@ -3,6 +3,12 @@ owner: Dino-Dan
 repo: salaaz-status
 skipDeleteIssues: true
 
+# Native 5-minute schedule is disabled (Feb 31st never occurs) so uptime-guard.yml
+# can gate each real check behind its own debounce logic instead of firing blind.
+# workflow_dispatch (used by uptime-guard.yml) is unaffected.
+workflowSchedule:
+  uptime: "0 0 31 2 *"
+
 sites:
   - name: Salaaz Marketplace
     url: https://salaaz.com/

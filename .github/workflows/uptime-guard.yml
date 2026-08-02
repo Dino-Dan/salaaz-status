@@ -1,0 +1,156 @@
+name: Uptime Guard
+on:
+  schedule:
+    - cron: '*/5 * * * *'
+  workflow_dispatch:
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  guard:
+    name: Debounce checks before letting Uptime CI run
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - name: Init state file
+        run: |
+          mkdir -p .uptime-guard
+          [ -f .uptime-guard/state.json ] || echo '{}' > .uptime-guard/state.json
+
+      - name: Check Salaaz Marketplace
+        id: check-salaaz
+        run: |
+          STATE_FILE=.uptime-guard/state.json
+          SLUG="salaaz-marketplace"
+          URL="https://salaaz.com/"
+          THRESHOLD=2
+
+          CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" "$URL" || echo "0")
+          COUNT=$(jq -r --arg s "$SLUG" '.[$s].count // 0' "$STATE_FILE")
+          CONFIRMED=$(jq -r --arg s "$SLUG" '.[$s].confirmed // false' "$STATE_FILE")
+
+          if [ "$CODE" -ge 200 ] 2>/dev/null && [ "$CODE" -lt 400 ]; then
+            jq --arg s "$SLUG" '.[$s] = {count: 0, confirmed: false}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+            echo "state=healthy" >> "$GITHUB_OUTPUT"
+            echo "$SLUG: healthy (HTTP $CODE)"
+          elif [ "$CONFIRMED" = "true" ]; then
+            echo "state=confirmed" >> "$GITHUB_OUTPUT"
+            echo "$SLUG: ongoing confirmed incident, keep tracking (HTTP $CODE)"
+          else
+            COUNT=$((COUNT + 1))
+            if [ "$COUNT" -ge "$THRESHOLD" ]; then
+              jq --arg s "$SLUG" '.[$s] = {count: 0, confirmed: true}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+              echo "state=confirmed" >> "$GITHUB_OUTPUT"
+              echo "$SLUG: confirmed failing after $COUNT consecutive guard checks (HTTP $CODE)"
+            else
+              jq --arg s "$SLUG" --argjson c "$COUNT" '.[$s] = {count: $c, confirmed: false}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+              echo "state=holding" >> "$GITHUB_OUTPUT"
+              echo "$SLUG: $COUNT/$THRESHOLD consecutive guard-check failures (HTTP $CODE), holding off"
+            fi
+          fi
+
+      - name: Check Vendor Portal
+        id: check-vendor
+        run: |
+          STATE_FILE=.uptime-guard/state.json
+          SLUG="vendor-portal"
+          URL="https://vendor.salaaz.com/"
+          THRESHOLD=2
+
+          CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" "$URL" || echo "0")
+          COUNT=$(jq -r --arg s "$SLUG" '.[$s].count // 0' "$STATE_FILE")
+          CONFIRMED=$(jq -r --arg s "$SLUG" '.[$s].confirmed // false' "$STATE_FILE")
+
+          if [ "$CODE" -ge 200 ] 2>/dev/null && [ "$CODE" -lt 400 ]; then
+            jq --arg s "$SLUG" '.[$s] = {count: 0, confirmed: false}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+            echo "state=healthy" >> "$GITHUB_OUTPUT"
+            echo "$SLUG: healthy (HTTP $CODE)"
+          elif [ "$CONFIRMED" = "true" ]; then
+            echo "state=confirmed" >> "$GITHUB_OUTPUT"
+            echo "$SLUG: ongoing confirmed incident, keep tracking (HTTP $CODE)"
+          else
+            COUNT=$((COUNT + 1))
+            if [ "$COUNT" -ge "$THRESHOLD" ]; then
+              jq --arg s "$SLUG" '.[$s] = {count: 0, confirmed: true}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+              echo "state=confirmed" >> "$GITHUB_OUTPUT"
+              echo "$SLUG: confirmed failing after $COUNT consecutive guard checks (HTTP $CODE)"
+            else
+              jq --arg s "$SLUG" --argjson c "$COUNT" '.[$s] = {count: $c, confirmed: false}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+              echo "state=holding" >> "$GITHUB_OUTPUT"
+              echo "$SLUG: $COUNT/$THRESHOLD consecutive guard-check failures (HTTP $CODE), holding off"
+            fi
+          fi
+
+      - name: Check Ethics Dashboard
+        id: check-ethics
+        run: |
+          STATE_FILE=.uptime-guard/state.json
+          SLUG="ethics-dashboard"
+          URL="https://ethics.salaaz.com/"
+          THRESHOLD=2
+
+          CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" "$URL" || echo "0")
+          COUNT=$(jq -r --arg s "$SLUG" '.[$s].count // 0' "$STATE_FILE")
+          CONFIRMED=$(jq -r --arg s "$SLUG" '.[$s].confirmed // false' "$STATE_FILE")
+
+          if [ "$CODE" -ge 200 ] 2>/dev/null && [ "$CODE" -lt 400 ]; then
+            jq --arg s "$SLUG" '.[$s] = {count: 0, confirmed: false}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+            echo "state=healthy" >> "$GITHUB_OUTPUT"
+            echo "$SLUG: healthy (HTTP $CODE)"
+          elif [ "$CONFIRMED" = "true" ]; then
+            echo "state=confirmed" >> "$GITHUB_OUTPUT"
+            echo "$SLUG: ongoing confirmed incident, keep tracking (HTTP $CODE)"
+          else
+            COUNT=$((COUNT + 1))
+            if [ "$COUNT" -ge "$THRESHOLD" ]; then
+              jq --arg s "$SLUG" '.[$s] = {count: 0, confirmed: true}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+              echo "state=confirmed" >> "$GITHUB_OUTPUT"
+              echo "$SLUG: confirmed failing after $COUNT consecutive guard checks (HTTP $CODE)"
+            else
+              jq --arg s "$SLUG" --argjson c "$COUNT" '.[$s] = {count: $c, confirmed: false}' "$STATE_FILE" > tmp.$$ && mv tmp.$$ "$STATE_FILE"
+              echo "state=holding" >> "$GITHUB_OUTPUT"
+              echo "$SLUG: $COUNT/$THRESHOLD consecutive guard-check failures (HTTP $CODE), holding off"
+            fi
+          fi
+
+      - name: Decide whether to let the real check run
+        id: decide
+        run: |
+          STATES="${{ steps.check-salaaz.outputs.state }} ${{ steps.check-vendor.outputs.state }} ${{ steps.check-ethics.outputs.state }}"
+          if echo "$STATES" | grep -q "confirmed"; then
+            echo "dispatch=true" >> "$GITHUB_OUTPUT"
+            echo "Decision: dispatch (a confirmed incident needs tracking) — states: $STATES"
+          elif echo "$STATES" | grep -q "holding"; then
+            echo "dispatch=false" >> "$GITHUB_OUTPUT"
+            echo "Decision: hold off this cycle — states: $STATES"
+          else
+            echo "dispatch=true" >> "$GITHUB_OUTPUT"
+            echo "Decision: dispatch (all healthy) — states: $STATES"
+          fi
+
+      - name: Commit failure-counter state
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add .uptime-guard/state.json
+          git diff --cached --quiet || git commit -m "ci: update uptime-guard failure counters"
+          git pull --rebase
+          git push
+
+      - name: Trigger real Uptime CI check
+        if: steps.decide.outputs.dispatch == 'true'
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: Uptime CI
+          token: ${{ secrets.GH_PAT || github.token }}
