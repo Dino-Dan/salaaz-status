@@ -4,21 +4,21 @@
     "url": "https://salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/salaaz.com.ico",
     "slug": "salaaz-marketplace",
-    "status": "down",
-    "uptime": "99.98%",
-    "uptimeDay": "99.96%",
-    "uptimeWeek": "99.95%",
-    "uptimeMonth": "99.99%",
-    "uptimeYear": "99.98%",
-    "time": 195,
-    "timeDay": 347,
-    "timeWeek": 389,
-    "timeMonth": 239,
-    "timeYear": 195,
+    "status": "up",
+    "uptime": "99.97%",
+    "uptimeDay": "98.62%",
+    "uptimeWeek": "99.76%",
+    "uptimeMonth": "99.94%",
+    "uptimeYear": "99.97%",
+    "time": 196,
+    "timeDay": 304,
+    "timeWeek": 379,
+    "timeMonth": 238,
+    "timeYear": 196,
     "dailyMinutesDown": {
       "2026-06-07": 15,
       "2026-08-01": 5,
-      "2026-08-03": 1
+      "2026-08-03": 20
     }
   },
   {
@@ -26,19 +26,19 @@
     "url": "https://vendor.salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/vendor.salaaz.com.ico",
     "slug": "vendor-portal",
-    "status": "down",
-    "uptime": "100.00%",
-    "uptimeDay": "99.97%",
-    "uptimeWeek": "100.00%",
-    "uptimeMonth": "100.00%",
-    "uptimeYear": "100.00%",
-    "time": 172,
-    "timeDay": 158,
-    "timeWeek": 201,
+    "status": "up",
+    "uptime": "99.98%",
+    "uptimeDay": "98.63%",
+    "uptimeWeek": "99.80%",
+    "uptimeMonth": "99.96%",
+    "uptimeYear": "99.98%",
+    "time": 171,
+    "timeDay": 152,
+    "timeWeek": 197,
     "timeMonth": 190,
-    "timeYear": 172,
+    "timeYear": 171,
     "dailyMinutesDown": {
-      "2026-08-03": 0
+      "2026-08-03": 20
     }
   },
   {
@@ -46,22 +46,22 @@
     "url": "https://ethics.salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/ethics.salaaz.com.ico",
     "slug": "ethics-dashboard",
-    "status": "down",
-    "uptime": "99.99%",
-    "uptimeDay": "99.99%",
-    "uptimeWeek": "99.96%",
-    "uptimeMonth": "99.99%",
-    "uptimeYear": "99.99%",
-    "time": 163,
-    "timeDay": 159,
-    "timeWeek": 188,
+    "status": "up",
+    "uptime": "99.97%",
+    "uptimeDay": "98.65%",
+    "uptimeWeek": "99.76%",
+    "uptimeMonth": "99.95%",
+    "uptimeYear": "99.97%",
+    "time": 164,
+    "timeDay": 164,
+    "timeWeek": 187,
     "timeMonth": 181,
-    "timeYear": 163,
+    "timeYear": 164,
     "dailyMinutesDown": {
       "2026-05-11": 10,
       "2026-06-07": 3,
       "2026-08-01": 4,
-      "2026-08-03": 0
+      "2026-08-03": 19
     }
   }
 ]
