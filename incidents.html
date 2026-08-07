@@ -13,22 +13,42 @@
   <link rel="canonical" href="https://status.salaaz.com/incidents.html">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --ink-1: #1A2E0F;
+      --ink-2: #2F4A1C;
+      --ink-3: #5C6F4A;
+      --paper-1: #FAF8F2;
+      --paper-2: #F3EFE3;
+      --paper-3: #E8E2CE;
+      --leaf-50: #EAF3DE;
+      --leaf: #4F7A1B;
+      --leaf-deep: #2C5F2D;
+      --rose: #8E3A47;
+      --rose-soft: #F1E0E4;
+      --rule: rgba(26,46,15,0.12);
+      --rule-2: rgba(26,46,15,0.22);
+      --focus-ring: 0 0 0 3px rgba(44,95,45,0.12);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    }
+
     html, body {
-      background: #FAF9F5;
-      color: #141413;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--paper-1);
+      color: var(--ink-1);
+      font-family: var(--font-sans);
       font-size: 16px;
       line-height: 1.5;
       min-height: 100vh;
     }
 
     nav {
-      background: #FAF9F5;
-      border-bottom: 1px solid #DEDCD1;
+      background: var(--paper-2);
+      border-bottom: 0.5px solid var(--rule-2);
       height: 56px;
       display: flex;
       align-items: center;
@@ -41,22 +61,23 @@
 
     .nav-links a {
       font-size: 0.8rem;
-      color: #87867F;
+      color: var(--ink-3);
       text-decoration: none;
       font-weight: 500;
       margin-left: 1.25rem;
-      transition: color 0.15s;
+      transition: color 120ms linear;
     }
-    .nav-links a:hover { color: #141413; }
-    .nav-links a.active { color: #141413; }
+    .nav-links a:hover { color: var(--ink-1); }
+    .nav-links a.active { color: var(--ink-1); }
 
     .nav-brand {
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #141413;
+      font-family: var(--font-serif);
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: var(--ink-1);
       text-decoration: none;
     }
 
@@ -75,48 +96,52 @@
       gap: 0.5rem;
     }
 
-    .page-title { font-size: 1.3rem; font-weight: 600; }
+    .page-title { font-family: var(--font-serif); font-size: 1.4rem; font-weight: 500; letter-spacing: -0.005em; }
 
     .back-link {
       font-size: 0.8rem;
-      color: #87867F;
+      color: var(--ink-3);
       text-decoration: none;
       font-weight: 500;
     }
-    .back-link:hover { color: #141413; }
+    .back-link:hover { color: var(--ink-1); }
 
     .section-label {
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #87867F;
+      color: var(--ink-3);
       margin-bottom: 0.6rem;
     }
 
     .incident-group { margin-bottom: 2rem; }
 
     .incident-day {
-      font-size: 0.78rem;
-      font-weight: 600;
-      color: #141413;
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      color: var(--ink-2);
       padding-bottom: 0.5rem;
       margin-bottom: 0.5rem;
-      border-bottom: 1px solid #EDECE8;
+      border-bottom: 0.5px solid var(--rule);
     }
 
     .incident-card {
-      background: #FFFFFF;
-      border: 1px solid #DEDCD1;
-      border-radius: 8px;
+      background: var(--paper-2);
+      border: 0.5px solid var(--rule);
+      border-radius: 12px;
       padding: 1rem 1.25rem;
       margin-bottom: 0.5rem;
       cursor: pointer;
       user-select: none;
+      transition: border-color 120ms linear;
     }
-    .incident-card:hover { border-color: #C8C6BC; }
-    .incident-card.is-open   { border-left: 3px solid #E04343; }
-    .incident-card.is-closed { border-left: 3px solid #76AD2A; }
+    .incident-card:hover { border-color: var(--rule-2); }
+    .incident-card.is-open   { border-left: 3px solid var(--rose); }
+    .incident-card.is-closed { border-left: 3px solid var(--leaf); }
 
     .card-top {
       display: flex;
@@ -128,9 +153,10 @@
     .card-left { min-width: 0; }
 
     .card-service {
-      font-size: 0.875rem;
+      font-family: var(--font-serif);
+      font-size: 0.92rem;
       font-weight: 500;
-      color: #141413;
+      color: var(--ink-1);
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -138,7 +164,7 @@
 
     .card-time {
       font-size: 0.72rem;
-      color: #87867F;
+      color: var(--ink-3);
       margin-top: 0.15rem;
     }
 
@@ -150,21 +176,23 @@
     }
 
     .badge {
-      font-size: 0.67rem;
-      font-weight: 600;
-      padding: 0.22em 0.6em;
-      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 0.64rem;
+      font-weight: 500;
+      padding: 0.25em 0.6em;
+      border-radius: 999px;
       white-space: nowrap;
-      letter-spacing: 0.03em;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
+      border: 0.5px solid transparent;
     }
-    .badge-ongoing  { background: #FDEAEA; color: #B02020; }
-    .badge-resolved { background: #EBF5D6; color: #2D5A0C; }
+    .badge-ongoing  { background: var(--rose-soft); color: var(--rose); border-color: rgba(142,58,71,0.18); }
+    .badge-resolved { background: var(--leaf-50); color: var(--leaf-deep); border-color: rgba(44,95,45,0.16); }
 
     .chevron {
       font-size: 0.7rem;
-      color: #B0ADA4;
-      transition: transform 0.18s ease;
+      color: var(--ink-3);
+      transition: transform 120ms linear;
       flex-shrink: 0;
     }
     .chevron.open { transform: rotate(180deg); }
@@ -173,7 +201,7 @@
       display: none;
       margin-top: 0.75rem;
       padding-top: 0.75rem;
-      border-top: 1px solid #F0EEE8;
+      border-top: 0.5px solid var(--rule);
     }
     .card-details.visible { display: block; }
 
@@ -182,13 +210,13 @@
       justify-content: space-between;
       align-items: baseline;
       font-size: 0.78rem;
-      color: #5C5A54;
+      color: var(--ink-2);
       padding: 0.2rem 0;
       gap: 1rem;
     }
 
     .detail-label {
-      color: #87867F;
+      color: var(--ink-3);
       font-weight: 500;
       white-space: nowrap;
       flex-shrink: 0;
@@ -196,25 +224,25 @@
     }
 
     .no-incidents {
-      background: #FFFFFF;
-      border: 1px solid #DEDCD1;
-      border-radius: 8px;
+      background: var(--paper-2);
+      border: 0.5px solid var(--rule);
+      border-radius: 12px;
       padding: 2.5rem 1.5rem;
       text-align: center;
-      color: #87867F;
+      color: var(--ink-3);
       font-size: 0.875rem;
     }
 
     .skeleton-card {
-      background: #FFFFFF;
-      border: 1px solid #DEDCD1;
-      border-radius: 8px;
+      background: var(--paper-2);
+      border: 0.5px solid var(--rule);
+      border-radius: 12px;
       padding: 1rem 1.25rem;
       margin-bottom: 0.5rem;
     }
     .skeleton-line {
       border-radius: 4px;
-      background: linear-gradient(90deg, #EDECE8 25%, #E3E2DE 50%, #EDECE8 75%);
+      background: linear-gradient(90deg, var(--paper-3) 25%, #DDD6BC 50%, var(--paper-3) 75%);
       background-size: 400% 100%;
       animation: shimmer 1.4s infinite;
     }
@@ -224,15 +252,15 @@
     }
 
     footer {
-      border-top: 1px solid #DEDCD1;
+      border-top: 0.5px solid var(--rule-2);
       padding: 1.5rem;
       text-align: center;
       font-size: 0.75rem;
-      color: #B0ADA4;
+      color: var(--ink-3);
       margin-top: 3rem;
     }
-    footer a { color: #B0ADA4; text-decoration: none; }
-    footer a:hover { color: #141413; }
+    footer a { color: var(--ink-3); text-decoration: none; }
+    footer a:hover { color: var(--ink-1); }
 
     @media (max-width: 600px) {
       main { padding: 1.25rem 1rem 3rem; }
@@ -485,7 +513,7 @@
       // Test the unfiltered length — this notice means "the API page was full".
       if (allIssues.length === 100) {
         const cap = document.createElement('div');
-        cap.style.cssText = 'text-align:center;font-size:0.78rem;color:#B0ADA4;padding:1.25rem 0 0;';
+        cap.style.cssText = 'text-align:center;font-size:0.78rem;color:#5C6F4A;padding:1.25rem 0 0;';
         cap.textContent = 'Showing the 100 most recent incidents.';
         incidentsEl.appendChild(cap);
       }

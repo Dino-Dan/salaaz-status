@@ -14,14 +14,34 @@
   <link rel="canonical" href="https://status.salaaz.com/">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+    :root {
+      --ink-1: #1A2E0F;
+      --ink-2: #2F4A1C;
+      --ink-3: #5C6F4A;
+      --paper-1: #FAF8F2;
+      --paper-2: #F3EFE3;
+      --paper-3: #E8E2CE;
+      --leaf-50: #EAF3DE;
+      --leaf: #4F7A1B;
+      --leaf-deep: #2C5F2D;
+      --rose: #8E3A47;
+      --rose-soft: #F1E0E4;
+      --rule: rgba(26,46,15,0.12);
+      --rule-2: rgba(26,46,15,0.22);
+      --focus-ring: 0 0 0 3px rgba(44,95,45,0.12);
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
+      --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+    }
+
     html, body {
-      background: #FAF9F5;
-      color: #141413;
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--paper-1);
+      color: var(--ink-1);
+      font-family: var(--font-sans);
       font-size: 16px;
       line-height: 1.5;
       min-height: 100vh;
@@ -29,8 +49,8 @@
 
     /* ── Nav ── */
     nav {
-      background: #FAF9F5;
-      border-bottom: 1px solid #DEDCD1;
+      background: var(--paper-2);
+      border-bottom: 0.5px solid var(--rule-2);
       height: 56px;
       display: flex;
       align-items: center;
@@ -45,22 +65,23 @@
       display: flex;
       align-items: center;
       gap: 0.5rem;
-      font-weight: 600;
-      font-size: 0.9rem;
-      color: #141413;
+      font-family: var(--font-serif);
+      font-weight: 500;
+      font-size: 0.95rem;
+      color: var(--ink-1);
       text-decoration: none;
     }
 
     .nav-links a {
       font-size: 0.8rem;
-      color: #87867F;
+      color: var(--ink-3);
       text-decoration: none;
       font-weight: 500;
       margin-left: 1.25rem;
-      transition: color 0.15s;
+      transition: color 120ms linear;
     }
 
-    .nav-links a:hover { color: #141413; }
+    .nav-links a:hover { color: var(--ink-1); }
 
     /* ── Layout ── */
     main {
@@ -71,18 +92,18 @@
 
     /* ── Status Banner ── */
     .status-banner {
-      border-radius: 8px;
+      border-radius: 12px;
       padding: 1.25rem 1.5rem;
       margin-bottom: 1.5rem;
       display: flex;
       align-items: flex-start;
       gap: 0.75rem;
-      border: 1px solid;
+      border: 0.5px solid;
     }
 
-    .status-banner.all-up   { background: #EBF5D6; border-color: #BEDEA0; }
-    .status-banner.some-down { background: #FDEAEA; border-color: #F5B5B5; }
-    .status-banner.degraded  { background: #FEF5E0; border-color: #F5D78A; }
+    .status-banner.all-up   { background: var(--leaf-50); border-color: var(--leaf); }
+    .status-banner.some-down { background: var(--rose-soft); border-color: var(--rose); }
+    .status-banner.degraded  { background: var(--paper-2); border-color: var(--rule-2); }
 
     .status-dot {
       width: 10px;
@@ -92,52 +113,57 @@
       margin-top: 5px;
     }
 
-    .dot-green  { background: #76AD2A; }
-    .dot-red    { background: #E04343; }
-    .dot-amber  { background: #FAA72A; }
+    .dot-green  { background: var(--leaf); }
+    .dot-red    { background: var(--rose); }
+    .dot-amber  { background: var(--ink-2); }
 
     .banner-title {
-      font-size: 0.975rem;
-      font-weight: 600;
+      font-family: var(--font-serif);
+      font-size: 1.15rem;
+      font-weight: 500;
+      letter-spacing: -0.005em;
     }
 
-    .all-up .banner-title    { color: #2D5A0C; }
-    .some-down .banner-title { color: #7A1515; }
-    .degraded .banner-title  { color: #7A4E0C; }
+    .all-up .banner-title    { color: var(--leaf-deep); }
+    .some-down .banner-title { color: var(--rose); }
+    .degraded .banner-title  { color: var(--ink-2); }
 
     .banner-sub {
       font-size: 0.8rem;
-      color: #87867F;
+      color: var(--ink-3);
       margin-top: 1px;
     }
 
     /* ── Last checked ── */
     .last-checked {
-      font-size: 0.72rem;
-      color: #B0ADA4;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--ink-3);
       text-align: right;
       margin-bottom: 0.6rem;
     }
 
     /* ── Section label ── */
     .section-label {
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #87867F;
+      color: var(--ink-3);
       margin-bottom: 0.6rem;
     }
 
     /* ── Service Cards ── */
     .card {
-      background: #FFFFFF;
-      border: 1px solid #DEDCD1;
-      border-radius: 8px;
+      background: var(--paper-2);
+      border: 0.5px solid var(--rule);
+      border-radius: 12px;
       margin-bottom: 0.4rem;
       overflow: hidden;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.03);
+      transition: border-color 120ms linear;
     }
+    .card:hover { border-color: var(--rule-2); }
 
     .card-header {
       display: flex;
@@ -161,29 +187,33 @@
     }
 
     .service-name {
-      font-size: 0.9rem;
+      font-family: var(--font-serif);
+      font-size: 0.95rem;
       font-weight: 500;
-      color: #141413;
+      letter-spacing: -0.005em;
+      color: var(--ink-1);
     }
 
     .service-url {
       font-size: 0.73rem;
-      color: #87867F;
+      color: var(--ink-3);
     }
 
     .tag {
-      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
       font-weight: 500;
-      padding: 0.2em 0.75em;
+      padding: 0.25em 0.75em;
       border-radius: 999px;
-      color: #fff;
-      letter-spacing: 0.01em;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
       white-space: nowrap;
+      border: 0.5px solid transparent;
     }
 
-    .tag-up       { background: #76AD2A; }
-    .tag-down     { background: #E04343; }
-    .tag-degraded { background: #FAA72A; }
+    .tag-up       { background: var(--leaf-50); color: var(--leaf-deep); border-color: rgba(44,95,45,0.16); }
+    .tag-down     { background: var(--rose-soft); color: var(--rose); border-color: rgba(142,58,71,0.18); }
+    .tag-degraded { background: var(--paper-3); color: var(--ink-1); border-color: var(--rule-2); }
 
     /* ── Bar strip ── */
     .bar-section {
@@ -216,7 +246,7 @@
 
     .bar-legend span {
       font-size: 0.67rem;
-      color: #C0BDB4;
+      color: var(--ink-3);
     }
 
     .uptime-row {
@@ -226,8 +256,9 @@
     }
 
     .uptime-pct {
-      font-size: 0.73rem;
-      color: #87867F;
+      font-family: var(--font-mono);
+      font-size: 0.71rem;
+      color: var(--ink-3);
       font-variant-numeric: tabular-nums;
     }
 
@@ -244,7 +275,7 @@
       align-items: center;
       gap: 0.35rem;
       font-size: 0.72rem;
-      color: #87867F;
+      color: var(--ink-3);
     }
 
     .legend-swatch {
@@ -257,23 +288,23 @@
     /* ── Divider ── */
     hr {
       border: none;
-      border-top: 1px solid #DEDCD1;
+      border-top: 0.5px solid var(--rule-2);
       margin: 2rem 0;
     }
 
 
     /* ── Skeleton loader ── */
     .skeleton-card {
-      background: #FFFFFF;
-      border: 1px solid #DEDCD1;
-      border-radius: 8px;
+      background: var(--paper-2);
+      border: 0.5px solid var(--rule);
+      border-radius: 12px;
       padding: 1rem 1.25rem;
       margin-bottom: 0.6rem;
     }
 
     .skeleton-line {
       border-radius: 4px;
-      background: linear-gradient(90deg, #EDECE8 25%, #E3E2DE 50%, #EDECE8 75%);
+      background: linear-gradient(90deg, var(--paper-3) 25%, #DDD6BC 50%, var(--paper-3) 75%);
       background-size: 400% 100%;
       animation: shimmer 1.4s infinite;
     }
@@ -286,12 +317,12 @@
     /* ── Tooltip ── */
     #tooltip {
       position: fixed;
-      background: #141413;
-      color: #FAF9F5;
-      font-size: 0.7rem;
-      font-family: 'Inter', sans-serif;
+      background: var(--ink-1);
+      color: var(--paper-1);
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
       padding: 0.3em 0.6em;
-      border-radius: 4px;
+      border-radius: 6px;
       pointer-events: none;
       white-space: nowrap;
       z-index: 1000;
@@ -304,25 +335,27 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.55rem 1.25rem;
-      border-top: 1px solid #F0EEE8;
+      border-top: 0.5px solid var(--rule);
       cursor: pointer;
       user-select: none;
     }
-    .card-toggle:hover { background: #FAFAF7; }
+    .card-toggle:hover { background: var(--paper-1); }
 
     .card-toggle-label {
-      font-size: 0.72rem;
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
       font-weight: 500;
-      color: #87867F;
+      letter-spacing: 0.04em;
+      color: var(--ink-3);
     }
 
     .card-toggle-chev {
       width: 8px;
       height: 8px;
-      border-right: 1.5px solid #B0ADA4;
-      border-bottom: 1.5px solid #B0ADA4;
+      border-right: 1.5px solid var(--ink-3);
+      border-bottom: 1.5px solid var(--ink-3);
       transform: rotate(45deg);
-      transition: transform 0.18s ease;
+      transition: transform 120ms linear;
       flex-shrink: 0;
     }
     .card-toggle-chev.open { transform: rotate(-135deg); }
@@ -330,7 +363,7 @@
     .card-components {
       display: none;
       padding: 0.25rem 1.25rem 0.75rem;
-      border-top: 1px solid #F0EEE8;
+      border-top: 0.5px solid var(--rule);
     }
     .card-components.visible { display: block; }
 
@@ -339,33 +372,34 @@
       align-items: center;
       justify-content: space-between;
       padding: 0.32rem 0;
-      border-bottom: 1px solid #F5F4F0;
+      border-bottom: 0.5px solid var(--rule);
     }
     .component-row:last-child { border-bottom: none; }
 
     .component-name {
       font-size: 0.8rem;
-      color: #3A3935;
+      color: var(--ink-2);
     }
 
     .comp-badge {
-      font-size: 0.62rem;
-      font-weight: 600;
-      padding: 0.18em 0.55em;
-      border-radius: 3px;
-      letter-spacing: 0.04em;
+      font-family: var(--font-mono);
+      font-size: 0.6rem;
+      font-weight: 500;
+      padding: 0.2em 0.55em;
+      border-radius: 6px;
+      letter-spacing: 0.06em;
       text-transform: uppercase;
       flex-shrink: 0;
     }
-    .comp-operational { background: #EBF5D6; color: #2D5A0C; }
-    .comp-degraded    { background: #FEF5E0; color: #7A4E0C; }
-    .comp-planned     { background: #EDECE8; color: #87867F; }
-    .comp-unknown     { background: #EDECE8; color: #87867F; }
+    .comp-operational { background: var(--leaf-50); color: var(--leaf-deep); }
+    .comp-degraded    { background: var(--paper-3); color: var(--ink-1); }
+    .comp-planned     { background: var(--paper-1); color: var(--ink-3); }
+    .comp-unknown     { background: var(--paper-1); color: var(--ink-3); }
 
 
     /* ── Planned service card ── */
     .card.is-planned { opacity: 0.82; }
-    .tag-planned { background: #E8E6DF; color: #6B6A64; }
+    .tag-planned { background: var(--paper-1); color: var(--ink-3); }
 
     /* ── Past Incidents ── */
     .incidents-section { margin-top: 2.5rem; }
@@ -378,52 +412,54 @@
     }
     .incidents-header .view-all {
       font-size: 0.78rem;
-      color: #2C84DB;
+      color: var(--leaf-deep);
       text-decoration: none;
     }
     .incidents-header .view-all:hover { text-decoration: underline; }
 
     .incident-day-heading {
-      font-size: 0.68rem;
-      font-weight: 600;
-      letter-spacing: 0.08em;
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.12em;
       text-transform: uppercase;
-      color: #87867F;
+      color: var(--ink-3);
       margin: 1.1rem 0 0.5rem;
     }
     .incident-day-heading:first-child { margin-top: 0; }
 
     .incident-row {
-      background: #FFFFFF;
-      border: 1px solid #DEDCD1;
-      border-radius: 8px;
+      background: var(--paper-2);
+      border: 0.5px solid var(--rule);
+      border-radius: 12px;
       padding: 0.875rem 1rem;
       margin-bottom: 0.5rem;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 1rem;
-      box-shadow: 0 1px 2px rgba(0,0,0,0.04), 0 2px 6px rgba(0,0,0,0.03);
+      transition: border-color 120ms linear;
     }
+    .incident-row:hover { border-color: var(--rule-2); }
     .incident-row-left { display: flex; align-items: center; gap: 0.625rem; }
-    .incident-dot { width: 8px; height: 8px; border-radius: 50%; background: #76AD2A; flex-shrink: 0; }
-    .incident-service { font-size: 0.875rem; font-weight: 500; color: #141413; }
-    .incident-detail { font-size: 0.78rem; color: #87867F; margin-top: 0.1rem; }
-    .incident-meta { font-size: 0.78rem; color: #B0ADA4; white-space: nowrap; }
-    .no-past-incidents { font-size: 0.8rem; color: #B0ADA4; padding: 1.5rem 0; text-align: center; }
+    .incident-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--leaf); flex-shrink: 0; }
+    .incident-service { font-family: var(--font-serif); font-size: 0.9rem; font-weight: 500; color: var(--ink-1); }
+    .incident-detail { font-size: 0.78rem; color: var(--ink-3); margin-top: 0.1rem; }
+    .incident-meta { font-family: var(--font-mono); font-size: 0.72rem; color: var(--ink-3); white-space: nowrap; }
+    .no-past-incidents { font-size: 0.8rem; color: var(--ink-3); padding: 1.5rem 0; text-align: center; }
 
     /* ── Footer ── */
     footer {
-      border-top: 1px solid #DEDCD1;
+      border-top: 0.5px solid var(--rule-2);
       padding: 1.5rem;
       text-align: center;
       font-size: 0.75rem;
-      color: #B0ADA4;
+      color: var(--ink-3);
       margin-top: 3rem;
     }
 
-    footer a { color: #B0ADA4; text-decoration: none; }
-    footer a:hover { color: #141413; }
+    footer a { color: var(--ink-3); text-decoration: none; }
+    footer a:hover { color: var(--ink-1); }
 
     /* ── Pulsing dot for live incidents ── */
     @keyframes pulse-dot {
@@ -482,16 +518,16 @@
 
   <div class="color-legend">
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#76AD2A"></div>Operational
+      <div class="legend-swatch" style="background:#4F7A1B"></div>Operational
     </div>
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#FAA72A"></div>Degraded
+      <div class="legend-swatch" style="background:#2F4A1C"></div>Degraded
     </div>
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#E04343"></div>Outage
+      <div class="legend-swatch" style="background:#8E3A47"></div>Outage
     </div>
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#D1D0C9"></div>No data
+      <div class="legend-swatch" style="background:#E8E2CE"></div>No data
     </div>
   </div>
 
@@ -722,7 +758,7 @@
   }
 
   function barColor(status) {
-    return { up: '#76AD2A', degraded: '#FAA72A', down: '#E04343', nodata: '#D1D0C9' }[status];
+    return { up: '#4F7A1B', degraded: '#2F4A1C', down: '#8E3A47', nodata: '#E8E2CE' }[status];
   }
 
   function barLabel(dateStr, status, mins) {
@@ -985,7 +1021,7 @@
           <div class="banner-sub">Live status and uptime for all Salaaz services.</div>
         </div>
       </div>`;
-      if (chip) { chip.textContent = '● All systems operational'; chip.style.color = '#2D5A0C'; chip.style.background = '#EBF5D6'; chip.style.display = ''; }
+      if (chip) { chip.textContent = '● All systems operational'; chip.style.color = '#2C5F2D'; chip.style.background = '#EAF3DE'; chip.style.display = ''; }
     } else if (downCount > 0) {
       let title = `${downCount} Service${downCount > 1 ? 's' : ''} Down`;
       if (degradedCount > 0) title += `, ${degradedCount} Degraded`;
@@ -996,7 +1032,7 @@
           <div class="banner-sub">We are investigating. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
-      if (chip) { chip.textContent = '● Outage'; chip.style.color = '#7A1515'; chip.style.background = '#FDEAEA'; chip.style.display = ''; }
+      if (chip) { chip.textContent = '● Outage'; chip.style.color = '#8E3A47'; chip.style.background = '#F1E0E4'; chip.style.display = ''; }
     } else {
       el.innerHTML = `<div class="status-banner degraded">
         <div class="status-dot dot-amber dot-pulse"></div>
@@ -1005,7 +1041,7 @@
           <div class="banner-sub">Performance may be affected. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
-      if (chip) { chip.textContent = '● Degraded'; chip.style.color = '#7A4E0C'; chip.style.background = '#FEF5E0'; chip.style.display = ''; }
+      if (chip) { chip.textContent = '● Degraded'; chip.style.color = '#2F4A1C'; chip.style.background = '#F3EFE3'; chip.style.display = ''; }
     }
   }
 
@@ -1131,7 +1167,7 @@
           const dur = fmtDuration(issue.created_at, issue.closed_at);
           const dateShort = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const isDegraded = /degrad/i.test(issue.title);
-          const dotColor = isDegraded ? '#FAA72A' : '#E04343';
+          const dotColor = isDegraded ? '#2F4A1C' : '#8E3A47';
           html += `<div class="incident-row">
             <div class="incident-row-left">
               <div class="incident-dot" style="background:${dotColor}"></div>
