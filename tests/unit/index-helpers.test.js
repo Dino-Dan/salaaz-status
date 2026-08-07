@@ -26,7 +26,7 @@ function dayStatus(dateStr, startDate, dailyMinutesDown) {
   if (!startDate || d < startDate) return 'nodata';
   const mins = (dailyMinutesDown || {})[dateStr] || 0;
   if (mins >= 720) return 'down';
-  if (mins > 0)    return 'degraded';
+  if (mins >= 5)   return 'degraded';
   return 'up';
 }
 
@@ -111,12 +111,12 @@ describe('dayStatus', () => {
     expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 0 })).toBe('up');
   });
 
-  it('T13 — returns "degraded" when 1 minute down', () => {
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 1 })).toBe('degraded');
+  it('T13 — returns "up" when 4 minutes down (under the 5-minute degraded floor)', () => {
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 4 })).toBe('up');
   });
 
-  it('T14 — returns "degraded" when 719 minutes down', () => {
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 719 })).toBe('degraded');
+  it('T14 — returns "degraded" at exactly 5 minutes (the degraded floor)', () => {
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 })).toBe('degraded');
   });
 
   it('T15 — returns "down" at exactly 720 minutes (half-day threshold)', () => {

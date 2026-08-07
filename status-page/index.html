@@ -753,7 +753,7 @@
     if (!startDate || d < startDate) return 'nodata';
     const mins = (dailyMinutesDown || {})[dateStr] || 0;
     if (mins >= 720) return 'down';
-    if (mins > 0)    return 'degraded';
+    if (mins >= 5)   return 'degraded';
     return 'up';
   }
 
@@ -1143,7 +1143,11 @@
 
       // Keep only incidents closed within the last 14 days
       const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-      const issues = publicIssues.filter(i => i.closed_at && new Date(i.closed_at) >= cutoff);
+      // Outages under 5 minutes are treated as noise (e.g. deploy blips) and never shown.
+      const issues = publicIssues.filter(i =>
+        i.closed_at && new Date(i.closed_at) >= cutoff &&
+        (new Date(i.closed_at) - new Date(i.created_at)) >= 5 * 60 * 1000
+      );
 
       if (issues.length === 0) {
         el.innerHTML = '<div class="no-past-incidents">No incidents in the past 14 days.</div>';

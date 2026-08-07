@@ -298,7 +298,7 @@ test.describe('Internal-only services are hidden', () => {
 
 test.describe('Error handling', () => {
   test('T31 — shows "Could not load incident history." on API failure', async ({ page }) => {
-    await page.route('**/repos/Dino-Dan/salaaz-status/issues**', route => route.abort('failed'));
+    await page.route('**/history/incidents.json**', route => route.abort('failed'));
     await page.goto(PAGE);
     await page.waitForSelector('.no-incidents');
     await expect(page.locator('#incidents')).toContainText('Could not load incident history.');
