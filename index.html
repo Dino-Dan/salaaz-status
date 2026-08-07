@@ -658,17 +658,28 @@
   }
 
   const VENDOR_PORTAL_ICON = 'data:image/svg+xml;base64,' + btoa(
-    '<svg width="80" height="80" viewBox="0 0 80 80" fill="none" xmlns="http://www.w3.org/2000/svg">' +
-    '<circle cx="40" cy="40" r="40" fill="url(#vp-g)"/>' +
-    '<path d="M25 30C25 25.5817 28.5817 22 33 22H47C51.4183 22 55 25.5817 55 30V32C55 36.4183 51.4183 40 47 40H33C28.5817 40 25 43.5817 25 48V50C25 54.4183 28.5817 58 33 58H47C51.4183 58 55 54.4183 55 50" stroke="white" stroke-width="4" stroke-linecap="round"/>' +
-    '<circle cx="60" cy="20" r="3" fill="white" opacity="0.8"/>' +
-    '<circle cx="20" cy="60" r="2" fill="white" opacity="0.6"/>' +
-    '<circle cx="65" cy="65" r="2.5" fill="white" opacity="0.7"/>' +
-    '<defs><linearGradient id="vp-g" x1="0%" y1="0%" x2="100%" y2="100%">' +
-    '<stop offset="0%" style="stop-color:#556B2F;stop-opacity:1"/>' +
-    '<stop offset="50%" style="stop-color:#6B7F3A;stop-opacity:1"/>' +
-    '<stop offset="100%" style="stop-color:#8FB352;stop-opacity:1"/>' +
-    '</linearGradient></defs></svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Salaaz Workbench">' +
+    '<defs>' +
+    '<path id="workbench-brandmark-dark-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/>' +
+    '<path id="workbench-brandmark-dark-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/>' +
+    '</defs>' +
+    '<g fill="#8E4E3C" fill-opacity="0.85" stroke="#A85842" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round">' +
+    '<use href="#workbench-brandmark-dark-leaf-outer"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(60 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(120 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(180 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(240 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(300 100 100)"/>' +
+    '</g>' +
+    '<g fill="none" stroke="#D67B5E" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">' +
+    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(30 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(90 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(150 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(210 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(270 100 100)"/>' +
+    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(330 100 100)"/>' +
+    '</g>' +
+    '</svg>'
   );
   const tooltip = document.getElementById('tooltip');
 
