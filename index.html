@@ -1123,11 +1123,14 @@
     return m ? `${h}h ${m}m` : `${h}h`;
   }
 
+  // Served from a periodically-updated static snapshot (see .github/workflows/incidents-cache.yml)
+  // rather than fetched from api.github.com directly — that endpoint caps unauthenticated
+  // requests at 60/hour per IP, which is easy for real visitors to exhaust.
   async function loadPastIncidents() {
     const el = document.getElementById('past-incidents');
     try {
       const allIssues = await fetch(
-        'https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=closed&per_page=20&sort=created&direction=desc'
+        cacheBust(`${RAW}/history/incidents.json`)
       ).then(r => r.json());
 
       if (!Array.isArray(allIssues)) throw new Error('bad response');
@@ -1135,7 +1138,7 @@
       // Drop incidents for internal-only services before the cutoff filter, so
       // the empty state below is accurate when the only recent incidents were theirs.
       const publicIssues = allIssues.filter(
-        i => !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
+        i => i.state === 'closed' && !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
       );
 
       // Keep only incidents closed within the last 14 days
