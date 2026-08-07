@@ -233,7 +233,7 @@ test.describe('Internal-only services are hidden', () => {
     const created = new Date(closed.getTime() - 30 * 60 * 1000);
     await mockAll(page, FIXTURE('summary-all-up.json'));
     // Registered after mockAll's catch-all, so it takes priority.
-    await page.route(/api\.github\.com/, route => route.fulfill({
+    await page.route(/history\/incidents\.json/, route => route.fulfill({
       contentType: 'application/json',
       body: JSON.stringify([
         { title: '🟥 Ethics Dashboard is down (500 in 1234ms)', state: 'closed',

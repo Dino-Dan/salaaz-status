@@ -1,0 +1,43 @@
+name: Incidents Cache
+on:
+  schedule:
+    - cron: '*/10 * * * *'
+  workflow_dispatch:
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  cache:
+    name: Snapshot issue history for the status page
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - name: Fetch issues with an authenticated token
+        env:
+          GH_TOKEN: ${{ secrets.GH_PAT || github.token }}
+        run: |
+          curl -sf --max-time 15 \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "Accept: application/vnd.github+json" \
+            "https://api.github.com/repos/Dino-Dan/salaaz-status/issues?state=all&per_page=100&sort=created&direction=desc" \
+            -o history/incidents.json
+
+      - name: Commit if changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add history/incidents.json
+          git diff --cached --quiet || git commit -m "ci: update incidents cache"
+          git pull --rebase
+          git push

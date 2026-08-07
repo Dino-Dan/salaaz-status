@@ -312,7 +312,11 @@
 <footer>© 2026 <a href="https://salaaz.com" target="_blank" rel="noopener">Salaaz</a></footer>
 
 <script>
-  const API = 'https://api.github.com/repos/Dino-Dan/salaaz-status';
+  // Served from a periodically-updated static snapshot (see .github/workflows/incidents-cache.yml)
+  // rather than fetched from api.github.com directly — that endpoint caps unauthenticated
+  // requests at 60/hour per IP, which is easy for real visitors to exhaust.
+  const INCIDENTS_URL = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master/history/incidents.json';
+  function cacheBust(url) { return url + '?_=' + Date.now(); }
 
   // Internal-only services — monitored and alerted on, but never listed publicly.
   const HIDDEN_SERVICE_NAMES = ['Ethics Dashboard'];
@@ -456,7 +460,7 @@
   async function init() {
     try {
       const allIssues = await fetch(
-        API + '/issues?state=all&per_page=100&sort=created&direction=desc'
+        cacheBust(INCIDENTS_URL)
       ).then(function(r) {
         if (!r.ok) throw new Error(r.status);
         return r.json();

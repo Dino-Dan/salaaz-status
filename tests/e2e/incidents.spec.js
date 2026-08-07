@@ -8,7 +8,7 @@ const PAGE    = pathToFileURL(resolve(__dir, '../../status-page/incidents.html')
 const FIXTURE = (name) => readFileSync(resolve(__dir, '../fixtures', name), 'utf8');
 
 async function mockIssues(page, body) {
-  await page.route('**/repos/Dino-Dan/salaaz-status/issues**', route =>
+  await page.route('**/history/incidents.json**', route =>
     route.fulfill({ body, contentType: 'application/json' }));
 }
 
