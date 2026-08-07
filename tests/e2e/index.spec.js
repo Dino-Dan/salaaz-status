@@ -272,7 +272,7 @@ test.describe('Bar chart', () => {
     await expect(legend).toContainText('Today');
   });
 
-  test('T23 — bars before startDate are grey (#D1D0C9)', async ({ page, context }) => {
+  test('T23 — bars before startDate are grey (#E8E2CE)', async ({ page, context }) => {
     const p = await context.newPage();
     // Future startDate → no bars have data yet → all 90 should be grey
     const futureYml = `status: up\nstartTime: 2099-01-01T00:00:00.000Z\n`;
@@ -286,17 +286,17 @@ test.describe('Bar chart', () => {
     await p.waitForSelector('.card');
     const firstBar = p.locator('.bar-strip').first().locator('.bar').first();
     const color = await firstBar.evaluate(el => el.style.background);
-    expect(color).toBe('rgb(209, 208, 201)');
+    expect(color).toBe('rgb(232, 226, 206)');
     await p.close();
   });
 
-  test('T24 — operational day bar is green (#76AD2A)', async ({ page }) => {
+  test('T24 — operational day bar is leaf green (#4F7A1B)', async ({ page }) => {
     const lastBar = page.locator('.bar-strip').first().locator('.bar').last();
     const color = await lastBar.evaluate(el => el.style.background);
-    expect(color).toBe('rgb(118, 173, 42)');
+    expect(color).toBe('rgb(79, 122, 27)');
   });
 
-  test('T25 — degraded day bar is amber (#FAA72A)', async ({ page, context }) => {
+  test('T25 — degraded day bar is ink (#2F4A1C)', async ({ page, context }) => {
     const p = await context.newPage();
     const n = new Date();
     const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
@@ -311,11 +311,11 @@ test.describe('Bar chart', () => {
     await p.goto(PAGE);
     await p.waitForSelector('.card');
     const lastBar = p.locator('.bar-strip').first().locator('.bar').last();
-    expect(await lastBar.evaluate(el => el.style.background)).toBe('rgb(250, 167, 42)');
+    expect(await lastBar.evaluate(el => el.style.background)).toBe('rgb(47, 74, 28)');
     await p.close();
   });
 
-  test('T26 — outage day bar is red (#E04343) when >= 720 min down', async ({ page, context }) => {
+  test('T26 — outage day bar is rose (#8E3A47) when >= 720 min down', async ({ page, context }) => {
     const p = await context.newPage();
     const n = new Date();
     const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
@@ -330,7 +330,7 @@ test.describe('Bar chart', () => {
     await p.goto(PAGE);
     await p.waitForSelector('.card');
     const lastBar = p.locator('.bar-strip').first().locator('.bar').last();
-    expect(await lastBar.evaluate(el => el.style.background)).toBe('rgb(224, 67, 67)');
+    expect(await lastBar.evaluate(el => el.style.background)).toBe('rgb(142, 58, 71)');
     await p.close();
   });
 

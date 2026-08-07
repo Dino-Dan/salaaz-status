@@ -91,13 +91,13 @@ test.describe('Active incidents section', () => {
     await expect(page.locator('#ongoing-section .section-label')).toContainText('Active Incidents');
   });
 
-  test('T11 — active card has red left border', async ({ page }) => {
+  test('T11 — active card has rose left border', async ({ page }) => {
     await mockIssues(page, FIXTURE('github-issues-active.json'));
     await page.goto(PAGE);
     await page.waitForSelector('.incident-card.is-open');
     const borderColor = await page.locator('.incident-card.is-open').first()
       .evaluate(el => getComputedStyle(el).borderLeftColor);
-    expect(borderColor).toBe('rgb(224, 67, 67)');
+    expect(borderColor).toBe('rgb(142, 58, 71)');
   });
 
   test('T12 — active badge says "Active" (not "Ongoing")', async ({ page }) => {
@@ -145,10 +145,10 @@ test.describe('Resolved incidents', () => {
     expect(await page.locator('.incident-group .incident-card').count()).toBe(2);
   });
 
-  test('T17 — resolved card has green left border', async ({ page }) => {
+  test('T17 — resolved card has leaf green left border', async ({ page }) => {
     const borderColor = await page.locator('.incident-card.is-closed').first()
       .evaluate(el => getComputedStyle(el).borderLeftColor);
-    expect(borderColor).toBe('rgb(118, 173, 42)');
+    expect(borderColor).toBe('rgb(79, 122, 27)');
   });
 
   test('T18 — resolved badge says "Resolved"', async ({ page }) => {

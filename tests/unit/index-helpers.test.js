@@ -31,7 +31,7 @@ function dayStatus(dateStr, startDate, dailyMinutesDown) {
 }
 
 function barColor(status) {
-  return { up: '#76AD2A', degraded: '#FAA72A', down: '#E04343', nodata: '#D1D0C9' }[status];
+  return { up: '#4F7A1B', degraded: '#2F4A1C', down: '#8E3A47', nodata: '#E8E2CE' }[status];
 }
 
 function barLabel(dateStr, status, mins) {
@@ -135,20 +135,20 @@ describe('dayStatus', () => {
 // ── barColor ─────────────────────────────────────────────────────────────────
 
 describe('barColor', () => {
-  it('T18 — "up" → #76AD2A (green)', () => {
-    expect(barColor('up')).toBe('#76AD2A');
+  it('T18 — "up" → #4F7A1B (leaf)', () => {
+    expect(barColor('up')).toBe('#4F7A1B');
   });
 
-  it('T19 — "degraded" → #FAA72A (amber)', () => {
-    expect(barColor('degraded')).toBe('#FAA72A');
+  it('T19 — "degraded" → #2F4A1C (ink)', () => {
+    expect(barColor('degraded')).toBe('#2F4A1C');
   });
 
-  it('T20 — "down" → #E04343 (red)', () => {
-    expect(barColor('down')).toBe('#E04343');
+  it('T20 — "down" → #8E3A47 (rose)', () => {
+    expect(barColor('down')).toBe('#8E3A47');
   });
 
-  it('T21 — "nodata" → #D1D0C9 (grey)', () => {
-    expect(barColor('nodata')).toBe('#D1D0C9');
+  it('T21 — "nodata" → #E8E2CE (paper)', () => {
+    expect(barColor('nodata')).toBe('#E8E2CE');
   });
 });
 
