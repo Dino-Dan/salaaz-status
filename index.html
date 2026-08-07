@@ -693,29 +693,14 @@
     card.appendChild(panel);
   }
 
+  // Animated loader marks (rotating + breathing leaves), used as the persistent
+  // service-card icon rather than a static logo — sourced verbatim from
+  // salaaz-platform's own loader assets so any future design change stays in sync.
+  const MARKETPLACE_ICON = 'data:image/svg+xml;base64,' + btoa(
+    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 200 200" role="img" aria-label="Loading"><style> :root { --salaaz-loader-color: #639922; } .salaaz-loader-outer, .salaaz-loader-inner { transform-origin: 100px 100px; stroke: var(--salaaz-loader-color, #639922); fill: none; stroke-linejoin: round; stroke-linecap: round; } .salaaz-loader-outer { stroke-width: 3.2; animation: salaaz-rot-ccw 13s linear infinite, salaaz-breathe-outer 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; } .salaaz-loader-inner { stroke-width: 2.7; animation: salaaz-rot-cw 11s linear infinite, salaaz-breathe-inner 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite -11.5s; } @keyframes salaaz-rot-cw { from { transform: rotate(0); } to { transform: rotate(360deg); } } @keyframes salaaz-rot-ccw { from { transform: rotate(0); } to { transform: rotate(-360deg); } } @keyframes salaaz-breathe-outer { 0%, 100% { stroke-width: 3.2; } 50% { stroke-width: 3.55; } } @keyframes salaaz-breathe-inner { 0%, 100% { stroke-width: 2.7; } 50% { stroke-width: 3; } } @media (prefers-reduced-motion: reduce) { .salaaz-loader-outer, .salaaz-loader-inner { animation: none; } } </style><defs><path id="salaaz-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/><path id="salaaz-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/></defs><g class="salaaz-loader-outer"><use href="#salaaz-leaf-outer"/><use href="#salaaz-leaf-outer" transform="rotate(60 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(120 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(180 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(240 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(300 100 100)"/></g><g class="salaaz-loader-inner"><use href="#salaaz-leaf-inner" transform="rotate(30 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(90 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(150 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(210 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(270 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(330 100 100)"/></g></svg>'
+  );
   const VENDOR_PORTAL_ICON = 'data:image/svg+xml;base64,' + btoa(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200" role="img" aria-label="Salaaz Workbench">' +
-    '<defs>' +
-    '<path id="workbench-brandmark-dark-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/>' +
-    '<path id="workbench-brandmark-dark-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/>' +
-    '</defs>' +
-    '<g fill="#8E4E3C" fill-opacity="0.85" stroke="#A85842" stroke-width="2.1" stroke-linejoin="round" stroke-linecap="round">' +
-    '<use href="#workbench-brandmark-dark-leaf-outer"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(60 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(120 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(180 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(240 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-outer" transform="rotate(300 100 100)"/>' +
-    '</g>' +
-    '<g fill="none" stroke="#D67B5E" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round">' +
-    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(30 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(90 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(150 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(210 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(270 100 100)"/>' +
-    '<use href="#workbench-brandmark-dark-leaf-inner" transform="rotate(330 100 100)"/>' +
-    '</g>' +
-    '</svg>'
+    '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 200 200" role="img" aria-label="Loading"><style> :root { --workbench-loader-outer-fill: #DBB5A6; --workbench-loader-outer-stroke: #C68B7A; --workbench-loader-inner-stroke: #A85842; --workbench-loader-outer-opacity: 0.7; } .workbench-loader-outer, .workbench-loader-inner { transform-origin: 100px 100px; stroke-linejoin: round; stroke-linecap: round; } .workbench-loader-outer { fill: var(--workbench-loader-outer-fill, #DBB5A6); fill-opacity: var(--workbench-loader-outer-opacity, 0.7); stroke: var(--workbench-loader-outer-stroke, #C68B7A); stroke-width: 2.1; animation: workbench-rot-ccw 13s linear infinite, workbench-breathe-outer 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; } .workbench-loader-inner { fill: none; stroke: var(--workbench-loader-inner-stroke, #A85842); stroke-width: 1.8; animation: workbench-rot-cw 11s linear infinite, workbench-breathe-inner 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite -11.5s; } @keyframes workbench-rot-cw { from { transform: rotate(0); } to { transform: rotate(360deg); } } @keyframes workbench-rot-ccw { from { transform: rotate(0); } to { transform: rotate(-360deg); } } @keyframes workbench-breathe-outer { 0%, 100% { stroke-width: 2.1; } 50% { stroke-width: 2.6; } } @keyframes workbench-breathe-inner { 0%, 100% { stroke-width: 1.8; } 50% { stroke-width: 2.3; } } @media (prefers-reduced-motion: reduce) { .workbench-loader-outer, .workbench-loader-inner { animation: none; } } </style><defs><path id="workbench-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/><path id="workbench-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/></defs><g class="workbench-loader-outer"><use href="#workbench-leaf-outer"/><use href="#workbench-leaf-outer" transform="rotate(60 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(120 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(180 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(240 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(300 100 100)"/></g><g class="workbench-loader-inner"><use href="#workbench-leaf-inner" transform="rotate(30 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(90 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(150 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(210 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(270 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(330 100 100)"/></g></svg>'
   );
   const tooltip = document.getElementById('tooltip');
 
@@ -837,6 +822,8 @@
 
     const iconSrc = service.slug === 'vendor-portal'
       ? VENDOR_PORTAL_ICON
+      : service.slug === 'salaaz-marketplace'
+      ? MARKETPLACE_ICON
       : service.icon;
 
     // Wrap icon in fixed-size container so hiding it on error doesn't shift layout
