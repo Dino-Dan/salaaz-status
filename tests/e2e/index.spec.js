@@ -292,7 +292,7 @@ test.describe('Bar chart', () => {
 
   test('T24 — operational day bar is leaf green (#4F7A1B)', async ({ page }) => {
     const lastBar = page.locator('.bar-strip').first().locator('.bar').last();
-    const color = await lastBar.evaluate(el => el.style.background);
+    const color = await lastBar.evaluate(el => getComputedStyle(el).backgroundColor);
     expect(color).toBe('rgb(79, 122, 27)');
   });
 
@@ -311,7 +311,7 @@ test.describe('Bar chart', () => {
     await p.goto(PAGE);
     await p.waitForSelector('.card');
     const lastBar = p.locator('.bar-strip').first().locator('.bar').last();
-    expect(await lastBar.evaluate(el => el.style.background)).toBe('rgb(47, 74, 28)');
+    expect(await lastBar.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(47, 74, 28)');
     await p.close();
   });
 
@@ -330,7 +330,7 @@ test.describe('Bar chart', () => {
     await p.goto(PAGE);
     await p.waitForSelector('.card');
     const lastBar = p.locator('.bar-strip').first().locator('.bar').last();
-    expect(await lastBar.evaluate(el => el.style.background)).toBe('rgb(142, 58, 71)');
+    expect(await lastBar.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(142, 58, 71)');
     await p.close();
   });
 
@@ -554,10 +554,17 @@ test.describe('Accessibility', () => {
     expect(alt).not.toBeNull();
   });
 
-  test('T47 — service icon images have an alt attribute', async ({ page }) => {
+  test('T47 — service icons have an accessible name (alt, or role=img + aria-label for inline SVG)', async ({ page }) => {
     const icons = page.locator('.service-icon');
     for (let i = 0; i < await icons.count(); i++) {
-      expect(await icons.nth(i).getAttribute('alt')).not.toBeNull();
+      const icon = icons.nth(i);
+      const tag = await icon.evaluate(el => el.tagName.toLowerCase());
+      if (tag === 'img') {
+        expect(await icon.getAttribute('alt')).not.toBeNull();
+      } else {
+        expect(await icon.getAttribute('role')).toBe('img');
+        expect(await icon.getAttribute('aria-label')).not.toBeNull();
+      }
     }
   });
 });

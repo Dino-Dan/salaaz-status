@@ -13,6 +13,14 @@
   <meta property="og:image" content="https://salaaz.com/logo.png">
   <link rel="canonical" href="https://status.salaaz.com/">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
+  <script>
+    (function () {
+      var t = localStorage.getItem('salaaz-theme');
+      if (t !== 'dark' && t !== 'olive') t = 'light';
+      document.documentElement.setAttribute('data-theme', t);
+      document.documentElement.classList.add(t === 'dark' ? 'dark' : 'light');
+    })();
+  </script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Source+Serif+4:ital,wght@0,400;0,500;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
@@ -28,6 +36,7 @@
       --leaf-50: #EAF3DE;
       --leaf: #4F7A1B;
       --leaf-deep: #2C5F2D;
+      --bridge-leaf: #639922;
       --rose: #8E3A47;
       --rose-soft: #F1E0E4;
       --rule: rgba(26,46,15,0.12);
@@ -36,6 +45,49 @@
       --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       --font-serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
       --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+      --salaaz-loader-color: var(--bridge-leaf);
+      --workbench-loader-outer-fill: #DBB5A6;
+      --workbench-loader-outer-stroke: #C68B7A;
+      --workbench-loader-outer-opacity: 0.7;
+      --workbench-loader-inner-stroke: #A85842;
+    }
+
+    [data-theme="dark"] {
+      --ink-1: #F0EAD4;
+      --ink-2: #D9D2BC;
+      --ink-3: #ACA98E;
+      --paper-1: #0F1A09;
+      --paper-2: #16240F;
+      --paper-3: #1F3017;
+      --leaf-50: rgba(151,196,89,0.16);
+      --leaf: #97C459;
+      --leaf-deep: #6FA53C;
+      --bridge-leaf: #639922;
+      --rose: #D8829A;
+      --rose-soft: rgba(216,130,154,0.18);
+      --rule: rgba(240,234,212,0.12);
+      --rule-2: rgba(240,234,212,0.22);
+      --focus-ring: 0 0 0 3px rgba(151,196,89,0.22);
+      --salaaz-loader-color: #97C459;
+      --workbench-loader-outer-fill: #8E4E3C;
+      --workbench-loader-outer-stroke: #A85842;
+      --workbench-loader-outer-opacity: 0.85;
+      --workbench-loader-inner-stroke: #D67B5E;
+    }
+
+    [data-theme="olive"] {
+      --ink-1: #1C2415;
+      --ink-2: #38432A;
+      --ink-3: #5C6650;
+      --paper-1: #F4F8F0;
+      --paper-2: #EAF1E2;
+      --paper-3: #DCE7CE;
+      --leaf-50: #E6F0D8;
+      --leaf: #6B8E23;
+      --leaf-deep: #556B2F;
+      --bridge-leaf: #6B8E23;
+      --salaaz-loader-color: var(--bridge-leaf);
+      --workbench-loader-inner-stroke: #C0922E;
     }
 
     html, body {
@@ -82,6 +134,25 @@
     }
 
     .nav-links a:hover { color: var(--ink-1); }
+
+    .theme-toggle {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 32px;
+      height: 32px;
+      margin-left: 1.25rem;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--ink-1);
+      cursor: pointer;
+      border-radius: 8px;
+      transition: background-color 120ms linear, color 120ms linear;
+    }
+    .theme-toggle:hover { background: var(--paper-3); }
+    .theme-toggle:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+    .theme-toggle svg { display: block; }
 
     /* ── Layout ── */
     main {
@@ -486,6 +557,7 @@
   <span id="nav-status-chip" style="font-size:0.72rem;font-weight:500;padding:0.2em 0.6em;border-radius:999px;display:none"></span>
   <div class="nav-links">
     <a href="incidents.html">Incidents</a>
+    <button id="theme-toggle" class="theme-toggle" type="button" aria-label="Switch theme"></button>
   </div>
 </nav>
 
@@ -518,16 +590,16 @@
 
   <div class="color-legend">
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#4F7A1B"></div>Operational
+      <div class="legend-swatch" style="background:var(--leaf)"></div>Operational
     </div>
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#2F4A1C"></div>Degraded
+      <div class="legend-swatch" style="background:var(--ink-2)"></div>Degraded
     </div>
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#8E3A47"></div>Outage
+      <div class="legend-swatch" style="background:var(--rose)"></div>Outage
     </div>
     <div class="legend-item">
-      <div class="legend-swatch" style="background:#E8E2CE"></div>No data
+      <div class="legend-swatch" style="background:var(--paper-3)"></div>No data
     </div>
   </div>
 
@@ -549,6 +621,50 @@
 </footer>
 
 <script>
+  // ── Theme toggle (light → dark → olive → light) ──
+  const THEME_KEY = 'salaaz-theme';
+  const THEMES = ['light', 'dark', 'olive'];
+  const THEME_ICONS = {
+    light: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 3v1"/><path d="M12 20v1"/><path d="M3 12h1"/><path d="M20 12h1"/><path d="m5.6 5.6.7.7"/><path d="m17.7 17.7.7.7"/><path d="m5.6 18.4.7-.7"/><path d="m17.7 6.3.7-.7"/></svg>',
+    dark: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9z"/></svg>',
+    olive: '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21c.5-4.5 2.5-8 7-10"/><path d="M9 18c6.218 0 10.5-3.288 11-12v-2h-4.014c-9 0-11.986 4-12 9 0 1 0 3 2 5h3z"/></svg>',
+  };
+  const THEME_LABELS = { light: 'Light theme', dark: 'Dark theme', olive: 'Olive theme' };
+
+  function getTheme() {
+    const t = localStorage.getItem(THEME_KEY);
+    return THEMES.indexOf(t) !== -1 ? t : 'light';
+  }
+
+  function applyTheme(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    document.documentElement.classList.remove('light', 'dark');
+    document.documentElement.classList.add(theme === 'dark' ? 'dark' : 'light');
+    const btn = document.getElementById('theme-toggle');
+    if (btn) {
+      // Icon shows the theme a click will switch TO, matching webstore's sun/moon-swap convention.
+      const next = THEMES[(THEMES.indexOf(theme) + 1) % THEMES.length];
+      btn.innerHTML = THEME_ICONS[next];
+      btn.setAttribute('aria-label', 'Switch to ' + THEME_LABELS[next].toLowerCase());
+      btn.title = THEME_LABELS[next];
+    }
+  }
+
+  function setTheme(theme) {
+    localStorage.setItem(THEME_KEY, theme);
+    applyTheme(theme);
+  }
+
+  const themeToggleBtn = document.getElementById('theme-toggle');
+  if (themeToggleBtn) {
+    themeToggleBtn.addEventListener('click', function () {
+      const current = getTheme();
+      const next = THEMES[(THEMES.indexOf(current) + 1) % THEMES.length];
+      setTheme(next);
+    });
+  }
+  applyTheme(getTheme());
+
   const RAW = 'https://raw.githubusercontent.com/Dino-Dan/salaaz-status/master';
 
   // ── Internal-only services ──
@@ -696,12 +812,13 @@
   // Animated loader marks (rotating + breathing leaves), used as the persistent
   // service-card icon rather than a static logo — sourced verbatim from
   // salaaz-platform's own loader assets so any future design change stays in sync.
-  const MARKETPLACE_ICON = 'data:image/svg+xml;base64,' + btoa(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 200 200" role="img" aria-label="Loading"><style> :root { --salaaz-loader-color: #639922; } .salaaz-loader-outer, .salaaz-loader-inner { transform-origin: 100px 100px; stroke: var(--salaaz-loader-color, #639922); fill: none; stroke-linejoin: round; stroke-linecap: round; } .salaaz-loader-outer { stroke-width: 3.2; animation: salaaz-rot-ccw 13s linear infinite, salaaz-breathe-outer 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; } .salaaz-loader-inner { stroke-width: 2.7; animation: salaaz-rot-cw 11s linear infinite, salaaz-breathe-inner 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite -11.5s; } @keyframes salaaz-rot-cw { from { transform: rotate(0); } to { transform: rotate(360deg); } } @keyframes salaaz-rot-ccw { from { transform: rotate(0); } to { transform: rotate(-360deg); } } @keyframes salaaz-breathe-outer { 0%, 100% { stroke-width: 3.2; } 50% { stroke-width: 3.55; } } @keyframes salaaz-breathe-inner { 0%, 100% { stroke-width: 2.7; } 50% { stroke-width: 3; } } @media (prefers-reduced-motion: reduce) { .salaaz-loader-outer, .salaaz-loader-inner { animation: none; } } </style><defs><path id="salaaz-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/><path id="salaaz-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/></defs><g class="salaaz-loader-outer"><use href="#salaaz-leaf-outer"/><use href="#salaaz-leaf-outer" transform="rotate(60 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(120 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(180 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(240 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(300 100 100)"/></g><g class="salaaz-loader-inner"><use href="#salaaz-leaf-inner" transform="rotate(30 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(90 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(150 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(210 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(270 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(330 100 100)"/></g></svg>'
-  );
-  const VENDOR_PORTAL_ICON = 'data:image/svg+xml;base64,' + btoa(
-    '<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 200 200" role="img" aria-label="Loading"><style> :root { --workbench-loader-outer-fill: #DBB5A6; --workbench-loader-outer-stroke: #C68B7A; --workbench-loader-inner-stroke: #A85842; --workbench-loader-outer-opacity: 0.7; } .workbench-loader-outer, .workbench-loader-inner { transform-origin: 100px 100px; stroke-linejoin: round; stroke-linecap: round; } .workbench-loader-outer { fill: var(--workbench-loader-outer-fill, #DBB5A6); fill-opacity: var(--workbench-loader-outer-opacity, 0.7); stroke: var(--workbench-loader-outer-stroke, #C68B7A); stroke-width: 2.1; animation: workbench-rot-ccw 13s linear infinite, workbench-breathe-outer 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; } .workbench-loader-inner { fill: none; stroke: var(--workbench-loader-inner-stroke, #A85842); stroke-width: 1.8; animation: workbench-rot-cw 11s linear infinite, workbench-breathe-inner 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite -11.5s; } @keyframes workbench-rot-cw { from { transform: rotate(0); } to { transform: rotate(360deg); } } @keyframes workbench-rot-ccw { from { transform: rotate(0); } to { transform: rotate(-360deg); } } @keyframes workbench-breathe-outer { 0%, 100% { stroke-width: 2.1; } 50% { stroke-width: 2.6; } } @keyframes workbench-breathe-inner { 0%, 100% { stroke-width: 1.8; } 50% { stroke-width: 2.3; } } @media (prefers-reduced-motion: reduce) { .workbench-loader-outer, .workbench-loader-inner { animation: none; } } </style><defs><path id="workbench-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/><path id="workbench-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/></defs><g class="workbench-loader-outer"><use href="#workbench-leaf-outer"/><use href="#workbench-leaf-outer" transform="rotate(60 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(120 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(180 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(240 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(300 100 100)"/></g><g class="workbench-loader-inner"><use href="#workbench-leaf-inner" transform="rotate(30 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(90 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(150 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(210 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(270 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(330 100 100)"/></g></svg>'
-  );
+  // Inlined as literal SVG (not a data-URI <img>) so they inherit the page's live
+  // theme custom properties and recolor automatically across light/dark/olive,
+  // matching how webstore/vendor-portal render them.
+  const MARKETPLACE_ICON_SVG =
+    '<svg class="service-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Loading"><style>.salaaz-loader-outer, .salaaz-loader-inner { transform-origin: 100px 100px; stroke: var(--salaaz-loader-color, #639922); fill: none; stroke-linejoin: round; stroke-linecap: round; } .salaaz-loader-outer { stroke-width: 3.2; animation: salaaz-rot-ccw 13s linear infinite, salaaz-breathe-outer 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; } .salaaz-loader-inner { stroke-width: 2.7; animation: salaaz-rot-cw 11s linear infinite, salaaz-breathe-inner 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite -11.5s; } @keyframes salaaz-rot-cw { from { transform: rotate(0); } to { transform: rotate(360deg); } } @keyframes salaaz-rot-ccw { from { transform: rotate(0); } to { transform: rotate(-360deg); } } @keyframes salaaz-breathe-outer { 0%, 100% { stroke-width: 3.2; } 50% { stroke-width: 3.55; } } @keyframes salaaz-breathe-inner { 0%, 100% { stroke-width: 2.7; } 50% { stroke-width: 3; } } @media (prefers-reduced-motion: reduce) { .salaaz-loader-outer, .salaaz-loader-inner { animation: none; } }</style><defs><path id="salaaz-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/><path id="salaaz-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/></defs><g class="salaaz-loader-outer"><use href="#salaaz-leaf-outer"/><use href="#salaaz-leaf-outer" transform="rotate(60 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(120 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(180 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(240 100 100)"/><use href="#salaaz-leaf-outer" transform="rotate(300 100 100)"/></g><g class="salaaz-loader-inner"><use href="#salaaz-leaf-inner" transform="rotate(30 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(90 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(150 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(210 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(270 100 100)"/><use href="#salaaz-leaf-inner" transform="rotate(330 100 100)"/></g></svg>';
+  const VENDOR_PORTAL_ICON_SVG =
+    '<svg class="service-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" role="img" aria-label="Loading"><style>.workbench-loader-outer, .workbench-loader-inner { transform-origin: 100px 100px; stroke-linejoin: round; stroke-linecap: round; } .workbench-loader-outer { fill: var(--workbench-loader-outer-fill, #DBB5A6); fill-opacity: var(--workbench-loader-outer-opacity, 0.7); stroke: var(--workbench-loader-outer-stroke, #C68B7A); stroke-width: 2.1; animation: workbench-rot-ccw 13s linear infinite, workbench-breathe-outer 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite; } .workbench-loader-inner { fill: none; stroke: var(--workbench-loader-inner-stroke, #A85842); stroke-width: 1.8; animation: workbench-rot-cw 11s linear infinite, workbench-breathe-inner 23s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite -11.5s; } @keyframes workbench-rot-cw { from { transform: rotate(0); } to { transform: rotate(360deg); } } @keyframes workbench-rot-ccw { from { transform: rotate(0); } to { transform: rotate(-360deg); } } @keyframes workbench-breathe-outer { 0%, 100% { stroke-width: 2.1; } 50% { stroke-width: 2.6; } } @keyframes workbench-breathe-inner { 0%, 100% { stroke-width: 1.8; } 50% { stroke-width: 2.3; } } @media (prefers-reduced-motion: reduce) { .workbench-loader-outer, .workbench-loader-inner { animation: none; } }</style><defs><path id="workbench-leaf-outer" d="M 100,22 C 116,30 116,58 116,68 C 116,82 110,92 100,98 C 90,92 84,82 84,68 C 84,58 84,30 100,22 Z"/><path id="workbench-leaf-inner" d="M 100,52 C 112,58 112,75 112,81 C 112,90 107.5,96.5 100,100 C 92.5,96.5 88,90 88,81 C 88,75 88,58 100,52 Z"/></defs><g class="workbench-loader-outer"><use href="#workbench-leaf-outer"/><use href="#workbench-leaf-outer" transform="rotate(60 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(120 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(180 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(240 100 100)"/><use href="#workbench-leaf-outer" transform="rotate(300 100 100)"/></g><g class="workbench-loader-inner"><use href="#workbench-leaf-inner" transform="rotate(30 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(90 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(150 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(210 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(270 100 100)"/><use href="#workbench-leaf-inner" transform="rotate(330 100 100)"/></g></svg>';
   const tooltip = document.getElementById('tooltip');
 
   // ── Tooltip ──
@@ -743,7 +860,7 @@
   }
 
   function barColor(status) {
-    return { up: '#4F7A1B', degraded: '#2F4A1C', down: '#8E3A47', nodata: '#E8E2CE' }[status];
+    return { up: 'var(--leaf)', degraded: 'var(--ink-2)', down: 'var(--rose)', nodata: 'var(--paper-3)' }[status];
   }
 
   function barLabel(dateStr, status, mins) {
@@ -820,17 +937,17 @@
 
     const hostname = (() => { try { return new URL(service.url).hostname; } catch(_) { return service.url; } })();
 
-    const iconSrc = service.slug === 'vendor-portal'
-      ? VENDOR_PORTAL_ICON
+    const iconMarkup = service.slug === 'vendor-portal'
+      ? VENDOR_PORTAL_ICON_SVG
       : service.slug === 'salaaz-marketplace'
-      ? MARKETPLACE_ICON
-      : service.icon;
+      ? MARKETPLACE_ICON_SVG
+      : `<img class="service-icon" src="${service.icon}" onerror="this.style.visibility='hidden'" alt="">`;
 
     // Wrap icon in fixed-size container so hiding it on error doesn't shift layout
     header.innerHTML = `
       <div class="service-info">
         <div style="width:18px;height:18px;flex-shrink:0">
-          <img class="service-icon" src="${iconSrc}" onerror="this.style.visibility='hidden'" alt="">
+          ${iconMarkup}
         </div>
         <div>
           <div class="service-name">${service.name}</div>
@@ -1008,7 +1125,7 @@
           <div class="banner-sub">Live status and uptime for all Salaaz services.</div>
         </div>
       </div>`;
-      if (chip) { chip.textContent = '● All systems operational'; chip.style.color = '#2C5F2D'; chip.style.background = '#EAF3DE'; chip.style.display = ''; }
+      if (chip) { chip.textContent = '● All systems operational'; chip.style.color = 'var(--leaf-deep)'; chip.style.background = 'var(--leaf-50)'; chip.style.display = ''; }
     } else if (downCount > 0) {
       let title = `${downCount} Service${downCount > 1 ? 's' : ''} Down`;
       if (degradedCount > 0) title += `, ${degradedCount} Degraded`;
@@ -1019,7 +1136,7 @@
           <div class="banner-sub">We are investigating. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
-      if (chip) { chip.textContent = '● Outage'; chip.style.color = '#8E3A47'; chip.style.background = '#F1E0E4'; chip.style.display = ''; }
+      if (chip) { chip.textContent = '● Outage'; chip.style.color = 'var(--rose)'; chip.style.background = 'var(--rose-soft)'; chip.style.display = ''; }
     } else {
       el.innerHTML = `<div class="status-banner degraded">
         <div class="status-dot dot-amber dot-pulse"></div>
@@ -1028,7 +1145,7 @@
           <div class="banner-sub">Performance may be affected. <a href="incidents.html" style="color:inherit;text-decoration:underline;">View active incident →</a></div>
         </div>
       </div>`;
-      if (chip) { chip.textContent = '● Degraded'; chip.style.color = '#2F4A1C'; chip.style.background = '#F3EFE3'; chip.style.display = ''; }
+      if (chip) { chip.textContent = '● Degraded'; chip.style.color = 'var(--ink-2)'; chip.style.background = 'var(--paper-2)'; chip.style.display = ''; }
     }
   }
 
@@ -1161,7 +1278,7 @@
           const dur = fmtDuration(issue.created_at, issue.closed_at);
           const dateShort = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
           const isDegraded = /degrad/i.test(issue.title);
-          const dotColor = isDegraded ? '#2F4A1C' : '#8E3A47';
+          const dotColor = isDegraded ? 'var(--ink-2)' : 'var(--rose)';
           html += `<div class="incident-row">
             <div class="incident-row-left">
               <div class="incident-dot" style="background:${dotColor}"></div>
