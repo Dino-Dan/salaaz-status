@@ -723,11 +723,6 @@
       type: 'repojson',
       apiUrl: RAW + '/history/alibaba-ecs-status.json',
     },
-    {
-      label: 'Vendor Portal',
-      type: 'repojson',
-      apiUrl: RAW + '/history/vendor-portal-render-status.json',
-    },
   ];
 
   function indicatorToStatus(indicator) {
@@ -850,13 +845,21 @@
   }
 
   // ── Bar status for a given date ──
-  function dayStatus(dateStr, startDate, dailyMinutesDown) {
+  function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingDates) {
     const d = new Date(dateStr + 'T00:00:00Z');
     if (!startDate || d < startDate) return 'nodata';
     const mins = (dailyMinutesDown || {})[dateStr] || 0;
+    if (mins <= 0) return 'up';
+    if (qualifyingDates) {
+      // Precise incident data is available — trust it as the authority on
+      // whether this day is real, rather than Upptime's rounded-up minute count.
+      if (!qualifyingDates.has(dateStr)) return 'up';
+    } else if (mins < 5) {
+      // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
+      return 'up';
+    }
     if (mins >= 720) return 'down';
-    if (mins >= 5)   return 'degraded';
-    return 'up';
+    return 'degraded';
   }
 
   function barColor(status) {
@@ -896,7 +899,7 @@
   }
 
   // ── Render one service card ──
-  function renderCard(service, startDate, lastUpdated, responseTime) {
+  function renderCard(service, startDate, lastUpdated, responseTime, qualifyingDates) {
     const today = localToday();
     const dm = service.dailyMinutesDown || {};
 
@@ -906,7 +909,7 @@
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const ds = localDateStr(d);
-      const status = dayStatus(ds, startDate, dm);
+      const status = dayStatus(ds, startDate, dm, qualifyingDates);
       const mins = dm[ds] || 0;
       days.push({ ds, status, mins });
     }
@@ -1152,13 +1155,31 @@
   // ── Main ──
   async function init() {
     try {
-      const [summary, depsData] = await Promise.all([
+      const [summary, depsData, incidentsRaw] = await Promise.all([
         fetch(cacheBust(`${RAW}/history/summary.json`)).then(r => {
           if (!r.ok) throw new Error('Failed to load summary');
           return r.json();
         }),
         fetchDepsStatus(),
+        // Failure here shouldn't blank the whole page — fall back to null,
+        // which tells dayStatus() to trust dailyMinutesDown alone (old behavior).
+        fetch(cacheBust(`${RAW}/history/incidents.json`)).then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
+
+      // Per-service set of local YYYY-MM-DD dates with at least one qualifying
+      // (>=5 min precise, resolved) incident on record. The bar chart only shows
+      // a day as degraded/down when it's backed by a real incident here, so it
+      // never disagrees with the Past Incidents list about the same event.
+      let qualifyingDatesByService = null;
+      if (Array.isArray(incidentsRaw)) {
+        qualifyingDatesByService = {};
+        incidentsRaw.filter(isQualifyingIncident).forEach(issue => {
+          const name = extractServiceName(issue.title || '');
+          const ds = localDateStr(new Date(issue.created_at));
+          if (!qualifyingDatesByService[name]) qualifyingDatesByService[name] = new Set();
+          qualifyingDatesByService[name].add(ds);
+        });
+      }
 
       // Drop internal-only services before anything else touches the data —
       // this keeps their slugs out of the YAML fetches below, out of the
@@ -1182,7 +1203,10 @@
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
       visible.forEach((service, i) => {
-        const card = renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated, yamlData[i].responseTime);
+        const qualifyingDates = qualifyingDatesByService
+          ? (qualifyingDatesByService[service.name] || new Set())
+          : null;
+        const card = renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated, yamlData[i].responseTime, qualifyingDates);
         if (service.slug === 'salaaz-marketplace') {
           appendDepsPanel(card, depsData);
         }
@@ -1227,6 +1251,16 @@
     return m ? `${h}h ${m}m` : `${h}h`;
   }
 
+  // A "real" incident: resolved, and lasted at least 5 minutes precisely.
+  // Outages under 5 minutes are treated as noise (e.g. deploy blips) and never
+  // shown — neither in the Past Incidents list nor as a degraded bar-chart day.
+  // Shared by loadPastIncidents() and init()'s bar-chart data so the two never
+  // disagree about which incidents are real.
+  function isQualifyingIncident(issue) {
+    return issue.state === 'closed' && !!issue.closed_at &&
+      (new Date(issue.closed_at) - new Date(issue.created_at)) >= 5 * 60 * 1000;
+  }
+
   // Served from a periodically-updated static snapshot (see .github/workflows/incidents-cache.yml)
   // rather than fetched from api.github.com directly — that endpoint caps unauthenticated
   // requests at 60/hour per IP, which is easy for real visitors to exhaust.
@@ -1242,16 +1276,12 @@
       // Drop incidents for internal-only services before the cutoff filter, so
       // the empty state below is accurate when the only recent incidents were theirs.
       const publicIssues = allIssues.filter(
-        i => i.state === 'closed' && !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
+        i => isQualifyingIncident(i) && !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
       );
 
       // Keep only incidents closed within the last 14 days
       const cutoff = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-      // Outages under 5 minutes are treated as noise (e.g. deploy blips) and never shown.
-      const issues = publicIssues.filter(i =>
-        i.closed_at && new Date(i.closed_at) >= cutoff &&
-        (new Date(i.closed_at) - new Date(i.created_at)) >= 5 * 60 * 1000
-      );
+      const issues = publicIssues.filter(i => new Date(i.closed_at) >= cutoff);
 
       if (issues.length === 0) {
         el.innerHTML = '<div class="no-past-incidents">No incidents in the past 14 days.</div>';
