@@ -38,7 +38,7 @@ function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingDates) {
 }
 
 function barColor(status) {
-  return { up: '#4F7A1B', degraded: '#2F4A1C', down: '#8E3A47', nodata: '#E8E2CE' }[status];
+  return { up: '#4F7A1B', degraded: '#C68B3C', down: '#8E3A47', nodata: '#E8E2CE' }[status];
 }
 
 function barLabel(dateStr, status, mins) {
@@ -158,8 +158,8 @@ describe('barColor', () => {
     expect(barColor('up')).toBe('#4F7A1B');
   });
 
-  it('T21 — "degraded" → #2F4A1C (ink)', () => {
-    expect(barColor('degraded')).toBe('#2F4A1C');
+  it('T21 — "degraded" → #C68B3C (amber)', () => {
+    expect(barColor('degraded')).toBe('#C68B3C');
   });
 
   it('T22 — "down" → #8E3A47 (rose)', () => {

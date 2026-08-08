@@ -130,7 +130,7 @@ test.describe('Resolved incidents', () => {
   });
 
   test('T14 — resolved incidents appear in "History" section', async ({ page }) => {
-    await expect(page.locator('#incidents .incident-card.is-closed')).toBeVisible();
+    await expect(page.locator('#incidents .incident-card.is-closed').first()).toBeVisible();
   });
 
   test('T15 — resolved incidents are grouped by day with a heading', async ({ page }) => {

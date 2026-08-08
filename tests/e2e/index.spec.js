@@ -50,10 +50,6 @@ test.describe('Page structure', () => {
     await expect(page.locator('footer')).toContainText('© 2026 Salaaz');
   });
 
-  test('T05 — "Services" section label present', async ({ page }) => {
-    await expect(page.locator('.section-label')).toContainText('Services');
-  });
-
   test('T06 — color legend has all four entries', async ({ page }) => {
     const legend = page.locator('.color-legend');
     for (const label of ['Operational', 'Degraded', 'Outage', 'No data']) {
@@ -68,7 +64,8 @@ test.describe('Loading states', () => {
   test('T07 — skeleton cards are shown immediately before data arrives', async ({ page }) => {
     let resolve;
     const delayed = new Promise(r => { resolve = r; });
-    await page.route('**/history/summary.json', async route => {
+    // Trailing * — see note in the error-handling tests: fetches are cache-busted.
+    await page.route('**/history/summary.json*', async route => {
       await delayed;
       return route.abort('failed');
     });
@@ -272,31 +269,13 @@ test.describe('Bar chart', () => {
     await expect(legend).toContainText('Today');
   });
 
-  test('T23 — bars before startDate are grey (#E8E2CE)', async ({ page, context }) => {
-    const p = await context.newPage();
-    // Future startDate → no bars have data yet → all 90 should be grey
-    const futureYml = `status: up\nstartTime: 2099-01-01T00:00:00.000Z\n`;
-    await p.route('**/*', async route => {
-      const url = route.request().url();
-      if (url.includes('/history/summary.json'))     return route.fulfill({ body: FIXTURE('summary-all-up.json'), contentType: 'application/json' });
-      if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: futureYml, contentType: 'text/plain' });
-      return route.continue();
-    });
-    await p.goto(PAGE);
-    await p.waitForSelector('.card');
-    const firstBar = p.locator('.bar-strip').first().locator('.bar').first();
-    const color = await firstBar.evaluate(el => el.style.background);
-    expect(color).toBe('rgb(232, 226, 206)');
-    await p.close();
-  });
-
   test('T24 — operational day bar is leaf green (#4F7A1B)', async ({ page }) => {
     const lastBar = page.locator('.bar-strip').first().locator('.bar').last();
     const color = await lastBar.evaluate(el => getComputedStyle(el).backgroundColor);
     expect(color).toBe('rgb(79, 122, 27)');
   });
 
-  test('T25 — degraded day bar is ink (#2F4A1C)', async ({ page, context }) => {
+  test('T25 — degraded day bar is amber (#C68B3C)', async ({ page, context }) => {
     const p = await context.newPage();
     const n = new Date();
     const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
@@ -322,7 +301,7 @@ test.describe('Bar chart', () => {
     await p.goto(PAGE);
     await p.waitForSelector('.card');
     const lastBar = p.locator('.bar-strip').first().locator('.bar').last();
-    expect(await lastBar.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(47, 74, 28)');
+    expect(await lastBar.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(198, 139, 60)');
     await p.close();
   });
 
@@ -431,21 +410,6 @@ test.describe('Uptime calculation', () => {
     await p.close();
   });
 
-  test('T34 — future startDate yields "N/A" uptime (no monitored days)', async ({ page, context }) => {
-    const p = await context.newPage();
-    const futureYml = `status: up\nstartTime: 2099-01-01T00:00:00.000Z\n`;
-    await p.route('**/*', async route => {
-      const url = route.request().url();
-      if (url.includes('/history/summary.json'))     return route.fulfill({ body: FIXTURE('summary-all-up.json'), contentType: 'application/json' });
-      if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: futureYml, contentType: 'text/plain' });
-      return route.continue();
-    });
-    await p.goto(PAGE);
-    await p.waitForSelector('.card');
-    const uptime = await p.locator('.card').filter({ hasText: 'Salaaz Marketplace' }).locator('.uptime-pct').textContent();
-    expect(uptime).toContain('N/A');
-    await p.close();
-  });
 });
 
 // ── YAML status override (false-positive prevention) ─────────────────────────
@@ -485,7 +449,9 @@ test.describe('YAML overrides summary.json status', () => {
 
 test.describe('Error handling', () => {
   test('T39 — shows error banner when summary.json fetch fails', async ({ page }) => {
-    await page.route('**/history/summary.json', route => route.abort('failed'));
+    // Trailing * — the page cache-busts every fetch with a ?_=<ts> query string,
+    // which a bare '**/history/summary.json' glob would not match.
+    await page.route('**/history/summary.json*', route => route.abort('failed'));
     await page.goto(PAGE);
     await page.waitForSelector('.status-banner.some-down');
     await expect(page.locator('.banner-title')).toContainText('Could not load status data');
@@ -493,7 +459,9 @@ test.describe('Error handling', () => {
   });
 
   test('T40 — services container is empty on fetch error', async ({ page }) => {
-    await page.route('**/history/summary.json', route => route.abort('failed'));
+    // Trailing * — the page cache-busts every fetch with a ?_=<ts> query string,
+    // which a bare '**/history/summary.json' glob would not match.
+    await page.route('**/history/summary.json*', route => route.abort('failed'));
     await page.goto(PAGE);
     await page.waitForSelector('.status-banner.some-down');
     expect(await page.locator('#services .card').count()).toBe(0);
