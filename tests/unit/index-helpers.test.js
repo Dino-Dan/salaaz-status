@@ -21,13 +21,20 @@ function formatDisplay(dateStr) {
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function dayStatus(dateStr, startDate, dailyMinutesDown) {
+function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingDates) {
   const d = new Date(dateStr + 'T00:00:00Z');
   if (!startDate || d < startDate) return 'nodata';
   const mins = (dailyMinutesDown || {})[dateStr] || 0;
+  if (mins <= 0) return 'up';
+  if (qualifyingDates) {
+    // Precise incident data is available — trust it as the authority.
+    if (!qualifyingDates.has(dateStr)) return 'up';
+  } else if (mins < 5) {
+    // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
+    return 'up';
+  }
   if (mins >= 720) return 'down';
-  if (mins >= 5)   return 'degraded';
-  return 'up';
+  return 'degraded';
 }
 
 function barColor(status) {
@@ -115,19 +122,31 @@ describe('dayStatus', () => {
     expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 4 })).toBe('up');
   });
 
-  it('T14 — returns "degraded" at exactly 5 minutes (the degraded floor)', () => {
+  it('T14 — returns "degraded" at exactly 5 minutes when qualifyingDates is not provided (fetch-failure fallback: trust dailyMinutesDown alone)', () => {
     expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 })).toBe('degraded');
   });
 
-  it('T15 — returns "down" at exactly 720 minutes (half-day threshold)', () => {
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 720 })).toBe('down');
+  it('T15 — returns "up" at 5+ minutes when qualifyingDates is provided but does not include this date (rounded-up blip, no real incident on record)', () => {
+    const qualifyingDates = new Set(['2026-05-09']); // some other date qualifies, not this one
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 }, qualifyingDates)).toBe('up');
   });
 
-  it('T16 — returns "down" when 1440 minutes down (full day)', () => {
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 1440 })).toBe('down');
+  it('T16 — returns "degraded" at 5+ minutes when qualifyingDates includes this date (a real incident backs it)', () => {
+    const qualifyingDates = new Set(['2026-05-08']);
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 }, qualifyingDates)).toBe('degraded');
   });
 
-  it('T17 — returns "up" when key is missing from dailyMinutesDown', () => {
+  it('T17 — returns "down" at exactly 720 minutes when qualifyingDates includes this date (half-day threshold)', () => {
+    const qualifyingDates = new Set(['2026-05-08']);
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 720 }, qualifyingDates)).toBe('down');
+  });
+
+  it('T18 — returns "down" when 1440 minutes down and qualifyingDates includes this date (full day)', () => {
+    const qualifyingDates = new Set(['2026-05-08']);
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 1440 }, qualifyingDates)).toBe('down');
+  });
+
+  it('T19 — returns "up" when key is missing from dailyMinutesDown', () => {
     expect(dayStatus('2026-05-10', startDate, { '2026-05-08': 60 })).toBe('up');
   });
 });
@@ -135,19 +154,19 @@ describe('dayStatus', () => {
 // ── barColor ─────────────────────────────────────────────────────────────────
 
 describe('barColor', () => {
-  it('T18 — "up" → #4F7A1B (leaf)', () => {
+  it('T20 — "up" → #4F7A1B (leaf)', () => {
     expect(barColor('up')).toBe('#4F7A1B');
   });
 
-  it('T19 — "degraded" → #2F4A1C (ink)', () => {
+  it('T21 — "degraded" → #2F4A1C (ink)', () => {
     expect(barColor('degraded')).toBe('#2F4A1C');
   });
 
-  it('T20 — "down" → #8E3A47 (rose)', () => {
+  it('T22 — "down" → #8E3A47 (rose)', () => {
     expect(barColor('down')).toBe('#8E3A47');
   });
 
-  it('T21 — "nodata" → #E8E2CE (paper)', () => {
+  it('T23 — "nodata" → #E8E2CE (paper)', () => {
     expect(barColor('nodata')).toBe('#E8E2CE');
   });
 });
@@ -155,27 +174,27 @@ describe('barColor', () => {
 // ── barLabel ─────────────────────────────────────────────────────────────────
 
 describe('barLabel', () => {
-  it('T22 — "nodata" label contains "No data"', () => {
+  it('T24 — "nodata" label contains "No data"', () => {
     expect(barLabel('2026-05-10', 'nodata', 0)).toContain('No data');
   });
 
-  it('T23 — "up" label contains "Operational"', () => {
+  it('T25 — "up" label contains "Operational"', () => {
     expect(barLabel('2026-05-10', 'up', 0)).toContain('Operational');
   });
 
-  it('T24 — "degraded" label contains "Degraded" and minute count', () => {
+  it('T26 — "degraded" label contains "Degraded" and minute count', () => {
     const label = barLabel('2026-05-10', 'degraded', 45);
     expect(label).toContain('Degraded');
     expect(label).toContain('45');
   });
 
-  it('T25 — "down" label contains "Outage" and minute count', () => {
+  it('T27 — "down" label contains "Outage" and minute count', () => {
     const label = barLabel('2026-05-10', 'down', 720);
     expect(label).toContain('Outage');
     expect(label).toContain('720');
   });
 
-  it('T26 — label includes the formatted date (e.g. "May 10, 2026")', () => {
+  it('T28 — label includes the formatted date (e.g. "May 10, 2026")', () => {
     expect(barLabel('2026-05-10', 'up', 0)).toContain('May 10, 2026');
   });
 });
@@ -183,15 +202,15 @@ describe('barLabel', () => {
 // ── formatDisplay ─────────────────────────────────────────────────────────────
 
 describe('formatDisplay', () => {
-  it('T27 — "2026-05-10" → "May 10, 2026"', () => {
+  it('T29 — "2026-05-10" → "May 10, 2026"', () => {
     expect(formatDisplay('2026-05-10')).toBe('May 10, 2026');
   });
 
-  it('T28 — "2026-01-01" → "Jan 1, 2026"', () => {
+  it('T30 — "2026-01-01" → "Jan 1, 2026"', () => {
     expect(formatDisplay('2026-01-01')).toBe('Jan 1, 2026');
   });
 
-  it('T29 — "2026-12-25" → "Dec 25, 2026"', () => {
+  it('T31 — "2026-12-25" → "Dec 25, 2026"', () => {
     expect(formatDisplay('2026-12-25')).toBe('Dec 25, 2026');
   });
 });

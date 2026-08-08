@@ -302,9 +302,20 @@ test.describe('Bar chart', () => {
     const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
     const summary = JSON.parse(FIXTURE('summary-all-up.json'));
     summary[0].dailyMinutesDown = { [today]: 60 };
+    // Bar chart now gates on a real, qualifying (>=5min, resolved) incident matching this
+    // date — anchor at local noon so it round-trips to the same calendar day regardless
+    // of the test machine's timezone.
+    const localNoon = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0);
+    const incidents = [{
+      title: '🛑 Salaaz Marketplace is down',
+      state: 'closed',
+      created_at: localNoon.toISOString(),
+      closed_at: new Date(localNoon.getTime() + 60 * 60000).toISOString(),
+    }];
     await p.route('**/*', async route => {
       const url = route.request().url();
       if (url.includes('/history/summary.json'))     return route.fulfill({ body: JSON.stringify(summary), contentType: 'application/json' });
+      if (url.includes('/history/incidents.json'))   return route.fulfill({ body: JSON.stringify(incidents), contentType: 'application/json' });
       if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: yml('up'), contentType: 'text/plain' });
       return route.continue();
     });
@@ -321,9 +332,17 @@ test.describe('Bar chart', () => {
     const today = n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
     const summary = JSON.parse(FIXTURE('summary-all-up.json'));
     summary[0].dailyMinutesDown = { [today]: 720 };
+    const localNoon = new Date(n.getFullYear(), n.getMonth(), n.getDate(), 12, 0, 0);
+    const incidents = [{
+      title: '🛑 Salaaz Marketplace is down',
+      state: 'closed',
+      created_at: localNoon.toISOString(),
+      closed_at: new Date(localNoon.getTime() + 720 * 60000).toISOString(),
+    }];
     await p.route('**/*', async route => {
       const url = route.request().url();
       if (url.includes('/history/summary.json'))     return route.fulfill({ body: JSON.stringify(summary), contentType: 'application/json' });
+      if (url.includes('/history/incidents.json'))   return route.fulfill({ body: JSON.stringify(incidents), contentType: 'application/json' });
       if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: yml('up'), contentType: 'text/plain' });
       return route.continue();
     });
