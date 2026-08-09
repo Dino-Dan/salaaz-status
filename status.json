@@ -1,0 +1,11 @@
+{
+  "page": {
+    "name": "Salaaz Status",
+    "url": "https://status.salaaz.com"
+  },
+  "status": {
+    "indicator": "none",
+    "description": "All systems operational"
+  },
+  "last_checked": "2026-08-08T23:30:22.743Z"
+}

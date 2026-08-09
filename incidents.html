@@ -11,6 +11,7 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://salaaz.com/logo.png">
   <link rel="canonical" href="https://status.salaaz.com/incidents.html">
+  <link rel="alternate" type="application/atom+xml" title="Salaaz Status — Incidents" href="/feed.xml">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
   <script>
     (function () {
@@ -372,7 +373,7 @@
   </div>
 </main>
 
-<footer>© 2026 <a href="https://salaaz.com" target="_blank" rel="noopener">Salaaz</a></footer>
+<footer>© 2026 <a href="https://salaaz.com" target="_blank" rel="noopener">Salaaz</a> · <a href="/feed.xml">RSS</a> · <a href="/status.json">API</a></footer>
 
 <script>
   // ── Theme toggle (light → dark → olive → light) ──
@@ -427,6 +428,19 @@
 
   // Internal-only services — monitored and alerted on, but never listed publicly.
   const HIDDEN_SERVICE_NAMES = ['Ethics Dashboard'];
+
+  // Issues opened by the smoke checks and third-party dependency pings purely so
+  // the GitHub→Discord webhook alerts us. Never public — see index.html.
+  const EXCLUDED_LABELS = ['internal'];
+
+  // Maintenance is planned work, not an incident — see index.html.
+  const NON_INCIDENT_LABELS = EXCLUDED_LABELS.concat(['maintenance']);
+
+  function hasExcludedLabel(issue) {
+    return (issue.labels || []).some(function (l) {
+      return NON_INCIDENT_LABELS.indexOf(l.name || l) !== -1;
+    });
+  }
 
   function fmtDate(iso) {
     return new Date(iso).toLocaleDateString('en-US', {
@@ -487,6 +501,9 @@
 
     const card = document.createElement('div');
     card.className = 'incident-card ' + (isOpen ? 'is-open' : 'is-closed');
+    // Stable anchor so an incident can be linked to directly — the feed's
+    // per-entry links point here.
+    if (issue.number != null) card.id = 'incident-' + issue.number;
 
     const top = document.createElement('div');
     top.className = 'card-top';
@@ -548,15 +565,35 @@
       addRow('Impact duration', duration(issue.created_at, new Date().toISOString()).trim());
     }
 
+    if (issue.html_url) {
+      const row = document.createElement('div');
+      row.className = 'detail-row';
+      const l = document.createElement('span');
+      l.className = 'detail-label';
+      l.textContent = 'Report';
+      const a = document.createElement('a');
+      a.href = issue.html_url;
+      a.target = '_blank';
+      a.rel = 'noopener';
+      a.textContent = 'View on GitHub →';
+      a.style.color = 'inherit';
+      // Don't let the link click bubble into the card's expand/collapse handler.
+      a.addEventListener('click', function (e) { e.stopPropagation(); });
+      row.appendChild(l);
+      row.appendChild(a);
+      details.appendChild(row);
+    }
+
     card.appendChild(details);
 
-    function toggleCard() {
-      const open = details.classList.toggle('visible');
+    function toggleCard(force) {
+      const open = details.classList.toggle('visible', force);
       chev.classList.toggle('open', open);
     }
+    card.expand = function () { toggleCard(true); };
     card.setAttribute('role', 'button');
     card.setAttribute('tabindex', '0');
-    card.addEventListener('click', toggleCard);
+    card.addEventListener('click', function () { toggleCard(); });
     card.addEventListener('keydown', function(e) {
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleCard(); }
     });
@@ -576,7 +613,8 @@
       // Drop incidents for internal-only services at a single point, so the
       // ongoing section, empty states and day groupings all stay consistent.
       const issues = allIssues.filter(function(i) {
-        return HIDDEN_SERVICE_NAMES.indexOf(serviceName(i.title || '')) === -1;
+        return !hasExcludedLabel(i) &&
+          HIDDEN_SERVICE_NAMES.indexOf(serviceName(i.title || '')) === -1;
       });
 
       const ongoing  = issues.filter(function(i) { return i.state === 'open'; });
@@ -633,11 +671,27 @@
         incidentsEl.appendChild(cap);
       }
 
+      revealHashTarget();
+
     } catch (err) {
       document.getElementById('incidents').innerHTML =
         '<div class="no-incidents">Could not load incident history.</div>';
     }
   }
+
+  // Cards render asynchronously, so the browser's own #hash scroll has already
+  // happened and found nothing. Re-resolve it once the list exists.
+  function revealHashTarget() {
+    const id = (location.hash || '').replace(/^#/, '');
+    if (!id) return;
+    const target = document.getElementById(id);
+    if (!target) return;
+    if (typeof target.expand === 'function') target.expand();
+    target.scrollIntoView({ block: 'center' });
+    target.focus({ preventScroll: true });
+  }
+
+  window.addEventListener('hashchange', revealHashTarget);
 
   init();
 </script>
