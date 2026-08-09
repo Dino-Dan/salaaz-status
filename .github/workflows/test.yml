@@ -36,16 +36,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: npm
 
-      # `npm install`, not `npm ci`. A lockfile generated on macOS records only
-      # the host's optional platform binaries (@esbuild/darwin-arm64,
-      # @rollup/rollup-darwin-arm64) — npm has no way to enumerate every
-      # platform's variant. `npm ci` installs strictly what the lockfile lists,
-      # so on a Linux runner it silently omits @esbuild/linux-x64, `npm ci`
-      # still exits 0, and vitest then dies at transform time. `npm install`
-      # resolves the correct binary for this platform while still honouring the
-      # lockfile for versions.
+      # `npm install` with no lockfile committed — see .gitignore. A lockfile
+      # generated on macOS records only that platform's optional binaries, and
+      # npm will not backfill @rollup/rollup-linux-x64-gnu for the runner
+      # (npm/cli#4828), so `npm ci` exits 0 having installed no usable rollup
+      # and vitest then dies at transform time.
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 

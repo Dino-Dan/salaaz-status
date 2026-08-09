@@ -1,3 +1,10 @@
 node_modules/
 test-results/
 playwright-report/
+
+# Omitted deliberately: a lockfile generated on one OS records only that
+# platform's optional binaries (@rollup/rollup-*, @esbuild/*), and npm will
+# not backfill the others (npm/cli#4828). Committing one makes Linux CI fail
+# with "Cannot find module @rollup/rollup-linux-x64-gnu". Two devDependencies,
+# both range-pinned in package.json, so the loss of pinning is negligible.
+package-lock.json

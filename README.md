@@ -64,7 +64,7 @@ One issue per failing thing; it closes automatically on recovery.
 ## Development
 
 ```console
-$ npm ci
+$ npm install
 $ npm test          # 79 unit (vitest) + 102 e2e (playwright)
 ```
 
