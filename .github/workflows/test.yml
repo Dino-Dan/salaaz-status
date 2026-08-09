@@ -49,8 +49,20 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      # Output is echoed back as ::error:: annotations. Actions log downloads
+      # require admin rights, so without this a red run is opaque to anyone
+      # without repo admin — including automation.
       - name: Unit tests
-        run: npm run test:unit
+        run: |
+          set -o pipefail
+          if ! npm run test:unit 2>&1 | tee unit.log; then
+            echo "::group::unit failure"
+            tail -60 unit.log | while IFS= read -r line; do
+              printf '::error::%s\n' "${line//$'\r'/}"
+            done
+            echo "::endgroup::"
+            exit 1
+          fi
 
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
