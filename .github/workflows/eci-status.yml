@@ -9,6 +9,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   check:
@@ -24,6 +25,7 @@ jobs:
         run: git pull --rebase
 
       - name: Ping Django API health
+        id: api
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
           HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" \
@@ -34,8 +36,11 @@ jobs:
             STATUS="degraded"
           fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/alibaba-ecs-status.json
+          echo "healthy=$([ "$STATUS" = up ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "detail=Endpoint https://salaaz.com/health/ returned HTTP $HTTP_CODE." >> "$GITHUB_OUTPUT"
 
       - name: Ping Stallion Express status page
+        id: shipping
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
           PAGE=$(curl -sf --max-time 10 -A "Mozilla/5.0 (compatible; SalaazStatusBot/1.0)" https://status.stallionexpress.ca/ || echo "")
@@ -46,8 +51,11 @@ jobs:
             STATUS="degraded"
           fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/stallion-status.json
+          echo "healthy=$([ "$STATUS" = up ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "detail=status.stallionexpress.ca reported '${ICON:-unreachable}'." >> "$GITHUB_OUTPUT"
 
       - name: Ping Square API
+        id: payments
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
           if curl -sf --max-time 10 https://www.issquareup.com/api/v2/status.json > /dev/null 2>&1; then
@@ -56,6 +64,8 @@ jobs:
             STATUS="degraded"
           fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/square-status.json
+          echo "healthy=$([ "$STATUS" = up ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "detail=issquareup.com/api/v2/status.json was unreachable or returned an error." >> "$GITHUB_OUTPUT"
 
       - name: Commit if changed
         run: |
@@ -65,3 +75,35 @@ jobs:
           git diff --cached --quiet || git commit -m "ci: update dependency status"
           git pull --rebase
           git push
+
+      # These three alert us via the existing GitHub→Discord issue integration.
+      # They are labelled `internal` and filtered out of status.salaaz.com — a
+      # third-party outage is not a Salaaz incident, and the README's amber-cap
+      # rule says so. Each is idempotent: one open issue per dependency, closed
+      # automatically on recovery.
+      - name: Alert on API dependency
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: dep-api
+          name: API dependency (Alibaba ECS)
+          healthy: ${{ steps.api.outputs.healthy }}
+          detail: ${{ steps.api.outputs.detail }}
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Alert on Shipping dependency
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: dep-shipping
+          name: Shipping dependency (Stallion Express)
+          healthy: ${{ steps.shipping.outputs.healthy }}
+          detail: ${{ steps.shipping.outputs.detail }}
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Alert on Payments dependency
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: dep-payments
+          name: Payments dependency (Square)
+          healthy: ${{ steps.payments.outputs.healthy }}
+          detail: ${{ steps.payments.outputs.detail }}
+          token: ${{ secrets.GH_PAT || github.token }}

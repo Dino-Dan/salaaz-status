@@ -36,6 +36,40 @@ In addition to the three main Upptime-monitored services above, a separate GitHu
 
 Provider outages are capped at amber — red is reserved for Salaaz's own services being unreachable.
 
+## Feed and API
+
+Published to `status.salaaz.com` on every deploy, generated from `history/` by `scripts/build-feed.mjs` and `scripts/build-api.mjs`.
+
+| Endpoint                                                             | What it gives you                                                        |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------ |
+| [`/feed.xml`](https://status.salaaz.com/feed.xml)                     | Atom 1.0 incident feed — the 50 most recent public incidents             |
+| [`/status.json`](https://status.salaaz.com/status.json)               | Overall indicator: `none` \| `degraded` \| `major`, plus a description   |
+| [`/summary.json`](https://status.salaaz.com/summary.json)             | Per-service status, 90-day uptime, response time, and active incidents   |
+
+```console
+$ curl -s https://status.salaaz.com/status.json | jq -r '.status.description'
+All systems operational
+```
+
+Both exclude internal-only services and `internal`-labelled alert issues, so they show exactly what the public page shows.
+
+## Alerting
+
+Outage alerts reach Discord through a GitHub → Discord webhook subscribed to **issue events**, configured in GitHub/Discord — not in this repo. Anything that opens an issue therefore alerts automatically.
+
+Upptime opens issues for HTTP failures on the three monitored URLs. The smoke checks (`vendor-smoke.yml`, `ethics-smoke.yml`) and the dependency pings (`eci-status.yml`) catch failures HTTP checks cannot see — a page returning 200 while rendering nothing, or a third-party provider going down — so they open issues too, via `.github/actions/alert-issue`. Those carry the `internal` label and are filtered out of the public page and the feed.
+
+One issue per failing thing; it closes automatically on recovery.
+
+## Development
+
+```console
+$ npm ci
+$ npm test          # 79 unit (vitest) + 102 e2e (playwright)
+```
+
+The suite gates deploys — see `.github/workflows/test.yml`, which `deploy-status-page.yml` depends on.
+
 ## 📄 License
 
 - Powered by: [Upptime](https://github.com/upptime/upptime)

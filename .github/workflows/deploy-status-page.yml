@@ -13,6 +13,12 @@ on:
     branches: [master]
     paths:
       - "status-page/**"
+      - "scripts/**"
+      # feed.xml and the JSON API are generated from these, so they need to
+      # redeploy when an incident opens or closes. Deliberately NOT watching the
+      # per-service .yml files or summary.json — those change on every 5-minute
+      # uptime run and would turn this into a near-continuous deploy.
+      - "history/incidents.json"
   repository_dispatch:
     types: [deploy_status_page]
   schedule:
@@ -32,9 +38,19 @@ permissions:
   contents: write
 
 jobs:
+  # Gate real content changes on the suite. Deliberately skipped for the
+  # scheduled reconcile and the dispatch recovery path — those republish content
+  # that already passed on its way into master, and must not be blocked from
+  # repairing a clobbered gh-pages by an unrelated test failure.
+  test:
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+    uses: ./.github/workflows/test.yml
+
   deploy:
     name: Publish status-page to gh-pages
     runs-on: ubuntu-latest
+    needs: test
+    if: always() && (needs.test.result == 'success' || needs.test.result == 'skipped')
     steps:
       - name: Checkout master
         uses: actions/checkout@v4
@@ -42,6 +58,17 @@ jobs:
           ref: master
           fetch-depth: 0
           token: ${{ secrets.GH_PAT || github.token }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Generate feed + API
+        run: |
+          set -e
+          mkdir -p build
+          node scripts/build-feed.mjs build
+          node scripts/build-api.mjs build
 
       - name: Publish to gh-pages
         run: |
@@ -56,6 +83,9 @@ jobs:
           cp "$GITHUB_WORKSPACE/status-page/index.html" .
           cp "$GITHUB_WORKSPACE/status-page/incidents.html" .
           cp "$GITHUB_WORKSPACE/status-page/vendor-portal.svg" .
+          cp "$GITHUB_WORKSPACE/build/feed.xml" .
+          cp "$GITHUB_WORKSPACE/build/status.json" .
+          cp "$GITHUB_WORKSPACE/build/summary.json" .
           echo "status.salaaz.com" > CNAME
           touch .nojekyll
           git add -A

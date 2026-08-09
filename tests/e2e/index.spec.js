@@ -646,3 +646,141 @@ test.describe('Dependency badges', () => {
     await p.close();
   });
 });
+
+// ── Internal alert issues ─────────────────────────────────────────────────────
+//
+// The smoke checks and dependency pings open `internal`-labelled issues purely so
+// the GitHub→Discord webhook fires. A third-party outage is not a Salaaz incident
+// and must never reach the public page.
+
+test.describe('Internal alert issues are never public', () => {
+  const todayStr = () => {
+    const n = new Date();
+    return n.getFullYear() + '-' + String(n.getMonth() + 1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
+  };
+
+  async function mockWithIncidents(p, incidents, summary) {
+    await p.route('**/*', async route => {
+      const url = route.request().url();
+      if (url.includes('/history/summary.json'))             return route.fulfill({ body: JSON.stringify(summary), contentType: 'application/json' });
+      if (url.includes('/history/incidents.json'))           return route.fulfill({ body: JSON.stringify(incidents), contentType: 'application/json' });
+      if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: yml('up'), contentType: 'text/plain' });
+      return route.continue();
+    });
+  }
+
+  test('T63 — an internal alert does not appear in Past Incidents', async ({ context }) => {
+    const p = await context.newPage();
+    const now = new Date();
+    const start = new Date(now.getTime() - 60 * 60000);
+    await mockWithIncidents(p, [{
+      number: 900,
+      title: '⚠️ [internal] Payments dependency (Square) is unhealthy',
+      state: 'closed',
+      created_at: start.toISOString(),
+      closed_at: now.toISOString(),
+      labels: [{ name: 'internal' }, { name: 'dep-payments' }],
+    }], JSON.parse(FIXTURE('summary-all-up.json')));
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('#past-incidents')).toContainText('No incidents in the past 14 days');
+    await expect(p.locator('#past-incidents')).not.toContainText('Square');
+    await p.close();
+  });
+
+  test('T64 — an internal alert does not colour a bar', async ({ context }) => {
+    const p = await context.newPage();
+    const today = todayStr();
+    const summary = JSON.parse(FIXTURE('summary-all-up.json'));
+    summary[0].dailyMinutesDown = { [today]: 60 };
+    const noon = new Date();
+    noon.setHours(12, 0, 0, 0);
+    await mockWithIncidents(p, [{
+      number: 901,
+      title: '⚠️ [internal] Payments dependency (Square) is unhealthy',
+      state: 'closed',
+      created_at: noon.toISOString(),
+      closed_at: new Date(noon.getTime() + 60 * 60000).toISOString(),
+      labels: [{ name: 'internal' }, { name: 'dep-payments' }],
+    }], summary);
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    // Only an incident on record may turn a bar amber. The internal alert is
+    // filtered out, so dailyMinutesDown alone must not be believed.
+    const lastBar = p.locator('.bar-strip').first().locator('.bar').last();
+    expect(await lastBar.evaluate(el => getComputedStyle(el).backgroundColor)).toBe('rgb(79, 122, 27)');
+    await p.close();
+  });
+});
+
+// ── Scheduled maintenance ─────────────────────────────────────────────────────
+
+test.describe('Scheduled maintenance', () => {
+  function maintenanceIssue(startAt, endAt) {
+    return {
+      number: 800,
+      title: '[Scheduled Maintenance] Database upgrade',
+      state: 'open',
+      created_at: new Date().toISOString(),
+      closed_at: null,
+      labels: [{ name: 'maintenance' }],
+      body: `<!--\nstart: ${startAt.toISOString()}\nend: ${endAt.toISOString()}\nexpectedDown: salaaz-marketplace\n-->\n\nUpgrading the primary database.`,
+    };
+  }
+
+  async function mockMaintenance(p, issue) {
+    await p.route('**/*', async route => {
+      const url = route.request().url();
+      if (url.includes('/history/summary.json'))             return route.fulfill({ body: FIXTURE('summary-all-up.json'), contentType: 'application/json' });
+      if (url.includes('/history/incidents.json'))           return route.fulfill({ body: JSON.stringify([issue]), contentType: 'application/json' });
+      if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: yml('up'), contentType: 'text/plain' });
+      return route.continue();
+    });
+  }
+
+  test('T65 — an active window takes over the banner', async ({ context }) => {
+    const p = await context.newPage();
+    const now = Date.now();
+    await mockMaintenance(p, maintenanceIssue(new Date(now - 30 * 60000), new Date(now + 30 * 60000)));
+    await p.goto(PAGE);
+    await p.waitForSelector('.status-banner');
+    await expect(p.locator('.banner-title')).toContainText('Scheduled Maintenance In Progress');
+    await expect(p.locator('.status-banner.maintenance')).toBeVisible();
+    await p.close();
+  });
+
+  test('T66 — an upcoming window shows a notice above the live banner', async ({ context }) => {
+    const p = await context.newPage();
+    const now = Date.now();
+    await mockMaintenance(p, maintenanceIssue(new Date(now + 2 * 86400000), new Date(now + 2 * 86400000 + 3600000)));
+    await p.goto(PAGE);
+    await p.waitForSelector('.status-banner');
+    await expect(p.locator('.maintenance-notice')).toContainText('Scheduled maintenance');
+    // The real status is unchanged — the window has not started.
+    await expect(p.locator('.banner-title')).toContainText('All Systems Operational');
+    await p.close();
+  });
+
+  test('T67 — a window more than 7 days out is not announced yet', async ({ context }) => {
+    const p = await context.newPage();
+    const now = Date.now();
+    await mockMaintenance(p, maintenanceIssue(new Date(now + 30 * 86400000), new Date(now + 30 * 86400000 + 3600000)));
+    await p.goto(PAGE);
+    await p.waitForSelector('.status-banner');
+    await expect(p.locator('.maintenance-notice')).toHaveCount(0);
+    await p.close();
+  });
+
+  test('T68 — maintenance is not counted as a past incident', async ({ context }) => {
+    const p = await context.newPage();
+    const now = Date.now();
+    const issue = maintenanceIssue(new Date(now - 2 * 3600000), new Date(now - 3600000));
+    issue.state = 'closed';
+    issue.closed_at = new Date(now - 3600000).toISOString();
+    await mockMaintenance(p, issue);
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('#past-incidents')).toContainText('No incidents in the past 14 days');
+    await p.close();
+  });
+});

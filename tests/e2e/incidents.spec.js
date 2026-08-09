@@ -313,3 +313,46 @@ test.describe('Error handling', () => {
     expect(errors).toHaveLength(0);
   });
 });
+
+// ── Permalinks ────────────────────────────────────────────────────────────────
+//
+// The Atom feed links each entry to incidents.html#incident-<number>, so the
+// anchor has to exist and resolve after the async render.
+
+test.describe('Incident permalinks', () => {
+  test('T35 — each card carries a stable #incident-<number> id', async ({ page }) => {
+    await mockIssues(page, FIXTURE('github-issues-resolved.json'));
+    await page.goto(PAGE);
+    await waitForLoad(page);
+    await expect(page.locator('#incident-1')).toHaveCount(1);
+    await expect(page.locator('#incident-2')).toHaveCount(1);
+  });
+
+  test('T36 — loading a #incident hash expands that card', async ({ page }) => {
+    await mockIssues(page, FIXTURE('github-issues-resolved.json'));
+    await page.goto(PAGE + '#incident-2');
+    await waitForLoad(page);
+    // Cards render after the hash is applied, so the page must re-resolve it.
+    await expect(page.locator('#incident-2 .card-details')).toHaveClass(/visible/);
+    await expect(page.locator('#incident-1 .card-details')).not.toHaveClass(/visible/);
+  });
+
+  test('T37 — an unknown hash is harmless', async ({ page }) => {
+    await mockIssues(page, FIXTURE('github-issues-resolved.json'));
+    await page.goto(PAGE + '#incident-99999');
+    await waitForLoad(page);
+    await expect(page.locator('.incident-card').first()).toBeVisible();
+    await expect(page.locator('.card-details.visible')).toHaveCount(0);
+  });
+
+  test('T38 — a card with html_url gets a GitHub link that does not toggle the card', async ({ page }) => {
+    const issues = JSON.parse(FIXTURE('github-issues-resolved.json'));
+    issues[0].html_url = 'https://github.com/Dino-Dan/salaaz-status/issues/1';
+    await mockIssues(page, JSON.stringify(issues));
+    await page.goto(PAGE);
+    await waitForLoad(page);
+    const link = page.locator('#incident-1 a[href*="github.com"]');
+    await expect(link).toHaveAttribute('target', '_blank');
+    await expect(link).toHaveAttribute('rel', 'noopener');
+  });
+});

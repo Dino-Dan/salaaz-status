@@ -2,6 +2,10 @@ name: Ethics Dashboard Smoke Check
 on:
   repository_dispatch:
     types: [ethics-push]
+  schedule:
+    # Was dispatch-only, so it effectively never ran — history/ethics-render-status.json
+    # sat stale from 2026-07-16. Matches vendor-smoke.yml's cadence.
+    - cron: "*/15 * * * *"
   workflow_dispatch:
 concurrency:
   group: status-repo-write
@@ -9,6 +13,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   smoke:
@@ -82,3 +87,15 @@ jobs:
           git add history/ethics-render-status.json
           git diff --cached --quiet || git commit -m "ci: update ethics dashboard render status"
           git push
+
+      # Ethics Dashboard is internal-only on the public page (HIDDEN_SLUGS), but we
+      # still want to hear about it. Alerting via an issue keeps that split clean:
+      # the alert reaches Discord, the incident never reaches status.salaaz.com.
+      - name: Alert on render failure
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: ethics-dashboard-render
+          name: Ethics Dashboard render check
+          healthy: ${{ steps.smoke.outputs.status == 'up' }}
+          detail: "https://ethics.salaaz.com/ returned a response but the expected content did not render."
+          token: ${{ secrets.GH_PAT || github.token }}

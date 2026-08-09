@@ -11,6 +11,7 @@ concurrency:
 
 permissions:
   contents: write
+  issues: write
 
 jobs:
   smoke:
@@ -84,3 +85,15 @@ jobs:
           git add history/vendor-portal-render-status.json
           git diff --cached --quiet || git commit -m "ci: update vendor portal render status"
           git push
+
+      # A render failure is a real Vendor Portal outage that the HTTP check in
+      # uptime.yml cannot see — the page returns 200 while rendering nothing. Only
+      # uptime.yml's issues alert today, so without this the failure is silent.
+      - name: Alert on render failure
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: vendor-portal-render
+          name: Vendor Portal render check
+          healthy: ${{ steps.smoke.outputs.status == 'up' }}
+          detail: "https://vendor.salaaz.com/ returned a response but no form rendered — the page is likely blank for users."
+          token: ${{ secrets.GH_PAT || github.token }}

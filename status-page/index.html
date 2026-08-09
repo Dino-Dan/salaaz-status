@@ -12,6 +12,7 @@
   <meta property="og:type" content="website">
   <meta property="og:image" content="https://salaaz.com/logo.png">
   <link rel="canonical" href="https://status.salaaz.com/">
+  <link rel="alternate" type="application/atom+xml" title="Salaaz Status — Incidents" href="/feed.xml">
   <link rel="icon" type="image/png" href="https://salaaz.com/favicon.ico">
   <script>
     (function () {
@@ -182,6 +183,20 @@
     .status-banner.all-up   { background: var(--leaf-50); border-color: var(--leaf); }
     .status-banner.some-down { background: var(--rose-soft); border-color: var(--rose); }
     .status-banner.degraded  { background: var(--amber-soft); border-color: var(--amber); }
+    .status-banner.maintenance { background: var(--paper-2); border-color: var(--rule-2); }
+
+    /* Upcoming windows sit above the live banner rather than replacing it — the
+       current status still matters while maintenance is merely scheduled. */
+    .maintenance-notice {
+      border: 0.5px dashed var(--rule-2);
+      background: var(--paper-2);
+      border-radius: 10px;
+      padding: 0.7rem 1rem;
+      margin-bottom: 0.75rem;
+      font-size: 0.82rem;
+      color: var(--ink-2);
+    }
+    .maintenance-notice strong { font-weight: 500; color: var(--ink-1); }
 
     .status-dot {
       width: 10px;
@@ -194,6 +209,7 @@
     .dot-green  { background: var(--leaf); }
     .dot-red    { background: var(--rose); }
     .dot-amber  { background: var(--amber); }
+    .dot-grey   { background: var(--ink-3); }
 
     .banner-title {
       font-family: var(--font-serif);
@@ -624,6 +640,8 @@
 
 <footer>
   © 2026 <a href="https://salaaz.com" target="_blank" rel="noopener">Salaaz</a>
+  · <a href="/feed.xml">RSS</a>
+  · <a href="/status.json">API</a>
 </footer>
 
 <script>
@@ -679,6 +697,23 @@
   // the slug never reaches a network request or the status banner.
   const HIDDEN_SLUGS = ['ethics-dashboard'];
   const HIDDEN_SERVICE_NAMES = ['Ethics Dashboard'];
+
+  // ── Internal-only incidents ──
+  // The smoke checks (vendor-smoke, ethics-smoke) and the third-party dependency
+  // pings (eci-status) open GitHub issues so the existing GitHub→Discord webhook
+  // alerts us. Those issues carry the `internal` label and must never surface
+  // publicly: a Square or Stallion outage is not a Salaaz incident, and painting
+  // it on our own bar chart would contradict the amber-cap rule in README.md.
+  const EXCLUDED_LABELS = ['internal'];
+
+  // Maintenance issues are public, but they are planned work — not incidents.
+  // They must stay out of the bar chart and Past Incidents or a deliberate
+  // window would read as an outage and dent the uptime figure.
+  const NON_INCIDENT_LABELS = EXCLUDED_LABELS.concat(['maintenance']);
+
+  function hasExcludedLabel(issue) {
+    return (issue.labels || []).some(l => NON_INCIDENT_LABELS.includes(l.name || l));
+  }
 
   // ── Sub-components per Upptime slug (disabled — re-enable when per-component monitoring is wired up) ──
   /* const SUB_COMPONENTS = {
@@ -1118,13 +1153,70 @@
     return card;
   }
 
+  // ── Scheduled maintenance ──
+  // Windows are declared in the HTML comment of a `maintenance`-labelled issue
+  // (see .github/ISSUE_TEMPLATE/maintenance-event.md) — the same block Upptime
+  // reads to suppress its checks. Those issues are already in incidents.json, so
+  // this costs no extra request.
+  function parseMaintenance(issue) {
+    const body = issue.body || '';
+    const start = (body.match(/start:\s*(\S+)/) || [])[1];
+    const end   = (body.match(/end:\s*(\S+)/) || [])[1];
+    if (!start || !end) return null;
+    const startAt = new Date(start), endAt = new Date(end);
+    if (isNaN(startAt) || isNaN(endAt)) return null;
+    return {
+      startAt, endAt,
+      title: (issue.title || 'Scheduled maintenance').replace(/^\[Scheduled Maintenance\]\s*/i, '').trim()
+        || 'Scheduled maintenance',
+    };
+  }
+
+  const MAINTENANCE_LOOKAHEAD_MS = 7 * 24 * 60 * 60 * 1000;
+
+  function maintenanceWindows(issues, now) {
+    const out = { active: [], upcoming: [] };
+    if (!Array.isArray(issues)) return out;
+    issues.forEach(issue => {
+      if (!(issue.labels || []).some(l => (l.name || l) === 'maintenance')) return;
+      const w = parseMaintenance(issue);
+      if (!w) return;
+      if (now >= w.startAt && now < w.endAt) out.active.push(w);
+      else if (w.startAt > now && w.startAt - now <= MAINTENANCE_LOOKAHEAD_MS) out.upcoming.push(w);
+    });
+    out.active.sort((a, b) => a.endAt - b.endAt);
+    out.upcoming.sort((a, b) => a.startAt - b.startAt);
+    return out;
+  }
+
+  function fmtWindow(w) {
+    const fmt = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+    return `${w.startAt.toLocaleString('en-US', fmt)} – ${w.endAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
+  }
+
   // ── Render banner ──
-  function renderBanner(services) {
+  function renderBanner(services, maint) {
     const allUp        = services.every(s => s.status === 'up');
     const downCount    = services.filter(s => s.status === 'down').length;
     const degradedCount = services.filter(s => s.status === 'degraded').length;
     const el = document.getElementById('banner');
     const chip = document.getElementById('nav-status-chip');
+    const windows = maint || { active: [], upcoming: [] };
+
+    // An active window takes over the banner — it explains why services may be
+    // intentionally unavailable, which the up/down states cannot.
+    if (windows.active.length) {
+      const w = windows.active[0];
+      el.innerHTML = `<div class="status-banner maintenance">
+        <div class="status-dot dot-grey"></div>
+        <div>
+          <div class="banner-title">Scheduled Maintenance In Progress</div>
+          <div class="banner-sub">${escHtml(w.title)} · until ${escHtml(w.endAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }))}</div>
+        </div>
+      </div>`;
+      if (chip) { chip.textContent = '● Maintenance'; chip.style.color = 'var(--ink-2)'; chip.style.background = 'var(--paper-3)'; chip.style.display = ''; }
+      return;
+    }
 
     if (allUp) {
       el.innerHTML = `<div class="status-banner all-up">
@@ -1156,12 +1248,22 @@
       </div>`;
       if (chip) { chip.textContent = '● Degraded'; chip.style.color = 'var(--amber-deep)'; chip.style.background = 'var(--amber-soft)'; chip.style.display = ''; }
     }
+
+    // Upcoming windows are additive — the live status above still applies.
+    if (windows.upcoming.length) {
+      const w = windows.upcoming[0];
+      el.insertAdjacentHTML('afterbegin',
+        `<div class="maintenance-notice"><strong>Scheduled maintenance</strong> — ${escHtml(fmtWindow(w))}. ${escHtml(w.title)}</div>`);
+    }
   }
 
   // ── Main ──
+  // Returns the incidents.json payload (or null) so the caller can hand it to
+  // loadPastIncidents() instead of fetching the same file a second time.
   async function init() {
+    let incidentsRaw = null;
     try {
-      const [summary, depsData, incidentsRaw] = await Promise.all([
+      const [summary, depsData, incidents] = await Promise.all([
         fetch(cacheBust(`${RAW}/history/summary.json`)).then(r => {
           if (!r.ok) throw new Error('Failed to load summary');
           return r.json();
@@ -1171,6 +1273,7 @@
         // which tells dayStatus() to trust dailyMinutesDown alone (old behavior).
         fetch(cacheBust(`${RAW}/history/incidents.json`)).then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
+      incidentsRaw = incidents;
 
       // Per-service set of local YYYY-MM-DD dates with at least one qualifying
       // (>=5 min precise, resolved) incident on record. The bar chart only shows
@@ -1179,7 +1282,7 @@
       let qualifyingDatesByService = null;
       if (Array.isArray(incidentsRaw)) {
         qualifyingDatesByService = {};
-        incidentsRaw.filter(isQualifyingIncident).forEach(issue => {
+        incidentsRaw.filter(i => isQualifyingIncident(i) && !hasExcludedLabel(i)).forEach(issue => {
           const name = extractServiceName(issue.title || '');
           const ds = localDateStr(new Date(issue.created_at));
           if (!qualifyingDatesByService[name]) qualifyingDatesByService[name] = new Set();
@@ -1200,7 +1303,7 @@
         if (yamlData[i].status) service.status = yamlData[i].status;
       });
 
-      renderBanner(visible);
+      renderBanner(visible, maintenanceWindows(incidentsRaw, new Date()));
 
       // Report when Upptime actually ran its check, not when this page happened to
       // load — take the most recent lastUpdated across all services. Only fall back
@@ -1236,6 +1339,7 @@
         </div>`;
       document.getElementById('services').innerHTML = '';
     }
+    return incidentsRaw;
   }
 
   function escHtml(s) {
@@ -1275,19 +1379,23 @@
   // Served from a periodically-updated static snapshot (see .github/workflows/incidents-cache.yml)
   // rather than fetched from api.github.com directly — that endpoint caps unauthenticated
   // requests at 60/hour per IP, which is easy for real visitors to exhaust.
-  async function loadPastIncidents() {
+  // `prefetched` is the array init() already pulled this cycle — the two used to
+  // fetch incidents.json independently, doubling the request count per refresh.
+  // Falls back to its own fetch so the function still stands alone.
+  async function loadPastIncidents(prefetched) {
     const el = document.getElementById('past-incidents');
     try {
-      const allIssues = await fetch(
-        cacheBust(`${RAW}/history/incidents.json`)
-      ).then(r => r.json());
+      const allIssues = Array.isArray(prefetched)
+        ? prefetched
+        : await fetch(cacheBust(`${RAW}/history/incidents.json`)).then(r => r.json());
 
       if (!Array.isArray(allIssues)) throw new Error('bad response');
 
       // Drop incidents for internal-only services before the cutoff filter, so
       // the empty state below is accurate when the only recent incidents were theirs.
       const publicIssues = allIssues.filter(
-        i => isQualifyingIncident(i) && !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
+        i => isQualifyingIncident(i) && !hasExcludedLabel(i) &&
+          !HIDDEN_SERVICE_NAMES.includes(extractServiceName(i.title || ''))
       );
 
       // Keep only incidents closed within the last 14 days
@@ -1338,11 +1446,17 @@
     }
   }
 
-  init();
-  loadPastIncidents();
+  // One pass = one fetch of each source. init() hands its incidents.json payload
+  // to loadPastIncidents() rather than letting it fetch the file again.
+  async function refresh() {
+    const incidents = await init();
+    await loadPastIncidents(incidents);
+  }
+
+  refresh();
 
   // Re-fetch status data every 5 minutes to match Upptime's check interval
-  setInterval(() => { init(); loadPastIncidents(); }, 5 * 60 * 1000);
+  setInterval(refresh, 5 * 60 * 1000);
 </script>
 </body>
 </html>

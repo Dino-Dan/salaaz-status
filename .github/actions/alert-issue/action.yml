@@ -1,0 +1,82 @@
+# Opens (and closes) a GitHub issue when a check changes state.
+#
+# Why an issue rather than a webhook call: outage alerts already reach Discord
+# through a GitHub→Discord integration subscribed to issue events, configured
+# outside this repo. Opening an issue therefore delivers the alert for free and
+# keeps one notification path instead of two.
+#
+# Every issue carries the `internal` label, which status-page/*.html filter out
+# (EXCLUDED_LABELS) so these never appear as public Salaaz incidents — a Square
+# or Stallion outage is not our incident.
+#
+# De-dup is the whole point: these checks run every 5–15 minutes, so the action
+# must open at most one issue per failing thing and close it on recovery.
+
+name: Alert via GitHub issue
+description: Open an internal-labelled issue when a check fails; close it when the check recovers.
+
+inputs:
+  slug:
+    description: Stable identifier; used as a label so open issues can be found again.
+    required: true
+  name:
+    description: Human-readable name for the issue title.
+    required: true
+  healthy:
+    description: '"true" when the check is passing. Anything else is treated as failing.'
+    required: true
+  detail:
+    description: Extra context for the issue body (endpoint, HTTP code, etc).
+    required: false
+    default: ""
+  token:
+    description: Token with issues:write.
+    required: true
+
+runs:
+  using: composite
+  steps:
+    - name: Open or close the alert issue
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        SLUG: ${{ inputs.slug }}
+        NAME: ${{ inputs.name }}
+        HEALTHY: ${{ inputs.healthy }}
+        DETAIL: ${{ inputs.detail }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -euo pipefail
+
+        # Labels must exist before they can be applied. --force makes this a
+        # no-op when they already do.
+        gh label create internal --color BFD4F2 --description "Internal alert — never shown on the public status page" --force >/dev/null 2>&1 || true
+        gh label create "$SLUG" --color EDEDED --force >/dev/null 2>&1 || true
+
+        EXISTING=$(gh issue list --repo "$REPO" --state open \
+          --label internal --label "$SLUG" \
+          --json number --jq '.[0].number // empty')
+
+        if [ "$HEALTHY" = "true" ]; then
+          if [ -n "$EXISTING" ]; then
+            echo "Recovered — closing #$EXISTING"
+            gh issue comment "$EXISTING" --repo "$REPO" \
+              --body "✅ Recovered at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
+            gh issue close "$EXISTING" --repo "$REPO"
+          else
+            echo "Healthy, nothing open. No action."
+          fi
+        else
+          if [ -n "$EXISTING" ]; then
+            echo "Still failing, #$EXISTING already open. Not opening a duplicate."
+          else
+            echo "Newly failing — opening an issue"
+            gh issue create --repo "$REPO" \
+              --title "⚠️ [internal] $NAME is unhealthy" \
+              --label internal --label "$SLUG" \
+              --body "$(printf '%s\n\n%s\n\n%s' \
+                "Detected at $(date -u +%Y-%m-%dT%H:%M:%SZ)." \
+                "${DETAIL:-No further detail.}" \
+                "_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._")"
+          fi
+        fi

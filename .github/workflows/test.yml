@@ -1,0 +1,59 @@
+# Test gate for the hand-built status page.
+#
+# The suite in tests/ used to be local-only — nothing ran it, and a push to
+# status-page/** deployed straight to production ungated. This workflow is the
+# gate; deploy-status-page.yml depends on it via `needs: test`.
+#
+# The e2e specs load status-page/*.html over file:// and mock every network
+# request, so there is no server to start.
+
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches: [master]
+    paths:
+      - "status-page/**"
+      - "tests/**"
+      - "scripts/**"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/test.yml"
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Unit + e2e
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Unit tests
+        run: npm run test:unit
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: End-to-end tests
+        run: npm run test:e2e
+
+      - name: Upload failure screenshots
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: test-results/
+          retention-days: 7
