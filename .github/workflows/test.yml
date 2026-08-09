@@ -38,8 +38,16 @@ jobs:
           node-version: "20"
           cache: npm
 
+      # `npm install`, not `npm ci`. A lockfile generated on macOS records only
+      # the host's optional platform binaries (@esbuild/darwin-arm64,
+      # @rollup/rollup-darwin-arm64) — npm has no way to enumerate every
+      # platform's variant. `npm ci` installs strictly what the lockfile lists,
+      # so on a Linux runner it silently omits @esbuild/linux-x64, `npm ci`
+      # still exits 0, and vitest then dies at transform time. `npm install`
+      # resolves the correct binary for this platform while still honouring the
+      # lockfile for versions.
       - name: Install dependencies
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: Unit tests
         run: npm run test:unit
