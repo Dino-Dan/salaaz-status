@@ -19,6 +19,8 @@ on:
       # per-service .yml files or summary.json — those change on every 5-minute
       # uptime run and would turn this into a near-continuous deploy.
       - "history/incidents.json"
+      # This file decides what gets published, so a change to it must republish.
+      - ".github/workflows/deploy-status-page.yml"
   repository_dispatch:
     types: [deploy_status_page]
   schedule:
