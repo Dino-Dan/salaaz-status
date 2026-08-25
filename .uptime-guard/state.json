@@ -1,14 +1,14 @@
 {
   "salaaz-marketplace": {
-    "count": 0,
+    "count": 1,
     "confirmed": false
   },
   "vendor-portal": {
-    "count": 0,
+    "count": 1,
     "confirmed": false
   },
   "ethics-dashboard": {
-    "count": 0,
+    "count": 1,
     "confirmed": false
   }
 }
