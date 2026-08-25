@@ -29,19 +29,6 @@
       "last_checked": "2026-08-25T01:25:22.238Z"
     }
   ],
-  "active_incidents": [
-    {
-      "id": 31,
-      "service": "Vendor Portal",
-      "started_at": "2026-08-25T01:20:48Z",
-      "url": "https://status.salaaz.com/incidents.html#incident-31"
-    },
-    {
-      "id": 30,
-      "service": "Salaaz Marketplace",
-      "started_at": "2026-08-25T01:20:33Z",
-      "url": "https://status.salaaz.com/incidents.html#incident-30"
-    }
-  ],
+  "active_incidents": [],
   "last_checked": "2026-08-25T01:25:22.238Z"
 }

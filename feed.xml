@@ -5,26 +5,8 @@
   <link rel="self" href="https://status.salaaz.com/feed.xml"/>
   <link rel="alternate" href="https://status.salaaz.com/incidents.html"/>
   <id>https://status.salaaz.com/</id>
-  <updated>2026-08-25T01:20:48.000Z</updated>
+  <updated>2026-08-03T14:15:29.000Z</updated>
   <author><name>Salaaz</name></author>
-  <entry>
-    <title>Vendor Portal — ongoing incident</title>
-    <id>https://github.com/Dino-Dan/salaaz-status/issues/31</id>
-    <link rel="alternate" href="https://status.salaaz.com/incidents.html#incident-31"/>
-    <published>2026-08-25T01:20:48.000Z</published>
-    <updated>2026-08-25T01:20:48.000Z</updated>
-    <category term="ongoing"/>
-    <summary type="text">An incident affecting Vendor Portal began at 2026-08-25T01:20:48Z and is still open.</summary>
-  </entry>
-  <entry>
-    <title>Salaaz Marketplace — ongoing incident</title>
-    <id>https://github.com/Dino-Dan/salaaz-status/issues/30</id>
-    <link rel="alternate" href="https://status.salaaz.com/incidents.html#incident-30"/>
-    <published>2026-08-25T01:20:33.000Z</published>
-    <updated>2026-08-25T01:20:33.000Z</updated>
-    <category term="ongoing"/>
-    <summary type="text">An incident affecting Salaaz Marketplace began at 2026-08-25T01:20:33Z and is still open.</summary>
-  </entry>
   <entry>
     <title>Vendor Portal — resolved after 20 min</title>
     <id>https://github.com/Dino-Dan/salaaz-status/issues/21</id>
