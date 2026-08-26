@@ -39,20 +39,75 @@ jobs:
           echo "healthy=$([ "$STATUS" = up ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
           echo "detail=Endpoint https://salaaz.com/health/ returned HTTP $HTTP_CODE." >> "$GITHUB_OUTPUT"
 
-      - name: Ping Stallion Express status page
+      # Reads BetterStack's structured endpoint rather than scraping the rendered
+      # page. The old check grepped a 'favicons/operational-' string out of 266KB
+      # of HTML at status.stallionexpress.ca; when Stallion moved to
+      # status.stallion.ca (301) on 2026-08-24 that curl — which had no -L —
+      # captured the 166-byte redirect stub, matched nothing, and published
+      # "degraded" for ~36h while Stallion was entirely healthy. -L is kept below
+      # so a future redirect cannot reproduce it.
+      #
+      # `reachable` is the important output: it separates "Stallion says there is
+      # a problem" from "we could not find out". Only the former is a statement
+      # about Stallion. The published file still says degraded either way, so the
+      # public page is unchanged.
+      - name: Check Stallion Express status
         id: shipping
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          PAGE=$(curl -sf --max-time 10 -A "Mozilla/5.0 (compatible; SalaazStatusBot/1.0)" https://status.stallionexpress.ca/ || echo "")
-          ICON=$(echo "$PAGE" | grep -o 'favicons/[a-z-]*-' | head -1 | sed -E 's#favicons/([a-z-]+)-#\1#')
-          if [ "$ICON" = "operational" ]; then
-            STATUS="up"
+          BODY=$(curl -sfL --max-time 15 -A "Mozilla/5.0 (compatible; SalaazStatusBot/1.0)" \
+                 https://status.stallion.ca/index.json || echo "")
+          # `|| true` is load-bearing: jq exits 5 on non-JSON (e.g. an HTML error
+          # page), and Actions runs steps under `bash -eo pipefail`, so without it
+          # the step aborts and the status file never gets written at all.
+          STATE=$(printf '%s' "$BODY" | jq -r '.data.attributes.aggregate_state // empty' 2>/dev/null || true)
+
+          if [ -z "$STATE" ]; then
+            STATUS="degraded"; REACHABLE="false"
+            DETAIL="Could not read aggregate_state from https://status.stallion.ca/index.json — endpoint unreachable or no longer JSON."
+          elif [ "$STATE" = "operational" ]; then
+            STATUS="up"; REACHABLE="true"
+            DETAIL="Stallion reports aggregate_state=operational."
           else
-            STATUS="degraded"
+            STATUS="degraded"; REACHABLE="true"
+            DETAIL="Stallion reports aggregate_state=$STATE."
           fi
+
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/stallion-status.json
+          echo "reachable=$REACHABLE" >> "$GITHUB_OUTPUT"
           echo "healthy=$([ "$STATUS" = up ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          echo "detail=status.stallionexpress.ca reported '${ICON:-unreachable}'." >> "$GITHUB_OUTPUT"
+          echo "detail=$DETAIL" >> "$GITHUB_OUTPUT"
+          echo "$DETAIL"
+
+      # Debounce the "we can't reach Stallion" signal so a single blip doesn't
+      # page anyone — only a sustained inability to read the endpoint means our
+      # check is actually broken. Same counter shape as uptime-guard.yml, which
+      # already proves the commit-the-state-file pattern.
+      - name: Track how long Stallion has been unreadable
+        id: shipping_guard
+        run: |
+          THRESHOLD=3   # x 5-minute cadence = ~15 min before we call the check broken
+          STATE_FILE=.eci-guard/state.json
+          mkdir -p .eci-guard
+          [ -f "$STATE_FILE" ] || echo '{}' > "$STATE_FILE"
+
+          if [ "${{ steps.shipping.outputs.reachable }}" = "true" ]; then
+            COUNT=0
+          else
+            COUNT=$(jq -r '.["dep-shipping"].unknownCount // 0' "$STATE_FILE")
+            COUNT=$((COUNT + 1))
+          fi
+
+          jq --argjson c "$COUNT" '.["dep-shipping"] = {unknownCount: $c}' "$STATE_FILE" > tmp.$$ \
+            && mv tmp.$$ "$STATE_FILE"
+
+          if [ "$COUNT" -ge "$THRESHOLD" ]; then
+            echo "broken=true" >> "$GITHUB_OUTPUT"
+            echo "Stallion unreadable for $COUNT consecutive runs — the check is broken."
+          else
+            echo "broken=false" >> "$GITHUB_OUTPUT"
+            [ "$COUNT" -gt 0 ] && echo "Stallion unreadable ($COUNT/$THRESHOLD), holding off." || echo "Stallion readable; counter reset."
+          fi
 
       - name: Ping Square API
         id: payments
@@ -71,7 +126,7 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add history/alibaba-ecs-status.json history/stallion-status.json history/square-status.json
+          git add history/alibaba-ecs-status.json history/stallion-status.json history/square-status.json .eci-guard/state.json
           git diff --cached --quiet || git commit -m "ci: update dependency status"
           git pull --rebase
           git push
@@ -90,13 +145,34 @@ jobs:
           detail: ${{ steps.api.outputs.detail }}
           token: ${{ secrets.GH_PAT || github.token }}
 
+      # Two independent signals, deliberately kept apart. Conflating them is what
+      # made the 2026-08-24 incident read as "Stallion is degraded" for 36h when
+      # the truth was "our check broke".
+      #
+      # Skipped entirely when Stallion is unreadable: with no information about
+      # their health we must neither open an issue against them nor close one.
+      # A skipped step leaves any existing issue exactly as it was.
       - name: Alert on Shipping dependency
+        if: steps.shipping.outputs.reachable == 'true'
         uses: ./.github/actions/alert-issue
         with:
           slug: dep-shipping
           name: Shipping dependency (Stallion Express)
           healthy: ${{ steps.shipping.outputs.healthy }}
           detail: ${{ steps.shipping.outputs.detail }}
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      # Fires only once the endpoint has been unreadable for THRESHOLD runs, and
+      # closes itself the moment it is readable again — whatever Stallion's own
+      # status turns out to be.
+      - name: Alert when the Shipping check itself is broken
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: dep-shipping-check
+          name: Shipping check
+          title: "🔧 [internal] Shipping check is broken — cannot read status.stallion.ca"
+          healthy: ${{ steps.shipping_guard.outputs.broken != 'true' }}
+          detail: ${{ steps.shipping.outputs.detail }} This is our monitoring failing, not necessarily Stallion. Verify https://status.stallion.ca/index.json still returns JSON with .data.attributes.aggregate_state.
           token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Alert on Payments dependency

@@ -29,6 +29,12 @@ inputs:
     description: Extra context for the issue body (endpoint, HTTP code, etc).
     required: false
     default: ""
+  title:
+    description: >
+      Full issue title. Defaults to "⚠️ [internal] <name> is unhealthy", which reads
+      wrong for alerts that are about our own check rather than the thing being checked.
+    required: false
+    default: ""
   token:
     description: Token with issues:write.
     required: true
@@ -44,6 +50,7 @@ runs:
         NAME: ${{ inputs.name }}
         HEALTHY: ${{ inputs.healthy }}
         DETAIL: ${{ inputs.detail }}
+        TITLE: ${{ inputs.title }}
         REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
@@ -72,7 +79,7 @@ runs:
           else
             echo "Newly failing — opening an issue"
             gh issue create --repo "$REPO" \
-              --title "⚠️ [internal] $NAME is unhealthy" \
+              --title "${TITLE:-⚠️ [internal] $NAME is unhealthy}" \
               --label internal --label "$SLUG" \
               --body "$(printf '%s\n\n%s\n\n%s' \
                 "Detected at $(date -u +%Y-%m-%dT%H:%M:%SZ)." \

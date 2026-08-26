@@ -31,10 +31,12 @@ In addition to the three main Upptime-monitored services above, a separate GitHu
 | Badge        | What is checked                                                                                                  | Source file                       |
 | ------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------- |
 | **API**      | `GET https://salaaz.com/health/` — django-health-check aggregating PostgreSQL, migrations, MongoDB, and Redis/RQ | `history/alibaba-ecs-status.json` |
-| **Shipping** | Stallion Express public status page (`status.stallionexpress.ca`)                                                | `history/stallion-status.json`    |
+| **Shipping** | Stallion Express — `data.attributes.aggregate_state` from `status.stallion.ca/index.json` (BetterStack)          | `history/stallion-status.json`    |
 | **Payments** | Square API (`issquareup.com/api/v2/status.json`)                                                                 | `history/square-status.json`      |
 
 Provider outages are capped at amber — red is reserved for Salaaz's own services being unreachable.
+
+If a provider cannot be reached at all, the published status stays `degraded` (the conservative reading), but the workflow tells the two cases apart internally: an unhealthy provider opens a `dep-*` issue, while an endpoint we can no longer read opens a `dep-*-check` issue after ~15 minutes. The second means our monitoring broke, not theirs — which is exactly what happened when Stallion moved domains on 2026-08-24.
 
 ## Feed and API
 
