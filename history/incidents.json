@@ -741,16 +741,16 @@
         "description": ""
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignees": [
 
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2026-08-24T13:06:01Z",
-    "updated_at": "2026-08-24T13:06:01Z",
-    "closed_at": null,
+    "updated_at": "2026-08-26T00:53:43Z",
+    "closed_at": "2026-08-26T00:53:42Z",
     "assignee": null,
     "author_association": "OWNER",
     "active_lock_reason": null,
@@ -766,7 +766,27 @@
       "total_blocking": 0
     },
     "body": "Detected at 2026-08-24T13:06:00Z.\n\nstatus.stallionexpress.ca reported 'unreachable'.\n\n_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._",
-    "closed_by": null,
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/29/reactions",
       "total_count": 0,
@@ -781,7 +801,7 @@
     },
     "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/29/timeline",
     "performed_via_github_app": null,
-    "state_reason": null,
+    "state_reason": "completed",
     "pinned_comment": null
   },
   {
