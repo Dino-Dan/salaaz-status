@@ -56,8 +56,12 @@ jobs:
             slug: ethics-dashboard-render
             file: history/ethics-render-status.json
     steps:
+      # See synthetic-api.yml: on repository_dispatch, checkout leaves a detached
+      # HEAD and the push has no branch. This is what made the Marketplace leg
+      # fail all 5 push attempts on 2026-08-28.
       - uses: actions/checkout@v4
         with:
+          ref: master
           token: ${{ secrets.GH_PAT || github.token }}
 
       - name: Pull latest
@@ -120,7 +124,7 @@ jobs:
           # other writer here. Now the matrix legs also run in parallel, so a
           # lost race is expected rather than exceptional — retry it.
           for attempt in 1 2 3 4 5; do
-            if git pull --rebase --quiet && git push --quiet; then
+            if git pull --rebase --quiet && git push --quiet origin HEAD:master; then
               echo "Pushed on attempt $attempt."
               exit 0
             fi
