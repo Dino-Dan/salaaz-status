@@ -4,7 +4,7 @@
     "consecutiveFailures": 0,
     "publicDegraded": false,
     "failing": [],
-    "detail": "seeded; first run will overwrite",
+    "detail": "no failures recorded; this file is rewritten only when the status changes",
     "lastUpdated": "2026-08-28T00:03:24.214Z"
   }
 }
