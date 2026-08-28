@@ -30,13 +30,53 @@ In addition to the three main Upptime-monitored services above, a separate GitHu
 
 | Badge        | What is checked                                                                                                  | Source file                       |
 | ------------ | ---------------------------------------------------------------------------------------------------------------- | --------------------------------- |
-| **API**      | `GET https://salaaz.com/health/` — django-health-check aggregating PostgreSQL, migrations, MongoDB, and Redis/RQ | `history/alibaba-ecs-status.json` |
+| **API**      | `GET /api/shared/certifications/` must return JSON with a `certifications` array — proves Django is answering, not just nginx | `history/alibaba-ecs-status.json` |
 | **Shipping** | Stallion Express — `data.attributes.aggregate_state` from `status.stallion.ca/index.json` (BetterStack)          | `history/stallion-status.json`    |
 | **Payments** | Square API (`issquareup.com/api/v2/status.json`)                                                                 | `history/square-status.json`      |
 
 Provider outages are capped at amber — red is reserved for Salaaz's own services being unreachable.
 
 If a provider cannot be reached at all, the published status stays `degraded` (the conservative reading), but the workflow tells the two cases apart internally: an unhealthy provider opens a `dep-*` issue, while an endpoint we can no longer read opens a `dep-*-check` issue after ~15 minutes. The second means our monitoring broke, not theirs — which is exactly what happened when Stallion moved domains on 2026-08-24.
+
+> **Correction (2026-08-27).** This table previously described the API badge as
+> `GET https://salaaz.com/health/` — "django-health-check aggregating PostgreSQL, migrations,
+> MongoDB, and Redis/RQ". That was wrong twice over. The platform has no `health_check` package;
+> `/health/` is a hand-rolled view running `SELECT 1`, with **no migrations check**. And it was
+> never reached: nginx's `try_files $uri $uri/ /index.html` serves the SPA shell for any
+> unmatched path, and Django is only proxied under `/api/`. `/health/` and a nonsense path both
+> returned an identical 5533-byte HTML document, so the badge was green because nginx answers,
+> not because anything was verified.
+
+## Functional checks
+
+HTTP 200 is close to meaningless on these hosts — the SPA nginx config returns the shell for
+every path, so a status-code check passes even when the site is unusable. On 2026-08-26 the
+storefront served 200s for ~30 minutes with an empty catalog and nothing noticed.
+
+Two tiers now assert what a customer actually gets:
+
+| Workflow | Cadence | Checks |
+| --- | --- | --- |
+| `synthetic-api.yml` | 1–2 min (see below) | `get_products/` returns a non-empty `results[]` with a price and variants; categories have subcategories; certifications, discovery and search return data; the authenticated route still answers 401 rather than 5xx |
+| `render-smoke.yml` | ~15 min | Real browser: `salaaz.com` home and `/products/all` render product cards; vendor and ethics render their login forms |
+
+Logic lives in `scripts/synthetic-checks.mjs` and `scripts/render-check.mjs` — not inline in
+the workflows — so every assertion is unit-tested offline (`tests/unit/synthetic.test.js`),
+including the empty-catalog case that caused the incident.
+
+**Cadence.** GitHub's scheduler drifts badly here: a nominal `*/15` cron was measured firing
+every 17–58 minutes. For fast detection, drive the `synthetic` `repository_dispatch` from
+cron-job.org every 1–2 minutes; the `*/5` cron in the workflow is only a backstop for when the
+external trigger stops.
+
+**Escalation.** A confirmed failure opens an internal issue immediately (→ Discord). The public
+status page is only downgraded after **two consecutive** failed runs — a broken check publishing
+a false outage is its own kind of incident, as the Stallion domain move showed on 2026-08-24.
+A failure is always re-probed once after 30s first, which absorbs deploy asset-swap windows.
+
+Not covered: real sign-in and cart. Every test account lives in a Clerk *dev* instance and
+cannot authenticate against production, so "a customer can log in and add to cart" is still
+unverified.
 
 ## Feed and API
 

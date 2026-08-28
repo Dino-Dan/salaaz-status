@@ -1,0 +1,10 @@
+{
+  "salaaz-marketplace": {
+    "status": "up",
+    "consecutiveFailures": 0,
+    "publicDegraded": false,
+    "failing": [],
+    "detail": "seeded; first run will overwrite",
+    "lastUpdated": "2026-08-28T00:03:24.214Z"
+  }
+}

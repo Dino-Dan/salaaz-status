@@ -24,20 +24,36 @@ jobs:
       - name: Pull latest
         run: git pull --rebase
 
-      - name: Ping Django API health
+      # This used to curl https://salaaz.com/health/ and accept any HTTP 200.
+      # That check could never fail: nginx's `try_files $uri $uri/ /index.html`
+      # serves the SPA shell for every unmatched path, and /health/ is unmatched
+      # — Django is only proxied under /api/. Verified 2026-08-27: /health/ and
+      # /definitely-not-a-real-path both returned an identical 5533-byte HTML
+      # document. The badge read green because nginx answers, not because the
+      # backend was checked.
+      #
+      # Now hits a real API route and requires JSON back, so serving the shell
+      # (the actual symptom when the API stops resolving) reads as degraded.
+      - name: Check API responds with JSON
         id: api
         run: |
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          HTTP_CODE=$(curl -s --max-time 10 -o /dev/null -w "%{http_code}" \
-            -H "Accept: application/json" https://salaaz.com/health/)
-          if [ "$HTTP_CODE" = "200" ]; then
+          BODY=$(curl -sf --max-time 10 -H "Accept: application/json" \
+            https://salaaz.com/api/shared/certifications/ || echo "")
+          # `|| true` — jq exits 5 on non-JSON and Actions runs steps under
+          # `bash -eo pipefail`, so without it an HTML response aborts the step
+          # before any status is written.
+          OK=$(printf '%s' "$BODY" | jq -r 'if (.certifications | type) == "array" then "yes" else empty end' 2>/dev/null || true)
+          if [ "$OK" = "yes" ]; then
             STATUS="up"
+            DETAIL="API returned valid JSON from /api/shared/certifications/."
           else
             STATUS="degraded"
+            DETAIL="API did not return usable JSON from /api/shared/certifications/ — route not resolving, or nginx served the SPA shell."
           fi
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > history/alibaba-ecs-status.json
           echo "healthy=$([ "$STATUS" = up ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
-          echo "detail=Endpoint https://salaaz.com/health/ returned HTTP $HTTP_CODE." >> "$GITHUB_OUTPUT"
+          echo "detail=$DETAIL" >> "$GITHUB_OUTPUT"
 
       # Reads BetterStack's structured endpoint rather than scraping the rendered
       # page. The old check grepped a 'favicons/operational-' string out of 266KB

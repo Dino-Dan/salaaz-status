@@ -1,0 +1,77 @@
+# Functional checks against the live storefront API.
+#
+# Exists because of 2026-08-26: salaaz.com served HTTP 200 for ~30 minutes while
+# showing no products, and every monitor stayed green. nginx's
+# `try_files ... /index.html` returns 200 for ANY path, so a status-code check on
+# the frontend proves almost nothing — these assertions look at the data instead.
+#
+# Fast by design (no browser, ~2s of probing) so it can run every 1-2 minutes.
+#
+# TRIGGERING: GitHub's scheduler drifts badly on this repo — a nominal */15 cron
+# was measured firing every 17-58 minutes. For "alert us immediately" to mean
+# anything, drive the `synthetic` repository_dispatch from cron-job.org every
+# 1-2 min, the same way deploy-status-page.yml recommends. The cron below is only
+# a backstop for when the external trigger dies.
+
+name: Synthetic API Checks
+
+on:
+  repository_dispatch:
+    types: [synthetic]
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  check:
+    name: Probe storefront API
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # The runner exits non-zero only if IT breaks; "degraded" is a normal
+      # result reported via outputs. It re-probes once after 30s on failure to
+      # absorb deploy asset-swap windows and one-off network blips (a live dry
+      # run hit a spurious `fetch failed` on a healthy site).
+      - name: Run checks
+        id: checks
+        run: node scripts/run-synthetic.mjs --state history/synthetic-status.json
+
+      - name: Commit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add history/synthetic-status.json
+          git diff --cached --quiet || git commit -m "ci: update synthetic check status"
+          git pull --rebase
+          git push
+
+      # Fires on the first CONFIRMED failure (i.e. after the re-probe), not after
+      # the two-run public threshold — you get told immediately, customers only
+      # see a claim once it is corroborated.
+      - name: Alert on storefront functional failure
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: storefront-functional
+          name: Salaaz Marketplace functional checks
+          title: "🛒 [internal] Storefront functional checks failing — customers may see a broken site"
+          healthy: ${{ steps.checks.outputs.healthy }}
+          detail: "Failing: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
+          token: ${{ secrets.GH_PAT || github.token }}

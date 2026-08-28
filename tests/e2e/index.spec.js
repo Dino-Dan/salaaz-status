@@ -784,3 +784,88 @@ test.describe('Scheduled maintenance', () => {
     await p.close();
   });
 });
+
+// ── Functional-check overlay ──────────────────────────────────────────────────
+//
+// synthetic-api.yml asserts the storefront actually returns products. A service
+// can answer HTTP 200 while being useless to a customer — that is the
+// 2026-08-26 incident. These pin the downgrade-only semantics.
+
+test.describe('Synthetic functional status', () => {
+  async function mockWithSynthetic(p, synthetic, mkt = 'up') {
+    await p.route('**/*', async route => {
+      const url = route.request().url();
+      if (url.includes('/history/summary.json'))             return route.fulfill({ body: FIXTURE('summary-all-up.json'), contentType: 'application/json' });
+      if (url.includes('/history/synthetic-status.json'))    return synthetic === null
+        ? route.abort('failed')
+        : route.fulfill({ body: JSON.stringify(synthetic), contentType: 'application/json' });
+      if (url.includes('/history/salaaz-marketplace.yml'))   return route.fulfill({ body: yml(mkt), contentType: 'text/plain' });
+      if (url.includes('/history/') && url.endsWith('.yml')) return route.fulfill({ body: yml('up'), contentType: 'text/plain' });
+      return route.continue();
+    });
+  }
+
+  const degraded = (extra = {}) => ({
+    'salaaz-marketplace': {
+      status: 'degraded', consecutiveFailures: 2, publicDegraded: true,
+      failing: ['products'], detail: 'products: catalog is EMPTY', ...extra,
+    },
+  });
+
+  test('T69 — publicDegraded downgrades an otherwise-green service', async ({ context }) => {
+    const p = await context.newPage();
+    await mockWithSynthetic(p, degraded());
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    const card = p.locator('.card').filter({ hasText: 'Salaaz Marketplace' });
+    await expect(card.locator('.tag-degraded')).toContainText('Degraded');
+    await expect(p.locator('.banner-title')).toContainText('Some Systems Degraded');
+    await p.close();
+  });
+
+  test('T70 — a first failure (publicDegraded false) does NOT affect the page', async ({ context }) => {
+    const p = await context.newPage();
+    await mockWithSynthetic(p, degraded({ consecutiveFailures: 1, publicDegraded: false }));
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('.card').filter({ hasText: 'Salaaz Marketplace' }).locator('.tag-up')).toContainText('Operational');
+    await expect(p.locator('.banner-title')).toContainText('All Systems Operational');
+    await p.close();
+  });
+
+  test('T71 — never upgrades: a down service stays down', async ({ context }) => {
+    const p = await context.newPage();
+    await mockWithSynthetic(p, { 'salaaz-marketplace': { status: 'up', publicDegraded: false } }, 'down');
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('.card').filter({ hasText: 'Salaaz Marketplace' }).locator('.tag-down')).toContainText('Down');
+    await p.close();
+  });
+
+  test('T72 — a down service is not softened to degraded by the overlay', async ({ context }) => {
+    const p = await context.newPage();
+    await mockWithSynthetic(p, degraded(), 'down');
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('.card').filter({ hasText: 'Salaaz Marketplace' }).locator('.tag-down')).toContainText('Down');
+    await p.close();
+  });
+
+  test('T73 — a missing synthetic file is treated as no opinion, not an outage', async ({ context }) => {
+    const p = await context.newPage();
+    await mockWithSynthetic(p, null);
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('.banner-title')).toContainText('All Systems Operational');
+    await p.close();
+  });
+
+  test('T74 — only the named service is downgraded', async ({ context }) => {
+    const p = await context.newPage();
+    await mockWithSynthetic(p, degraded());
+    await p.goto(PAGE);
+    await p.waitForSelector('.card');
+    await expect(p.locator('.card').filter({ hasText: 'Vendor Portal' }).locator('.tag-up')).toContainText('Operational');
+    await p.close();
+  });
+});

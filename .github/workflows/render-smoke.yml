@@ -1,0 +1,116 @@
+# Browser render checks for all three production sites.
+#
+# Replaces vendor-smoke.yml and ethics-smoke.yml, which were byte-identical
+# clones each asserting only that SOME <form> was visible. salaaz.com — the
+# revenue-bearing storefront — had no render check at all, which is part of why
+# the 2026-08-26 empty-catalog incident ran for ~30 minutes unnoticed.
+#
+# A matrix is what lets a third site be added without a third copy of the file.
+#
+# This tier is slow (~2-3 min/run, browser download dominates), so it runs on a
+# ~15 min cadence. The fast data-level assertions live in synthetic-api.yml and
+# run every 1-2 min — that is the one that catches an empty catalog quickly.
+
+name: Render Smoke
+
+on:
+  repository_dispatch:
+    types: [render-smoke, vendor-push, ethics-push]
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: status-repo-write
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  render:
+    name: ${{ matrix.name }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false # one broken site must not mask the others
+      max-parallel: 1 # they all commit to the same repo; serialise to avoid races
+      matrix:
+        include:
+          - site: marketplace
+            name: Salaaz Marketplace
+            slug: marketplace-render
+            file: history/marketplace-render-status.json
+          - site: vendor
+            name: Vendor Portal
+            slug: vendor-portal-render
+            file: history/vendor-portal-render-status.json
+          - site: ethics
+            name: Ethics Dashboard
+            slug: ethics-dashboard-render
+            file: history/ethics-render-status.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GH_PAT || github.token }}
+
+      - name: Pull latest
+        run: git pull --rebase
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # The old key was a bare `playwright-chromium-v1` with no restore-keys and
+      # no version input. actions/cache only writes on a miss, so it froze at
+      # whatever revision existed when first populated: every run then re-download
+      # ed Chromium while the stale entry was never refreshed. Keying on the
+      # resolved Playwright version makes the cache actually work.
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(npm view playwright version)" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ steps.pw.outputs.version }}
+          restore-keys: playwright-chromium-
+
+      - name: Install Playwright + Chromium
+        run: |
+          npm install playwright@${{ steps.pw.outputs.version }} --no-audit --no-fund
+          npx playwright install chromium --with-deps
+
+      - name: Wait for deploy to propagate
+        if: github.event_name == 'repository_dispatch'
+        run: sleep 180
+
+      - name: Render check
+        id: render
+        continue-on-error: true # a degraded site must still record + alert
+        run: node scripts/render-check.mjs ${{ matrix.site }}
+
+      - name: Commit result
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
+          STATUS=$([ "${{ steps.render.outputs.healthy }}" = "true" ] && echo up || echo degraded)
+          echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > ${{ matrix.file }}
+          git add ${{ matrix.file }}
+          git diff --cached --quiet || git commit -m "ci: update ${{ matrix.site }} render status"
+          # The old smoke workflows pushed without pulling first, unlike every
+          # other writer here, so they could race uptime.yml (different
+          # concurrency group).
+          git pull --rebase
+          git push
+
+      - name: Alert on render failure
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: ${{ matrix.slug }}
+          name: ${{ matrix.name }} render check
+          healthy: ${{ steps.render.outputs.healthy }}
+          detail: ${{ steps.render.outputs.detail }}
+          token: ${{ secrets.GH_PAT || github.token }}

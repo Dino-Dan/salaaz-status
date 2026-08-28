@@ -1194,6 +1194,26 @@
     return `${w.startAt.toLocaleString('en-US', fmt)} – ${w.endAt.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`;
   }
 
+  // ── Functional-check overlay ──
+  // Downgrade-only, and only once `publicDegraded` is set — the workflow holds
+  // that back until two consecutive failed runs. The internal Discord alert
+  // fires on the first failure, so the team is told fast while the public claim
+  // waits for corroboration. On 2026-08-24 a broken dependency check published a
+  // false "degraded" for 36 hours because it could not tell "the thing is
+  // unhealthy" from "we could not tell"; this exists so that is harder to repeat.
+  //
+  // Never upgrades: a service Upptime already reports `down` stays `down`.
+  function applySyntheticStatus(services, synthetic) {
+    if (!synthetic || typeof synthetic !== 'object') return;
+    services.forEach(function (service) {
+      const entry = synthetic[service.slug];
+      if (!entry || !entry.publicDegraded) return;
+      if (service.status === 'down') return;
+      service.status = 'degraded';
+      service.syntheticDetail = entry.detail || null;
+    });
+  }
+
   // ── Render banner ──
   function renderBanner(services, maint) {
     const allUp        = services.every(s => s.status === 'up');
@@ -1263,7 +1283,7 @@
   async function init() {
     let incidentsRaw = null;
     try {
-      const [summary, depsData, incidents] = await Promise.all([
+      const [summary, depsData, incidents, synthetic] = await Promise.all([
         fetch(cacheBust(`${RAW}/history/summary.json`)).then(r => {
           if (!r.ok) throw new Error('Failed to load summary');
           return r.json();
@@ -1272,6 +1292,9 @@
         // Failure here shouldn't blank the whole page — fall back to null,
         // which tells dayStatus() to trust dailyMinutesDown alone (old behavior).
         fetch(cacheBust(`${RAW}/history/incidents.json`)).then(r => r.ok ? r.json() : null).catch(() => null),
+        // Functional-check results (synthetic-api.yml). Absent or unreadable is
+        // treated as "no opinion" — a missing file must never imply an outage.
+        fetch(cacheBust(`${RAW}/history/synthetic-status.json`)).then(r => r.ok ? r.json() : null).catch(() => null),
       ]);
       incidentsRaw = incidents;
 
@@ -1302,6 +1325,12 @@
       visible.forEach(function (service, i) {
         if (yamlData[i].status) service.status = yamlData[i].status;
       });
+
+      // A service can answer HTTP 200 while being useless to a customer — that
+      // is exactly what happened on 2026-08-26, when the storefront served an
+      // empty catalog for ~30 minutes with every status code green. Fold in the
+      // functional checks so the page reflects what a customer actually sees.
+      applySyntheticStatus(visible, synthetic);
 
       renderBanner(visible, maintenanceWindows(incidentsRaw, new Date()));
 
