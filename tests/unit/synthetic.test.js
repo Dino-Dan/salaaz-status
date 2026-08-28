@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { CHECKS, CheckError, probe, runChecks, summarize, updateState, PUBLIC_DEGRADE_THRESHOLD } from '../../scripts/synthetic-checks.mjs';
+import { CHECKS, CheckError, probe, runChecks, summarize, updateState, hasMeaningfulChange, PUBLIC_DEGRADE_THRESHOLD } from '../../scripts/synthetic-checks.mjs';
 
 // These import the real module the workflow runs, so a regression here fails the
 // build rather than passing against a stale copy.
@@ -308,5 +308,54 @@ describe('check catalogue', () => {
 
   it('S32 — categories has no trailing slash (the route is defined without one)', () => {
     expect(byId('categories').path).toBe('/api/shared/categories');
+  });
+});
+
+// ── Commit suppression ───────────────────────────────────────────────────────
+//
+// The first deployment committed on every run. At a 1-2 minute cadence that is
+// ~720 commits/day and it kept the repo write-locked, which made the workflow
+// cancel its own queued runs. Only meaningful transitions may write.
+
+describe('hasMeaningfulChange', () => {
+  const NOW = '2026-08-28T00:00:00.000Z';
+  const LATER = '2026-08-28T00:02:00.000Z';
+  const healthy = { healthy: true, failing: [], summary: 'all ok' };
+  const broken = { healthy: false, failing: ['products'], summary: 'products: catalog is EMPTY' };
+
+  it('S42 — a steady-healthy heartbeat is NOT a change (no commit)', () => {
+    const a = updateState({}, healthy, NOW);
+    const b = updateState(a, healthy, LATER);
+    expect(hasMeaningfulChange(a, b)).toBe(false);
+  });
+
+  it('S43 — up -> degraded IS a change', () => {
+    const a = updateState({}, healthy, NOW);
+    const b = updateState(a, broken, LATER);
+    expect(hasMeaningfulChange(a, b)).toBe(true);
+  });
+
+  it('S44 — degraded -> up IS a change', () => {
+    const a = updateState({}, broken, NOW);
+    const b = updateState(a, healthy, LATER);
+    expect(hasMeaningfulChange(a, b)).toBe(true);
+  });
+
+  it('S45 — the counter advancing IS a change (it drives publicDegraded)', () => {
+    const a = updateState({}, broken, NOW);
+    const b = updateState(a, broken, LATER);
+    expect(hasMeaningfulChange(a, b)).toBe(true);
+  });
+
+  it('S46 — a different set of failing checks IS a change', () => {
+    const a = updateState({}, broken, NOW);
+    const other = { healthy: false, failing: ['categories'], summary: 'categories: EMPTY' };
+    // Same consecutiveFailures would tie; the failing list must still register.
+    const b = updateState({}, other, LATER);
+    expect(hasMeaningfulChange(a, b)).toBe(true);
+  });
+
+  it('S47 — an empty previous state counts as a change (first ever run)', () => {
+    expect(hasMeaningfulChange({}, updateState({}, healthy, NOW))).toBe(true);
   });
 });

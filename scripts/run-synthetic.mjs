@@ -14,7 +14,7 @@
 // itself broke.
 
 import { readFileSync, writeFileSync, existsSync, appendFileSync } from 'fs';
-import { runChecks, updateState } from './synthetic-checks.mjs';
+import { runChecks, updateState, hasMeaningfulChange } from './synthetic-checks.mjs';
 
 function arg(name, fallback) {
   const i = process.argv.indexOf(`--${name}`);
@@ -61,11 +61,16 @@ if (statePath && existsSync(statePath)) {
 
 const next = updateState(state, report, nowIso, slug);
 const entry = next[slug];
+const changed = hasMeaningfulChange(state, next, slug);
 
-if (statePath) writeFileSync(statePath, JSON.stringify(next, null, 2) + '\n');
+// Only rewrite the file when something meaningful changed. Writing on every
+// heartbeat at a 1-2 minute cadence would be ~720 commits/day and would keep the
+// repo write-locked, which is exactly what made the first deployment cancel its
+// own queued runs.
+if (statePath && changed) writeFileSync(statePath, JSON.stringify(next, null, 2) + '\n');
 
 console.log(
-  `\nRESULT: ${entry.status} | consecutiveFailures=${entry.consecutiveFailures} | publicDegraded=${entry.publicDegraded}`,
+  `\nRESULT: ${entry.status} | consecutiveFailures=${entry.consecutiveFailures} | publicDegraded=${entry.publicDegraded} | changed=${changed}`,
 );
 if (!report.healthy) console.log(`DETAIL: ${entry.detail}`);
 
@@ -75,6 +80,7 @@ if (process.env.GITHUB_OUTPUT) {
     [
       `healthy=${report.healthy}`,
       `public_degraded=${entry.publicDegraded}`,
+      `changed=${changed}`,
       `failing=${report.failing.join(',')}`,
       // Single-line: multi-line step outputs need heredoc framing and the detail
       // is already one line by construction.

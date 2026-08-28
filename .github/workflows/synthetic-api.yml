@@ -22,8 +22,13 @@ on:
     - cron: "*/5 * * * *"
   workflow_dispatch:
 
+# Its OWN group, deliberately. The first deployment put this in the shared
+# `status-repo-write` group alongside Render Smoke (2-3 min) and the deploy
+# workflow; every fast run queued behind them and was then cancelled by the next
+# dispatch, so nothing ever executed. A 1-2 minute check cannot share a lock with
+# multi-minute jobs.
 concurrency:
-  group: status-repo-write
+  group: synthetic-api
   cancel-in-progress: false
 
 permissions:
@@ -54,14 +59,28 @@ jobs:
         id: checks
         run: node scripts/run-synthetic.mjs --state history/synthetic-status.json
 
+      # Only when the status actually changed — in steady state this is a no-op,
+      # which is the point: at this cadence a commit per run would be ~720/day.
+      # Retries because this no longer holds the shared repo-write lock, so a
+      # concurrent push from another workflow can reject it.
       - name: Commit result
+        if: steps.checks.outputs.changed == 'true'
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add history/synthetic-status.json
-          git diff --cached --quiet || git commit -m "ci: update synthetic check status"
-          git pull --rebase
-          git push
+          git diff --cached --quiet && { echo "Nothing staged."; exit 0; }
+          git commit -q -m "ci: synthetic status -> ${{ steps.checks.outputs.healthy == 'true' && 'up' || 'degraded' }}"
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --quiet && git push --quiet; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push attempt $attempt lost a race; retrying."
+            sleep $((attempt * 3))
+          done
+          echo "::error::Could not push synthetic status after 5 attempts."
+          exit 1
 
       # Fires on the first CONFIRMED failure (i.e. after the re-probe), not after
       # the two-run public threshold — you get told immediately, customers only

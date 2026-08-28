@@ -213,17 +213,35 @@ export function updateState(prev, report, nowIso, slug = 'salaaz-marketplace') {
   const previous = (prev && prev[slug]) || {};
   const consecutiveFailures = report.healthy ? 0 : (previous.consecutiveFailures || 0) + 1;
 
-  return {
-    ...prev,
-    [slug]: {
-      status: report.healthy ? 'up' : 'degraded',
-      consecutiveFailures,
-      publicDegraded: consecutiveFailures >= PUBLIC_DEGRADE_THRESHOLD,
-      failing: report.failing,
-      detail: report.summary,
-      lastUpdated: nowIso,
-    },
+  const entry = {
+    status: report.healthy ? 'up' : 'degraded',
+    consecutiveFailures,
+    publicDegraded: consecutiveFailures >= PUBLIC_DEGRADE_THRESHOLD,
+    failing: report.failing,
+    detail: report.summary,
+    lastUpdated: nowIso,
   };
+
+  return { ...prev, [slug]: entry };
+}
+
+/**
+ * Did anything meaningful change? `lastUpdated` deliberately does not count.
+ *
+ * At a 1-2 minute cadence, committing every heartbeat would be ~720 commits/day
+ * of pure noise and would keep the repo permanently busy, which is how the first
+ * deployment of this workflow ended up cancelling its own runs on the shared
+ * concurrency group. In steady state nothing changes and nothing is committed.
+ */
+export function hasMeaningfulChange(prev, next, slug = 'salaaz-marketplace') {
+  const a = (prev && prev[slug]) || {};
+  const b = (next && next[slug]) || {};
+  return (
+    a.status !== b.status ||
+    a.consecutiveFailures !== b.consecutiveFailures ||
+    a.publicDegraded !== b.publicDegraded ||
+    (a.failing || []).join(',') !== (b.failing || []).join(',')
+  );
 }
 
 /**
