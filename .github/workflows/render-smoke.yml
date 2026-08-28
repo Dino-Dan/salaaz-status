@@ -87,9 +87,14 @@ jobs:
           key: playwright-chromium-${{ steps.pw.outputs.version }}
           restore-keys: playwright-chromium-
 
+      # --no-save is load-bearing. A plain `npm install playwright@x` adds a
+      # dependencies block to package.json, leaving an unstaged change to a
+      # TRACKED file — and `git pull --rebase` then refuses to run, so every push
+      # attempt below died on the pull. The old smoke workflows pushed without
+      # pulling at all, so they never hit this; adding pull-before-push exposed it.
       - name: Install Playwright + Chromium
         run: |
-          npm install playwright@${{ steps.pw.outputs.version }} --no-audit --no-fund
+          npm install --no-save --no-audit --no-fund playwright@${{ steps.pw.outputs.version }}
           npx playwright install chromium --with-deps
 
       - name: Wait for deploy to propagate
@@ -120,6 +125,10 @@ jobs:
           git add ${{ matrix.file }}
           git diff --cached --quiet && exit 0
           git commit -q -m "ci: ${{ matrix.site }} render -> $STATUS"
+          # Belt and braces: if anything else in the tree got touched (a future
+          # tool writing package.json, say), a rebase would refuse. We only ever
+          # mean to publish the one status file.
+          git checkout -- . 2>/dev/null || true
           # The old smoke workflows pushed without pulling first, unlike every
           # other writer here. Now the matrix legs also run in parallel, so a
           # lost race is expected rather than exceptional — retry it.
