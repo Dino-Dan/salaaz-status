@@ -20,8 +20,11 @@ on:
     - cron: "*/15 * * * *"
   workflow_dispatch:
 
+# Own group, for the same reason synthetic-api.yml has one: sharing
+# `status-repo-write` with the deploy and the other repo writers meant runs
+# queued behind them and were cancelled by the next dispatch before executing.
 concurrency:
-  group: status-repo-write
+  group: render-smoke
   cancel-in-progress: false
 
 permissions:
@@ -33,8 +36,11 @@ jobs:
     name: ${{ matrix.name }}
     runs-on: ubuntu-latest
     strategy:
-      fail-fast: false # one broken site must not mask the others
-      max-parallel: 1 # they all commit to the same repo; serialise to avoid races
+      # One broken site must not mask the others. Running in parallel (rather
+      # than the serialised 6-9 min this used to take) keeps a run short enough
+      # that the next dispatch never lands on top of it; the commit step below
+      # only writes on a real status change and retries on a lost race.
+      fail-fast: false
       matrix:
         include:
           - site: marketplace
@@ -91,20 +97,38 @@ jobs:
         continue-on-error: true # a degraded site must still record + alert
         run: node scripts/render-check.mjs ${{ matrix.site }}
 
-      - name: Commit result
+      # Writes only on a real status transition. The old workflows rewrote
+      # lastUpdated every run, so every run committed — pure churn that kept the
+      # repo write-busy for no information gain.
+      - name: Commit result on change
         run: |
+          STATUS=$([ "${{ steps.render.outputs.healthy }}" = "true" ] && echo up || echo degraded)
+          PREV=$(jq -r '.status // empty' ${{ matrix.file }} 2>/dev/null || true)
+          if [ "$PREV" = "$STATUS" ]; then
+            echo "${{ matrix.site }} still $STATUS — nothing to commit."
+            exit 0
+          fi
+          echo "${{ matrix.site }}: $PREV -> $STATUS"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%S.000Z)
-          STATUS=$([ "${{ steps.render.outputs.healthy }}" = "true" ] && echo up || echo degraded)
           echo "{\"status\":\"$STATUS\",\"lastUpdated\":\"$TIMESTAMP\"}" > ${{ matrix.file }}
           git add ${{ matrix.file }}
-          git diff --cached --quiet || git commit -m "ci: update ${{ matrix.site }} render status"
+          git diff --cached --quiet && exit 0
+          git commit -q -m "ci: ${{ matrix.site }} render -> $STATUS"
           # The old smoke workflows pushed without pulling first, unlike every
-          # other writer here, so they could race uptime.yml (different
-          # concurrency group).
-          git pull --rebase
-          git push
+          # other writer here. Now the matrix legs also run in parallel, so a
+          # lost race is expected rather than exceptional — retry it.
+          for attempt in 1 2 3 4 5; do
+            if git pull --rebase --quiet && git push --quiet; then
+              echo "Pushed on attempt $attempt."
+              exit 0
+            fi
+            echo "Push attempt $attempt lost a race; retrying."
+            sleep $((attempt * 3))
+          done
+          echo "::error::Could not push ${{ matrix.site }} render status after 5 attempts."
+          exit 1
 
       - name: Alert on render failure
         uses: ./.github/actions/alert-issue
