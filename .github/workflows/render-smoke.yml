@@ -97,8 +97,15 @@ jobs:
           npm install --no-save --no-audit --no-fund playwright@${{ steps.pw.outputs.version }}
           npx playwright install chromium --with-deps
 
+      # Only for the deploy hooks this was written for. It used to key on
+      # event_name alone, which was right when the only dispatch WAS a deploy
+      # hook — but the routine 10-minute `render-smoke` tick is also a
+      # repository_dispatch, so every ordinary run slept 3 minutes for nothing.
+      # Measured runs were a flat 250s, 180s of it this sleep.
       - name: Wait for deploy to propagate
-        if: github.event_name == 'repository_dispatch'
+        if: >-
+          github.event_name == 'repository_dispatch' &&
+          (github.event.action == 'vendor-push' || github.event.action == 'ethics-push')
         run: sleep 180
 
       - name: Render check
@@ -106,10 +113,30 @@ jobs:
         continue-on-error: true # a degraded site must still record + alert
         run: node scripts/render-check.mjs ${{ matrix.site }}
 
+      # Deliberately BEFORE the commit step. A GitHub step is skipped when an
+      # earlier step fails, and this used to sit after the commit — so on
+      # 2026-08-28 the marketplace leg logged
+      #   success Render check / failure Commit / skipped Alert
+      # and no Discord ping ever went out. Bookkeeping must never gate the alert.
+      #
+      # !cancelled() rather than always(): a run cancelled by concurrency has
+      # empty outputs, and alert-issue treats anything but the literal "true" as
+      # failing, so always() would page on every cancellation.
+      - name: Alert on render failure
+        if: ${{ !cancelled() }}
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: ${{ matrix.slug }}
+          name: ${{ matrix.name }} render check
+          healthy: ${{ steps.render.outputs.healthy }}
+          detail: ${{ steps.render.outputs.detail }}
+          token: ${{ secrets.GH_PAT || github.token }}
+
       # Writes only on a real status transition. The old workflows rewrote
       # lastUpdated every run, so every run committed — pure churn that kept the
       # repo write-busy for no information gain.
       - name: Commit result on change
+        if: ${{ !cancelled() }}
         run: |
           STATUS=$([ "${{ steps.render.outputs.healthy }}" = "true" ] && echo up || echo degraded)
           PREV=$(jq -r '.status // empty' ${{ matrix.file }} 2>/dev/null || true)
@@ -142,12 +169,3 @@ jobs:
           done
           echo "::error::Could not push ${{ matrix.site }} render status after 5 attempts."
           exit 1
-
-      - name: Alert on render failure
-        uses: ./.github/actions/alert-issue
-        with:
-          slug: ${{ matrix.slug }}
-          name: ${{ matrix.name }} render check
-          healthy: ${{ steps.render.outputs.healthy }}
-          detail: ${{ steps.render.outputs.detail }}
-          token: ${{ secrets.GH_PAT || github.token }}

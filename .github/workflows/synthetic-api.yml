@@ -64,12 +64,33 @@ jobs:
         id: checks
         run: node scripts/run-synthetic.mjs --state history/synthetic-status.json
 
+      # BEFORE the commit step, deliberately. This ordering was the other way
+      # round and it is a latent outage-swallower: the commit step only runs when
+      # the status CHANGES — i.e. at the exact moment an incident starts — and a
+      # failing step skips everything after it, so a lost push race would have
+      # eaten the alert on the one run that mattered. Verified on render-smoke,
+      # where the same shape produced `failure Commit / skipped Alert`.
+      #
+      # !cancelled() not always(): a cancelled run has empty outputs, and
+      # alert-issue treats anything but "true" as failing, so always() would page
+      # on every concurrency cancellation.
+      - name: Alert on storefront functional failure
+        if: ${{ !cancelled() }}
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: storefront-functional
+          name: Salaaz Marketplace functional checks
+          title: "🛒 [internal] Storefront functional checks failing — customers may see a broken site"
+          healthy: ${{ steps.checks.outputs.healthy }}
+          detail: "Failing: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
+          token: ${{ secrets.GH_PAT || github.token }}
+
       # Only when the status actually changed — in steady state this is a no-op,
       # which is the point: at this cadence a commit per run would be ~720/day.
       # Retries because this no longer holds the shared repo-write lock, so a
       # concurrent push from another workflow can reject it.
       - name: Commit result
-        if: steps.checks.outputs.changed == 'true'
+        if: ${{ !cancelled() && steps.checks.outputs.changed == 'true' }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -86,16 +107,3 @@ jobs:
           done
           echo "::error::Could not push synthetic status after 5 attempts."
           exit 1
-
-      # Fires on the first CONFIRMED failure (i.e. after the re-probe), not after
-      # the two-run public threshold — you get told immediately, customers only
-      # see a claim once it is corroborated.
-      - name: Alert on storefront functional failure
-        uses: ./.github/actions/alert-issue
-        with:
-          slug: storefront-functional
-          name: Salaaz Marketplace functional checks
-          title: "🛒 [internal] Storefront functional checks failing — customers may see a broken site"
-          healthy: ${{ steps.checks.outputs.healthy }}
-          detail: "Failing: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
-          token: ${{ secrets.GH_PAT || github.token }}

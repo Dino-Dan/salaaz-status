@@ -14,6 +14,7 @@
 // Exit 0 = healthy, 1 = degraded, 2 = the check itself broke.
 
 import { chromium } from 'playwright';
+import { runWithRetry, summarize } from './render-lib.mjs';
 
 const NAV_TIMEOUT = 45000;
 const SELECTOR_TIMEOUT = 30000; // measured load is 7-9s; leave generous headroom
@@ -128,19 +129,36 @@ try {
   process.exit(2);
 }
 
-const results = [];
-for (const p of site.pages) results.push(await checkPage(browser, p));
+// Check every page of the site, then collapse to one verdict. Wrapped in the
+// retry so a deploy asset-swap window doesn't page anyone.
+async function checkSiteOnce() {
+  const results = [];
+  for (const p of site.pages) results.push(await checkPage(browser, p));
+  for (const r of results) console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.detail}`);
+  return summarize(results);
+}
+
+const retryDelayMs = Number(process.env.RENDER_RETRY_DELAY_MS ?? 30000);
+
+const verdict = await runWithRetry(checkSiteOnce, {
+  retryDelayMs,
+  onRetry: (first, ms) =>
+    console.log(`\nFailed: ${first.detail}\nRe-checking in ${ms}ms before concluding (deploy windows and blips are real).`),
+});
+
 await browser.close();
 
-for (const r of results) console.log(`${r.ok ? 'PASS' : 'FAIL'}  ${r.detail}`);
-
-const failed = results.filter((r) => !r.ok);
-const detail = failed.length ? failed.map((r) => r.detail).join('; ') : results.map((r) => r.detail).join('; ');
+if (verdict.transient) {
+  console.log('\nSecond attempt passed — treating the first as a transient blip. No alert.');
+}
 
 if (process.env.GITHUB_OUTPUT) {
   const { appendFileSync } = await import('fs');
-  appendFileSync(process.env.GITHUB_OUTPUT, `healthy=${failed.length === 0}\ndetail=${detail.replace(/\n/g, ' ')}\n`);
+  appendFileSync(
+    process.env.GITHUB_OUTPUT,
+    `healthy=${verdict.ok}\ndetail=${verdict.detail.replace(/\n/g, ' ')}\nattempts=${verdict.attempts}\n`,
+  );
 }
 
-console.log(failed.length ? `\nDEGRADED: ${detail}` : `\n${site.name} renders correctly.`);
-process.exit(failed.length ? 1 : 0);
+console.log(verdict.ok ? `\n${site.name} renders correctly.` : `\nDEGRADED: ${verdict.detail}`);
+process.exit(verdict.ok ? 0 : 1);
