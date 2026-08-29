@@ -55,10 +55,21 @@ storefront served 200s for ~30 minutes with an empty catalog and nothing noticed
 
 Two tiers now assert what a customer actually gets:
 
-| Workflow            | Cadence             | Checks                                                                                                                                                                                                                |
-| ------------------- | ------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `synthetic-api.yml` | 1–2 min (see below) | `get_products/` returns a non-empty `results[]` with a price and variants; categories have subcategories; certifications, discovery and search return data; the authenticated route still answers 401 rather than 5xx |
-| `render-smoke.yml`  | ~15 min             | Real browser: `salaaz.com` home and `/products/all` render product cards; vendor and ethics render their login forms                                                                                                  |
+| Workflow            | Cadence | Run time | Checks                                                                                                                                                                                                               |
+| ------------------- | ------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `synthetic-api.yml` | 2 min   | ~18s     | `get_products/` returns a non-empty `results[]` with a price and variants; categories have subcategories; certifications, discovery and search return data; the authenticated route still answers 401 rather than 5xx |
+| `render-smoke.yml`  | ~10 min | ~73s     | Real browser: `salaaz.com` home and `/products/all` render product cards; vendor and ethics render their login forms                                                                                                 |
+
+Measured time from breakage to a Discord ping (cadence + run + one confirmation re-probe):
+
+| Tier                  | Best  | Worst    | Typical    |
+| --------------------- | ----- | -------- | ---------- |
+| API (data)            | ~50s  | ~2.8 min | **~2 min** |
+| Browser (page render) | ~2 min | ~13 min | **~7 min** |
+
+The API tier carries fast detection; it is the one that catches an empty catalog. The browser
+tier is slower by design and exists for what the API check structurally cannot see — a JS
+bundle 404, a chunk-load error, a blank page rendering *while the API returns perfect data*.
 
 Logic lives in `scripts/synthetic-checks.mjs` and `scripts/render-check.mjs` — not inline in
 the workflows — so every assertion is unit-tested offline (`tests/unit/synthetic.test.js`),
@@ -68,6 +79,13 @@ including the empty-catalog case that caused the incident.
 every 17–58 minutes. For fast detection, drive the `synthetic` `repository_dispatch` from
 cron-job.org every 1–2 minutes; the `*/5` cron in the workflow is only a backstop for when the
 external trigger stops.
+
+**Both tiers alert BEFORE writing their status file**, and the alert step is guarded with
+`!cancelled()`. This is not stylistic: the alert used to sit after the commit step, and GitHub
+skips a step when an earlier one fails — so on 2026-08-28 a marketplace leg logged
+`success Render check / failure Commit / skipped Alert` and no ping went out. Bookkeeping must
+never gate the alert. `!cancelled()` rather than `always()` because a cancelled run has empty
+outputs, which `alert-issue` would read as a failure and page on.
 
 **Escalation.** A confirmed failure opens an internal issue immediately (→ Discord). The public
 status page is only downgraded after **two consecutive** failed runs — a broken check publishing
