@@ -1,0 +1,6 @@
+Presence of this file makes synthetic-api.yml raise a deliberate test alert
+through the real alert-issue path, proving Discord delivery works without
+waiting for a real outage.
+
+Delete it to fire the matching recovery message. It is not meant to be
+committed for longer than a test takes.
