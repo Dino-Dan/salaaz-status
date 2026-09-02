@@ -359,3 +359,61 @@ describe('hasMeaningfulChange', () => {
     expect(hasMeaningfulChange({}, updateState({}, healthy, NOW))).toBe(true);
   });
 });
+
+// ── Reachability ─────────────────────────────────────────────────────────────
+//
+// Decides who owns a public incident. Upptime already reports HTTP outages, so
+// publishing those from here too would double-report one event. A site that
+// ANSWERS but returns broken data is the case Upptime cannot see — it gets 200.
+
+describe('reachable', () => {
+  it('S48 — a healthy run is reachable', async () => {
+    const ok = async () => ({ ok: true, status: 200, text: async () => JSON.stringify({ results: [], certifications: [], selects: [], trending: [], products: [] }) });
+    const r = await runChecks({ fetchImpl: ok, checks: [byId('search')] });
+    expect(r.reachable).toBe(true);
+  });
+
+  it('S49 — total transport failure is NOT reachable (Upptime owns it)', async () => {
+    const dead = async () => { throw new Error('ECONNREFUSED'); };
+    const r = await runChecks({ fetchImpl: dead });
+    expect(r.healthy).toBe(false);
+    expect(r.reachable).toBe(false);
+  });
+
+  it('S50 — a timeout is NOT reachable', async () => {
+    const hang = async (_u, opts) => new Promise((_res, rej) => {
+      opts.signal?.addEventListener('abort', () => { const e = new Error('aborted'); e.name = 'AbortError'; rej(e); });
+    });
+    const r = await runChecks({ fetchImpl: hang, timeoutMs: 20, checks: [byId('products')] });
+    expect(r.reachable).toBe(false);
+  });
+
+  it('S51 — an EMPTY CATALOG is reachable: the incident this exists to publish', async () => {
+    const empty = async () => ({ ok: true, status: 200, text: async () => JSON.stringify({ results: [] }) });
+    const r = await runChecks({ fetchImpl: empty, checks: [byId('products')] });
+    expect(r.healthy).toBe(false);
+    expect(r.reachable).toBe(true); // Upptime would see HTTP 200 and stay silent
+  });
+
+  it('S52 — HTML instead of JSON is reachable (nginx answered, API did not resolve)', async () => {
+    const shell = async () => ({ ok: true, status: 200, text: async () => '<!DOCTYPE html><html>' });
+    const r = await runChecks({ fetchImpl: shell, checks: [byId('products')] });
+    expect(r.reachable).toBe(true);
+  });
+
+  it('S53 — a 5xx is reachable: the server answered, however badly', async () => {
+    const bad = async () => ({ ok: false, status: 503, text: async () => 'unavailable' });
+    const r = await runChecks({ fetchImpl: bad, checks: [byId('products')] });
+    expect(r.reachable).toBe(true);
+  });
+
+  it('S54 — one endpoint answering is enough to count as reachable', async () => {
+    let n = 0;
+    const mixed = async () => {
+      if (n++ === 0) throw new Error('ECONNREFUSED');
+      return { ok: true, status: 200, text: async () => JSON.stringify({ products: [] }) };
+    };
+    const r = await runChecks({ fetchImpl: mixed, checks: [byId('products'), byId('search')] });
+    expect(r.reachable).toBe(true);
+  });
+});

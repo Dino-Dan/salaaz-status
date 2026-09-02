@@ -17,8 +17,21 @@
 const DEFAULT_ORIGIN = 'https://salaaz.com';
 const DEFAULT_TIMEOUT_MS = 15000;
 
-/** Thrown for a non-2xx, a timeout, or a body that isn't the JSON we expect. */
-export class CheckError extends Error {}
+/**
+ * Thrown for a non-2xx, a timeout, or a body that isn't the JSON we expect.
+ *
+ * `reachable` records whether the server answered at all. It separates "the site
+ * responded and the DATA is wrong" from "nothing responded", which decides who
+ * owns the incident: Upptime already reports HTTP-level outages, so publishing
+ * those from here too would give two public incidents for one event. A
+ * reachable-but-broken site is the case Upptime CANNOT see — it returns 200.
+ */
+export class CheckError extends Error {
+  constructor(message, { reachable = true } = {}) {
+    super(message);
+    this.reachable = reachable;
+  }
+}
 
 /**
  * Every check is `{ id, path, assert }` where `assert(body)` throws CheckError
@@ -141,7 +154,12 @@ export async function probe(check, { origin = DEFAULT_ORIGIN, timeoutMs = DEFAUL
       headers: { Accept: 'application/json', 'User-Agent': 'SalaazStatusBot/1.0', ...(check.headers || {}) },
     });
   } catch (err) {
-    throw new CheckError(err.name === 'AbortError' ? `timed out after ${timeoutMs}ms` : `request failed: ${err.message}`);
+    // Nothing came back — DNS, connection refused, or a timeout. The host is
+    // unreachable, not merely broken.
+    throw new CheckError(
+      err.name === 'AbortError' ? `timed out after ${timeoutMs}ms` : `request failed: ${err.message}`,
+      { reachable: false },
+    );
   } finally {
     clearTimeout(timer);
   }
@@ -186,9 +204,12 @@ export async function runChecks(opts = {}) {
     checks.map(async (check) => {
       try {
         const { detail, ms } = await probe(check, opts);
-        return { id: check.id, ok: true, critical: !!check.critical, detail, ms };
+        return { id: check.id, ok: true, critical: !!check.critical, detail, ms, reachable: true };
       } catch (err) {
-        return { id: check.id, ok: false, critical: !!check.critical, error: err.message, ms: null };
+        // Anything that isn't a CheckError is a bug in the check itself, not a
+        // statement about the site — don't let it claim the host was unreachable.
+        const reachable = err instanceof CheckError ? err.reachable : true;
+        return { id: check.id, ok: false, critical: !!check.critical, error: err.message, ms: null, reachable };
       }
     }),
   );
@@ -254,6 +275,10 @@ export function summarize(results) {
     healthy: failed.length === 0,
     failing: failed.map((r) => r.id),
     critical: failed.some((r) => r.critical),
+    // Any response at all means the site is answering, so a failure is a data
+    // problem Upptime cannot see. If NOTHING answered, it is an HTTP outage and
+    // Upptime owns the public incident — see CheckError.
+    reachable: results.some((r) => r.reachable),
     summary: failed.length
       ? failed.map((r) => `${r.id}: ${r.error}`).join('; ')
       : results.map((r) => `${r.id} ok (${r.detail})`).join('; '),

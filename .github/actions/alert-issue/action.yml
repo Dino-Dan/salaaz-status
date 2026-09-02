@@ -47,6 +47,19 @@ inputs:
   token:
     description: Token with issues:write.
     required: true
+  public:
+    description: >
+      "true" makes the incident PUBLIC: labelled `status` + service_slug instead of
+      `internal`, so status.salaaz.com shows it in Past Incidents and the feed.
+      Reserve this for outages of Salaaz's own services that Upptime cannot see —
+      a reachable site returning broken data. HTTP-level outages are Upptime's to
+      report; publishing them here as well yields two incidents for one event.
+    required: false
+    default: "false"
+  service_slug:
+    description: Upptime slug (e.g. salaaz-marketplace). Required when public is true.
+    required: false
+    default: ""
   discord_webhook:
     description: >
       Discord webhook URL. Alerts are posted here DIRECTLY rather than relying on
@@ -72,17 +85,39 @@ runs:
         HEALTHY: ${{ inputs.healthy }}
         DETAIL: ${{ inputs.detail }}
         TITLE: ${{ inputs.title }}
+        PUBLIC: ${{ inputs.public }}
+        SERVICE_SLUG: ${{ inputs.service_slug }}
         REPO: ${{ github.repository }}
       run: |
         set -euo pipefail
 
+        # A public incident is labelled the way Upptime labels its own, so the
+        # status page treats it identically: `status` is what the page reads, and
+        # the service slug is how scripts/incidents-lib.mjs resolves which service
+        # it belongs to. An internal alert keeps `internal`, which the page filters.
+        if [ "$PUBLIC" = "true" ]; then
+          if [ -z "$SERVICE_SLUG" ]; then
+            echo "::error::public=true requires service_slug — without it the page cannot attribute the incident."
+            exit 1
+          fi
+          PRIMARY_LABEL=status
+          SECOND_LABEL="$SERVICE_SLUG"
+        else
+          PRIMARY_LABEL=internal
+          SECOND_LABEL="$SLUG"
+        fi
+
         # Labels must exist before they can be applied. --force makes this a
         # no-op when they already do.
         gh label create internal --color BFD4F2 --description "Internal alert — never shown on the public status page" --force >/dev/null 2>&1 || true
-        gh label create "$SLUG" --color EDEDED --force >/dev/null 2>&1 || true
+        gh label create "$PRIMARY_LABEL" --color EDEDED --force >/dev/null 2>&1 || true
+        gh label create "$SECOND_LABEL" --color EDEDED --force >/dev/null 2>&1 || true
 
+        # De-dup keys on the SAME label pair this run would write. Hardcoding
+        # `internal` here would make a public incident invisible to its own
+        # lookup and reopen a duplicate on every run.
         EXISTING=$(gh issue list --repo "$REPO" --state open \
-          --label internal --label "$SLUG" \
+          --label "$PRIMARY_LABEL" --label "$SECOND_LABEL" \
           --json number --jq '.[0].number // empty')
 
         CHANGED=none
@@ -103,13 +138,22 @@ runs:
             echo "Still failing, #$EXISTING already open. Not opening a duplicate."
           else
             echo "Newly failing — opening an issue"
+            if [ "$PUBLIC" = "true" ]; then
+              # Title shaped like Upptime's so extractServiceName() in
+              # status-page/index.html parses the service out of it.
+              ISSUE_TITLE="${TITLE:-🛑 $NAME is down}"
+              FOOTER="_Detected by Salaaz's functional checks. Closes automatically on recovery._"
+            else
+              ISSUE_TITLE="${TITLE:-⚠️ [internal] $NAME is unhealthy}"
+              FOOTER="_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._"
+            fi
             URL=$(gh issue create --repo "$REPO" \
-              --title "${TITLE:-⚠️ [internal] $NAME is unhealthy}" \
-              --label internal --label "$SLUG" \
+              --title "$ISSUE_TITLE" \
+              --label "$PRIMARY_LABEL" --label "$SECOND_LABEL" \
               --body "$(printf '%s\n\n%s\n\n%s' \
                 "Detected at $(date -u +%Y-%m-%dT%H:%M:%SZ)." \
                 "${DETAIL:-No further detail.}" \
-                "_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._")")
+                "$FOOTER")")
             ISSUE_NUM="${URL##*/}"
             CHANGED=opened
           fi

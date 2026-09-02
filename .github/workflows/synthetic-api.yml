@@ -121,6 +121,27 @@ jobs:
           token: ${{ secrets.GH_PAT || github.token }}
           discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
+      # A separate PUBLIC incident, only for the failure class Upptime is blind
+      # to: the site answers HTTP 200 while serving a broken catalog. That is the
+      # 2026-08-26 incident, which left no public record at all because the
+      # internal alert above is filtered from the page.
+      #
+      # Gated on `reachable` so a total outage stays Upptime's to report —
+      # otherwise one outage would produce two public incidents. Also gated on the
+      # two-run public threshold, so a single blip never reaches customers.
+      - name: Publish public incident for a reachable-but-broken storefront
+        if: ${{ !cancelled() }}
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: storefront-functional-public
+          name: Salaaz Marketplace
+          healthy: ${{ steps.checks.outputs.publish_incident != 'true' }}
+          detail: "Salaaz Marketplace responded but returned unusable data. Failing checks: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
+          public: "true"
+          service_slug: salaaz-marketplace
+          token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
+
       # Only when the status actually changed — in steady state this is a no-op,
       # which is the point: at this cadence a commit per run would be ~720/day.
       # Retries because this no longer holds the shared repo-write lock, so a

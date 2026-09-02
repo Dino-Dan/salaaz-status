@@ -80,6 +80,12 @@ if (process.env.GITHUB_OUTPUT) {
     [
       `healthy=${report.healthy}`,
       `public_degraded=${entry.publicDegraded}`,
+      `reachable=${report.reachable}`,
+      // Publish a public incident only when the site ANSWERED and the data was
+      // wrong — the case Upptime cannot see, because it gets HTTP 200. A total
+      // outage is Upptime's to report; publishing it here too would give two
+      // public incidents for one event.
+      `publish_incident=${entry.publicDegraded && report.reachable}`,
       `changed=${changed}`,
       `failing=${report.failing.join(',')}`,
       // Single-line: multi-line step outputs need heredoc framing and the detail
