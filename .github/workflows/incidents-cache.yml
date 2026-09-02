@@ -1,5 +1,17 @@
 name: Incidents Cache
 on:
+  # The `*/10` cron below is nominal only. Measured gaps between actual runs on
+  # this repo: 99, 110, 146, 180, 269, 319, 313 minutes — up to 5.3 HOURS. That
+  # is how long a new incident could take to reach status.salaaz.com, which for a
+  # status page is the worst possible time to be stale.
+  #
+  # `render-smoke` is included deliberately: cron-job.org already sends that
+  # event every ~10 minutes for the browser checks, so listening to it gives this
+  # workflow a reliable external heartbeat at exactly its intended cadence,
+  # without needing a new cron job configured. Same fix as synthetic-api and
+  # render-smoke, which run on time because they are dispatch-driven.
+  repository_dispatch:
+    types: [incidents-cache, render-smoke]
   schedule:
     - cron: '*/10 * * * *'
   workflow_dispatch:
