@@ -160,6 +160,7 @@ jobs:
           healthy: ${{ steps.api.outputs.healthy }}
           detail: ${{ steps.api.outputs.detail }}
           token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
       # Two independent signals, deliberately kept apart. Conflating them is what
       # made the 2026-08-24 incident read as "Stallion is degraded" for 36h when
@@ -177,6 +178,7 @@ jobs:
           healthy: ${{ steps.shipping.outputs.healthy }}
           detail: ${{ steps.shipping.outputs.detail }}
           token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
       # Fires only once the endpoint has been unreadable for THRESHOLD runs, and
       # closes itself the moment it is readable again — whatever Stallion's own
@@ -190,6 +192,7 @@ jobs:
           healthy: ${{ steps.shipping_guard.outputs.broken != 'true' }}
           detail: ${{ steps.shipping.outputs.detail }} This is our monitoring failing, not necessarily Stallion. Verify https://status.stallion.ca/index.json still returns JSON with .data.attributes.aggregate_state.
           token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
       - name: Alert on Payments dependency
         uses: ./.github/actions/alert-issue
@@ -199,3 +202,4 @@ jobs:
           healthy: ${{ steps.payments.outputs.healthy }}
           detail: ${{ steps.payments.outputs.detail }}
           token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}

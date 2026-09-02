@@ -1,9 +1,18 @@
 # Opens (and closes) a GitHub issue when a check changes state.
 #
-# Why an issue rather than a webhook call: outage alerts already reach Discord
-# through a GitHub→Discord integration subscribed to issue events, configured
-# outside this repo. Opening an issue therefore delivers the alert for free and
-# keeps one notification path instead of two.
+# This opens a GitHub issue AND posts to Discord directly.
+#
+# It used to do only the former, on the assumption that an external
+# GitHub→Discord integration would forward it. That assumption was never
+# verified and turned out to be wrong for `internal`-labelled issues: during the
+# 2026-09-02 salaaz.com outage, issues #37-#40 were opened correctly and NOT ONE
+# Discord message arrived. Every alert this action has ever raised is `internal`,
+# so none of them had ever reached Discord.
+#
+# Notification is the entire point of this action, so it now owns delivery rather
+# than depending on configuration it cannot see or test. A missing or broken
+# webhook is reported loudly — a notification path that fails silently is worse
+# than no notification path, because it looks like everything is fine.
 #
 # Every issue carries the `internal` label, which status-page/*.html filter out
 # (EXCLUDED_LABELS) so these never appear as public Salaaz incidents — a Square
@@ -38,11 +47,23 @@ inputs:
   token:
     description: Token with issues:write.
     required: true
+  discord_webhook:
+    description: >
+      Discord webhook URL. Alerts are posted here DIRECTLY rather than relying on
+      a GitHub→Discord integration to forward the issue — see the note above.
+    required: false
+    default: ""
+
+outputs:
+  changed:
+    description: '"opened", "closed", or "none" — what this run did.'
+    value: ${{ steps.alert.outputs.changed }}
 
 runs:
   using: composite
   steps:
     - name: Open or close the alert issue
+      id: alert
       shell: bash
       env:
         GH_TOKEN: ${{ inputs.token }}
@@ -64,12 +85,16 @@ runs:
           --label internal --label "$SLUG" \
           --json number --jq '.[0].number // empty')
 
+        CHANGED=none
+        ISSUE_NUM="$EXISTING"
+
         if [ "$HEALTHY" = "true" ]; then
           if [ -n "$EXISTING" ]; then
             echo "Recovered — closing #$EXISTING"
             gh issue comment "$EXISTING" --repo "$REPO" \
               --body "✅ Recovered at $(date -u +%Y-%m-%dT%H:%M:%SZ)."
             gh issue close "$EXISTING" --repo "$REPO"
+            CHANGED=closed
           else
             echo "Healthy, nothing open. No action."
           fi
@@ -78,12 +103,63 @@ runs:
             echo "Still failing, #$EXISTING already open. Not opening a duplicate."
           else
             echo "Newly failing — opening an issue"
-            gh issue create --repo "$REPO" \
+            URL=$(gh issue create --repo "$REPO" \
               --title "${TITLE:-⚠️ [internal] $NAME is unhealthy}" \
               --label internal --label "$SLUG" \
               --body "$(printf '%s\n\n%s\n\n%s' \
                 "Detected at $(date -u +%Y-%m-%dT%H:%M:%SZ)." \
                 "${DETAIL:-No further detail.}" \
-                "_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._")"
+                "_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._")")
+            ISSUE_NUM="${URL##*/}"
+            CHANGED=opened
           fi
+        fi
+
+        echo "changed=$CHANGED" >> "$GITHUB_OUTPUT"
+        echo "issue=$ISSUE_NUM" >> "$GITHUB_OUTPUT"
+
+    # Delivery. This is the step whose absence meant issues #37-#40 were raised
+    # during a live outage and nobody was told.
+    #
+    # Only fires on a state CHANGE, so a sustained outage does not repeat every
+    # 2 minutes — same de-dup discipline as the issue itself.
+    - name: Notify Discord
+      if: ${{ steps.alert.outputs.changed != 'none' }}
+      shell: bash
+      env:
+        WEBHOOK: ${{ inputs.discord_webhook }}
+        CHANGED: ${{ steps.alert.outputs.changed }}
+        ISSUE: ${{ steps.alert.outputs.issue }}
+        NAME: ${{ inputs.name }}
+        TITLE: ${{ inputs.title }}
+        DETAIL: ${{ inputs.detail }}
+        REPO: ${{ github.repository }}
+      run: |
+        set -uo pipefail
+
+        if [ -z "$WEBHOOK" ]; then
+          # Loud, not silent. An alerting path that quietly does nothing is the
+          # exact failure this step exists to correct.
+          echo "::error::No Discord webhook configured — the alert was NOT delivered. Pass discord_webhook (secrets.NOTIFICATION_DISCORD_WEBHOOK_URL)."
+          exit 1
+        fi
+
+        LINK="https://github.com/$REPO/issues/$ISSUE"
+        if [ "$CHANGED" = "opened" ]; then
+          TEXT="🔴 **${TITLE:-$NAME is unhealthy}**"$'\n'"${DETAIL:-No further detail.}"$'\n'"$LINK"
+        else
+          TEXT="✅ **Recovered: $NAME**"$'\n'"$LINK"
+        fi
+
+        # jq builds the payload so quotes/newlines in DETAIL cannot break the JSON.
+        PAYLOAD=$(jq -nc --arg c "$TEXT" '{content: $c}')
+
+        CODE=$(curl -sS -o /tmp/discord.out -w '%{http_code}' \
+          -H 'Content-Type: application/json' -X POST -d "$PAYLOAD" "$WEBHOOK" || echo 000)
+
+        if [ "$CODE" -ge 200 ] && [ "$CODE" -lt 300 ]; then
+          echo "Discord notified ($CHANGED, HTTP $CODE)."
+        else
+          echo "::error::Discord delivery FAILED with HTTP $CODE: $(head -c 200 /tmp/discord.out)"
+          exit 1
         fi

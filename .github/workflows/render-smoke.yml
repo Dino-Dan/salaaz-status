@@ -131,6 +131,7 @@ jobs:
           healthy: ${{ steps.render.outputs.healthy }}
           detail: ${{ steps.render.outputs.detail }}
           token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
       # Writes only on a real status transition. The old workflows rewrote
       # lastUpdated every run, so every run committed — pure churn that kept the

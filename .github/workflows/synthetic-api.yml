@@ -84,6 +84,7 @@ jobs:
           healthy: ${{ steps.checks.outputs.healthy }}
           detail: "Failing: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
           token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
       # Only when the status actually changed — in steady state this is a no-op,
       # which is the point: at this cadence a commit per run would be ~720/day.
