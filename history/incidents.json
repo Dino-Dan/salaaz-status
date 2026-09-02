@@ -1,5 +1,235 @@
 [
   {
+    "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/42",
+    "repository_url": "https://api.github.com/repos/Dino-Dan/salaaz-status",
+    "labels_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/42/labels{/name}",
+    "comments_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/42/comments",
+    "events_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/42/events",
+    "html_url": "https://github.com/Dino-Dan/salaaz-status/issues/42",
+    "id": 5319264123,
+    "node_id": "I_kwDOSVdY7M8AAAABPQ2Hew",
+    "number": 42,
+    "title": "🛑 Salaaz Marketplace is down",
+    "user": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "labels": [
+      {
+        "id": 10892071564,
+        "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
+        "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
+        "name": "status",
+        "color": "EDEDED",
+        "default": false,
+        "description": null
+      },
+      {
+        "id": 10892071566,
+        "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
+        "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
+        "name": "salaaz-marketplace",
+        "color": "EDEDED",
+        "default": false,
+        "description": null
+      }
+    ],
+    "state": "closed",
+    "locked": false,
+    "assignees": [
+
+    ],
+    "milestone": null,
+    "comments": 1,
+    "created_at": "2026-09-02T03:12:23Z",
+    "updated_at": "2026-09-02T03:20:30Z",
+    "closed_at": "2026-09-02T03:20:30Z",
+    "assignee": null,
+    "author_association": "OWNER",
+    "active_lock_reason": null,
+    "sub_issues_summary": {
+      "total": 0,
+      "completed": 0,
+      "percent_completed": 0
+    },
+    "issue_dependencies_summary": {
+      "blocked_by": 0,
+      "total_blocked_by": 0,
+      "blocking": 0,
+      "total_blocking": 0
+    },
+    "body": "Detected at 2026-09-02T03:12:22Z.\n\nSalaaz Marketplace was unavailable or returned unusable data. Failing checks: . products ok (20 products); categories ok (23 categories); certifications ok (1 certifications); discovery ok (8 selects, 8 trending); search ok (8 results); authed-route-responsive ok (401 as expected)\n\n_Detected by Salaaz's functional checks. Closes automatically on recovery._",
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/42/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/42/timeline",
+    "performed_via_github_app": null,
+    "state_reason": "completed",
+    "pinned_comment": null
+  },
+  {
+    "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/41",
+    "repository_url": "https://api.github.com/repos/Dino-Dan/salaaz-status",
+    "labels_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/41/labels{/name}",
+    "comments_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/41/comments",
+    "events_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/41/events",
+    "html_url": "https://github.com/Dino-Dan/salaaz-status/issues/41",
+    "id": 5318785256,
+    "node_id": "I_kwDOSVdY7M8AAAABPQY46A",
+    "number": 41,
+    "title": "🧪 [internal] Notification self-test — ignore, this is not an outage",
+    "user": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "labels": [
+      {
+        "id": 11777672854,
+        "node_id": "LA_kwDOSVdY7M8AAAACvgEGlg",
+        "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/internal",
+        "name": "internal",
+        "color": "BFD4F2",
+        "default": false,
+        "description": "Internal alert — never shown on the public status page"
+      },
+      {
+        "id": 12033779183,
+        "node_id": "LA_kwDOSVdY7M8AAAACzUTl7w",
+        "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/notification-self-test",
+        "name": "notification-self-test",
+        "color": "EDEDED",
+        "default": false,
+        "description": ""
+      }
+    ],
+    "state": "closed",
+    "locked": false,
+    "assignees": [
+
+    ],
+    "milestone": null,
+    "comments": 1,
+    "created_at": "2026-09-02T01:54:21Z",
+    "updated_at": "2026-09-02T02:02:18Z",
+    "closed_at": "2026-09-02T02:02:18Z",
+    "assignee": null,
+    "author_association": "OWNER",
+    "active_lock_reason": null,
+    "sub_issues_summary": {
+      "total": 0,
+      "completed": 0,
+      "percent_completed": 0
+    },
+    "issue_dependencies_summary": {
+      "blocked_by": 0,
+      "total_blocked_by": 0,
+      "blocking": 0,
+      "total_blocking": 0
+    },
+    "body": "Detected at 2026-09-02T01:54:20Z.\n\nDeliberate test of the Discord delivery path. Remove notify-test.flag (or let the manual dispatch finish) to send the matching recovery message.\n\n_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._",
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "reactions": {
+      "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/41/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/41/timeline",
+    "performed_via_github_app": null,
+    "state_reason": "completed",
+    "pinned_comment": null
+  },
+  {
     "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/40",
     "repository_url": "https://api.github.com/repos/Dino-Dan/salaaz-status",
     "labels_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/40/labels{/name}",
@@ -727,7 +957,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -842,7 +1072,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -851,7 +1081,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -957,7 +1187,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -1072,7 +1302,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -1187,7 +1417,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -1196,7 +1426,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -1877,7 +2107,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -1886,7 +2116,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -1992,7 +2222,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2001,7 +2231,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -2107,7 +2337,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2222,7 +2452,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2337,7 +2567,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2346,7 +2576,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -2452,7 +2682,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2567,7 +2797,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2576,7 +2806,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -2682,7 +2912,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2797,7 +3027,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
@@ -2806,7 +3036,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjg",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/salaaz-marketplace",
         "name": "salaaz-marketplace",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       }
@@ -2912,7 +3142,7 @@
         "node_id": "LA_kwDOSVdY7M8AAAACiTfSjA",
         "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/status",
         "name": "status",
-        "color": "ededed",
+        "color": "EDEDED",
         "default": false,
         "description": null
       },
