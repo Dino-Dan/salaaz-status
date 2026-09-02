@@ -1,0 +1,16 @@
+Forces a public incident open on status.salaaz.com. Remove this file to close it.
+
+Recording the 2026-09-02 salaaz.com outage, which nothing captured at the time:
+
+  ~00:39 UTC  salaaz.com stopped responding (HTTP 000, connection failing)
+   00:41 UTC  functional checks fired — issues #37-#40 opened
+   01:20 UTC  recovered; products endpoint returning 20 results again
+              total ~40 minutes
+
+Why there was no record: Upptime had been gated at `action_required` since
+2026-08-30 (SECRETS_CONTEXT / toJson(secrets)), so it opened no `status` issue
+and logged no downtime. The functional checks did fire, but they are
+`internal`-labelled and the status page filters those from public view.
+
+NOTE: GitHub will not accept backdated timestamps, so this incident's displayed
+duration is how long this issue stays open — not the ~40 minutes above.

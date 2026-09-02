@@ -129,14 +129,24 @@ jobs:
       # Gated on `reachable` so a total outage stays Upptime's to report —
       # otherwise one outage would produce two public incidents. Also gated on the
       # two-run public threshold, so a single blip never reaches customers.
+      # Committing `record-incident.flag` forces a public incident open, and
+      # removing it closes one. That is the manual escape hatch for an outage the
+      # automation missed entirely — as happened on 2026-09-02, when Upptime was
+      # gated and the functional alerts were internal-only, so a ~40 minute outage
+      # left no public record anywhere. Put the real timeline in the flag file;
+      # its contents are not read, but it is the natural place to write down why.
+      #
+      # Caveat worth knowing before using it: GitHub will not accept backdated
+      # timestamps, so the incident's DISPLAYED duration is how long the issue was
+      # open, not the true outage window.
       - name: Publish public incident for a reachable-but-broken storefront
         if: ${{ !cancelled() }}
         uses: ./.github/actions/alert-issue
         with:
           slug: storefront-functional-public
           name: Salaaz Marketplace
-          healthy: ${{ steps.checks.outputs.publish_incident != 'true' }}
-          detail: "Salaaz Marketplace responded but returned unusable data. Failing checks: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
+          healthy: ${{ steps.checks.outputs.publish_incident != 'true' && hashFiles('record-incident.flag') == '' }}
+          detail: "Salaaz Marketplace was unavailable or returned unusable data. Failing checks: ${{ steps.checks.outputs.failing }}. ${{ steps.checks.outputs.detail }}"
           public: "true"
           service_slug: salaaz-marketplace
           token: ${{ secrets.GH_PAT || github.token }}
