@@ -75,15 +75,27 @@ jobs:
       # This makes the delivery path testable on demand instead of only during a
       # real outage. Manual dispatch only; uses its own slug so it can never
       # collide with a genuine storefront alert, and never touches the public page.
+      # Two ways in: tick `notification_test` on a manual dispatch, or commit a
+      # `notify-test.flag` file at the repo root (which works on the routine
+      # 2-minute dispatch, so no Actions UI access is needed).
+      #
+      # Deliberately NOT gated with `if:`. Gating on the flag would mean removing
+      # it SKIPS this step — alert-issue would never run with healthy=true, the
+      # test issue would never close, and no recovery message would fire. Health
+      # is derived from the flag instead, so the test cleans up after itself in
+      # both directions and can never strand an open issue.
+      #
+      # Plain filename, not a dotfile: hashFiles() globs, and dotfiles are
+      # commonly excluded, which would silently turn this into a no-op.
       - name: Notification self-test
-        if: ${{ inputs.notification_test }}
+        if: ${{ !cancelled() }}
         uses: ./.github/actions/alert-issue
         with:
           slug: notification-self-test
           name: Notification self-test
           title: "🧪 [internal] Notification self-test — ignore, this is not an outage"
-          healthy: "false"
-          detail: "Deliberate test of the Discord delivery path, triggered manually. Close this issue to send the matching recovery message."
+          healthy: ${{ !inputs.notification_test && hashFiles('notify-test.flag') == '' }}
+          detail: "Deliberate test of the Discord delivery path. Remove notify-test.flag (or let the manual dispatch finish) to send the matching recovery message."
           token: ${{ secrets.GH_PAT || github.token }}
           discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
