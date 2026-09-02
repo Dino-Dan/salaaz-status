@@ -8,6 +8,14 @@
 #
 # 🔼 Upptime @v1.43.9
 # GitHub-powered open-source uptime monitor and status page by Anand Chowdhary
+#
+# LOCAL EDIT (2026-09-02): `SECRETS_CONTEXT: ${{ toJson(secrets) }}` removed.
+# That expression serialises every repo secret into an env var, and GitHub now
+# gates runs that use it — this workflow sat at conclusion `action_required`, 0s,
+# never executing, from 2026-08-30 14:00 until it was removed. Nothing consumed it:
+# .upptimerc.yml has no $SECRET interpolation and no notifications: block, and
+# GH_PAT is passed separately. If setup.yml ever regenerates this file it will
+# reinstate the line and silently stop uptime monitoring again.
 
 # * Source: https://github.com/upptime/upptime
 # * Docs and more: https://upptime.js.org
@@ -40,4 +48,3 @@ jobs:
           command: "update"
         env:
           GH_PAT: ${{ secrets.GH_PAT || github.token }}
-          SECRETS_CONTEXT: ${{ toJson(secrets) }}
