@@ -345,14 +345,26 @@ test.describe('Incident permalinks', () => {
     await expect(page.locator('.card-details.visible')).toHaveCount(0);
   });
 
-  test('T38 — a card with html_url gets a GitHub link that does not toggle the card', async ({ page }) => {
+  // Incidents are read on the status page. Linking out to the monitoring repo
+  // exposes internal tooling and issue history, so html_url is present in the
+  // data and deliberately never rendered.
+  test('T38 — an incident never links out to GitHub, even when html_url is present', async ({ page }) => {
     const issues = JSON.parse(FIXTURE('github-issues-resolved.json'));
     issues[0].html_url = 'https://github.com/Dino-Dan/salaaz-status/issues/1';
     await mockIssues(page, JSON.stringify(issues));
     await page.goto(PAGE);
     await waitForLoad(page);
-    const link = page.locator('#incident-1 a[href*="github.com"]');
-    await expect(link).toHaveAttribute('target', '_blank');
-    await expect(link).toHaveAttribute('rel', 'noopener');
+    await page.locator('#incident-1').click(); // expand — the link used to live in the detail rows
+    await expect(page.locator('#incident-1 .card-details')).toHaveClass(/visible/);
+    await expect(page.locator('#incident-1 a[href*="github.com"]')).toHaveCount(0);
+  });
+
+  test('T39 — no link anywhere on the incidents page points at GitHub', async ({ page }) => {
+    await mockIssues(page, FIXTURE('github-issues-resolved.json'));
+    await page.goto(PAGE);
+    await waitForLoad(page);
+    for (const card of await page.locator('.incident-card').all()) await card.click();
+    const hrefs = await page.locator('a[href]').evaluateAll(as => as.map(a => a.href));
+    expect(hrefs.filter(h => h.includes('github.com'))).toEqual([]);
   });
 });

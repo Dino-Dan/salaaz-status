@@ -34,7 +34,10 @@ export function buildFeed(issues, now) {
       return [
         '  <entry>',
         `    <title>${escapeXml(title)}</title>`,
-        `    <id>${escapeXml(issue.html_url || `${SITE}/incidents.html#incident-${issue.number}`)}</id>`,
+        // Our own canonical URL, never the GitHub issue. <id> is an identifier,
+        // but readers surface it and some make it clickable, so pointing it at
+        // github.com would leak the monitoring repo into every subscriber's feed.
+        `    <id>${escapeXml(`${SITE}/incidents.html#incident-${issue.number}`)}</id>`,
         `    <link rel="alternate" href="${escapeXml(`${SITE}/incidents.html#incident-${issue.number}`)}"/>`,
         `    <published>${new Date(issue.created_at).toISOString()}</published>`,
         `    <updated>${new Date(updated).toISOString()}</updated>`,

@@ -565,24 +565,10 @@
       addRow('Impact duration', duration(issue.created_at, new Date().toISOString()).trim());
     }
 
-    if (issue.html_url) {
-      const row = document.createElement('div');
-      row.className = 'detail-row';
-      const l = document.createElement('span');
-      l.className = 'detail-label';
-      l.textContent = 'Report';
-      const a = document.createElement('a');
-      a.href = issue.html_url;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      a.textContent = 'View on GitHub →';
-      a.style.color = 'inherit';
-      // Don't let the link click bubble into the card's expand/collapse handler.
-      a.addEventListener('click', function (e) { e.stopPropagation(); });
-      row.appendChild(l);
-      row.appendChild(a);
-      details.appendChild(row);
-    }
+    // Deliberately no link out to the GitHub issue. Incidents are read here, on
+    // the status page; sending visitors into the monitoring repo exposes internal
+    // tooling and issue history that is not part of the story we are telling.
+    // `issue.html_url` is available in the data and intentionally unused.
 
     card.appendChild(details);
 

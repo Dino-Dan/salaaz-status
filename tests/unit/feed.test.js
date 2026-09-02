@@ -175,3 +175,33 @@ describe('buildApi', () => {
     expect(doc.active_incidents.map(i => i.id)).toEqual([7]);
   });
 });
+
+// ── No GitHub exposure ───────────────────────────────────────────────────────
+//
+// The feed goes to subscribers we do not control. <id> is nominally just an
+// identifier, but readers surface it and some make it clickable, so a github.com
+// value would leak the monitoring repo into every subscriber's client.
+
+describe('feed does not expose GitHub', () => {
+  const NOW = new Date(Date.UTC(2026, 8, 2));
+  const withUrl = (n) => issue({
+    number: n,
+    html_url: `https://github.com/Dino-Dan/salaaz-status/issues/${n}`,
+  });
+
+  it('F27 — no github.com anywhere in the feed, even though html_url is in the data', () => {
+    const xml = buildFeed([withUrl(42), withUrl(43)], NOW);
+    expect(xml).not.toContain('github.com');
+  });
+
+  it('F28 — <id> is our own canonical incident URL', () => {
+    const xml = buildFeed([withUrl(42)], NOW);
+    expect(xml).toContain('<id>https://status.salaaz.com/incidents.html#incident-42</id>');
+  });
+
+  it('F29 — ids stay unique per incident, so readers can still tell entries apart', () => {
+    const xml = buildFeed([withUrl(42), withUrl(43)], NOW);
+    const ids = [...xml.matchAll(/<id>([^<]+)<\/id>/g)].map(m => m[1]);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
