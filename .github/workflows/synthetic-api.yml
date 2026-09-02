@@ -21,6 +21,11 @@ on:
   schedule:
     - cron: "*/5 * * * *"
   workflow_dispatch:
+    inputs:
+      notification_test:
+        description: "Fire a test alert to prove the Discord path works (does not touch the public status page)"
+        type: boolean
+        default: false
 
 # Its OWN group, deliberately. The first deployment put this in the shared
 # `status-repo-write` group alongside Render Smoke (2-3 min) and the deploy
@@ -63,6 +68,24 @@ jobs:
       - name: Run checks
         id: checks
         run: node scripts/run-synthetic.mjs --state history/synthetic-status.json
+
+      # Who watches the watchman. On 2026-09-02 the checks fired perfectly and
+      # nobody was told, because delivery had never been exercised end to end —
+      # a silent notification path is indistinguishable from a healthy one.
+      # This makes the delivery path testable on demand instead of only during a
+      # real outage. Manual dispatch only; uses its own slug so it can never
+      # collide with a genuine storefront alert, and never touches the public page.
+      - name: Notification self-test
+        if: ${{ inputs.notification_test }}
+        uses: ./.github/actions/alert-issue
+        with:
+          slug: notification-self-test
+          name: Notification self-test
+          title: "🧪 [internal] Notification self-test — ignore, this is not an outage"
+          healthy: "false"
+          detail: "Deliberate test of the Discord delivery path, triggered manually. Close this issue to send the matching recovery message."
+          token: ${{ secrets.GH_PAT || github.token }}
+          discord_webhook: ${{ secrets.NOTIFICATION_DISCORD_WEBHOOK_URL }}
 
       # BEFORE the commit step, deliberately. This ordering was the other way
       # round and it is a latent outage-swallower: the commit step only runs when
