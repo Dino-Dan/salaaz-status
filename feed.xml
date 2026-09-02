@@ -5,8 +5,17 @@
   <link rel="self" href="https://status.salaaz.com/feed.xml"/>
   <link rel="alternate" href="https://status.salaaz.com/incidents.html"/>
   <id>https://status.salaaz.com/</id>
-  <updated>2026-08-03T14:15:29.000Z</updated>
+  <updated>2026-09-02T03:20:30.000Z</updated>
   <author><name>Salaaz</name></author>
+  <entry>
+    <title>Salaaz Marketplace — resolved after 8 min</title>
+    <id>https://github.com/Dino-Dan/salaaz-status/issues/42</id>
+    <link rel="alternate" href="https://status.salaaz.com/incidents.html#incident-42"/>
+    <published>2026-09-02T03:12:23.000Z</published>
+    <updated>2026-09-02T03:20:30.000Z</updated>
+    <category term="resolved"/>
+    <summary type="text">Salaaz Marketplace was affected from 2026-09-02T03:12:23Z until 2026-09-02T03:20:30Z (8 min of impact).</summary>
+  </entry>
   <entry>
     <title>Vendor Portal — resolved after 20 min</title>
     <id>https://github.com/Dino-Dan/salaaz-status/issues/21</id>
