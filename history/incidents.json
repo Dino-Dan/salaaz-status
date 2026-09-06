@@ -1,5 +1,100 @@
 [
   {
+    "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/50",
+    "repository_url": "https://api.github.com/repos/Dino-Dan/salaaz-status",
+    "labels_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/50/labels{/name}",
+    "comments_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/50/comments",
+    "events_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/50/events",
+    "html_url": "https://github.com/Dino-Dan/salaaz-status/issues/50",
+    "id": 5368344998,
+    "node_id": "I_kwDOSVdY7M8AAAABP_pxpg",
+    "number": 50,
+    "title": "⚠️ [internal] Vendor Portal render check is unhealthy",
+    "user": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
+    "labels": [
+      {
+        "id": 11777672854,
+        "node_id": "LA_kwDOSVdY7M8AAAACvgEGlg",
+        "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/internal",
+        "name": "internal",
+        "color": "BFD4F2",
+        "default": false,
+        "description": "Internal alert — never shown on the public status page"
+      },
+      {
+        "id": 11778045985,
+        "node_id": "LA_kwDOSVdY7M8AAAACvga4IQ",
+        "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/labels/vendor-portal-render",
+        "name": "vendor-portal-render",
+        "color": "EDEDED",
+        "default": false,
+        "description": ""
+      }
+    ],
+    "state": "open",
+    "locked": false,
+    "assignees": [
+
+    ],
+    "milestone": null,
+    "comments": 0,
+    "created_at": "2026-09-06T23:32:54Z",
+    "updated_at": "2026-09-06T23:32:54Z",
+    "closed_at": null,
+    "assignee": null,
+    "author_association": "OWNER",
+    "active_lock_reason": null,
+    "sub_issues_summary": {
+      "total": 0,
+      "completed": 0,
+      "percent_completed": 0
+    },
+    "issue_dependencies_summary": {
+      "blocked_by": 0,
+      "total_blocked_by": 0,
+      "blocking": 0,
+      "total_blocking": 0
+    },
+    "body": "Detected at 2026-09-06T23:32:53Z.\n\nhttps://vendor.salaaz.com/: page.goto: Timeout 45000ms exceeded.\n\n_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._",
+    "closed_by": null,
+    "reactions": {
+      "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/50/reactions",
+      "total_count": 0,
+      "+1": 0,
+      "-1": 0,
+      "laugh": 0,
+      "hooray": 0,
+      "confused": 0,
+      "heart": 0,
+      "rocket": 0,
+      "eyes": 0
+    },
+    "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/50/timeline",
+    "performed_via_github_app": null,
+    "state_reason": null,
+    "pinned_comment": null
+  },
+  {
     "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/49",
     "repository_url": "https://api.github.com/repos/Dino-Dan/salaaz-status",
     "labels_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/49/labels{/name}",
@@ -51,16 +146,16 @@
         "description": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignees": [
 
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2026-09-06T21:24:55Z",
-    "updated_at": "2026-09-06T21:24:55Z",
-    "closed_at": null,
+    "updated_at": "2026-09-06T23:30:38Z",
+    "closed_at": "2026-09-06T23:30:38Z",
     "assignee": null,
     "author_association": "OWNER",
     "active_lock_reason": null,
@@ -76,7 +171,27 @@
       "total_blocking": 0
     },
     "body": "Detected at 2026-09-06T21:24:54Z.\n\nSalaaz Marketplace was unavailable or returned unusable data. Failing checks: authed-route-responsive. authed-route-responsive: expected HTTP 401, got 429\n\n_Detected by Salaaz's functional checks. Closes automatically on recovery._",
-    "closed_by": null,
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/49/reactions",
       "total_count": 0,
@@ -91,7 +206,7 @@
     },
     "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/49/timeline",
     "performed_via_github_app": null,
-    "state_reason": null,
+    "state_reason": "completed",
     "pinned_comment": null
   },
   {
@@ -146,16 +261,16 @@
         "description": ""
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignees": [
 
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2026-09-06T21:22:52Z",
-    "updated_at": "2026-09-06T21:22:52Z",
-    "closed_at": null,
+    "updated_at": "2026-09-06T23:30:33Z",
+    "closed_at": "2026-09-06T23:30:33Z",
     "assignee": null,
     "author_association": "OWNER",
     "active_lock_reason": null,
@@ -171,7 +286,27 @@
       "total_blocking": 0
     },
     "body": "Detected at 2026-09-06T21:22:51Z.\n\nFailing: authed-route-responsive. authed-route-responsive: expected HTTP 401, got 429\n\n_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._",
-    "closed_by": null,
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/48/reactions",
       "total_count": 0,
@@ -186,7 +321,7 @@
     },
     "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/48/timeline",
     "performed_via_github_app": null,
-    "state_reason": null,
+    "state_reason": "completed",
     "pinned_comment": null
   },
   {
