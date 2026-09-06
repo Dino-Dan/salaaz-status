@@ -29,6 +29,13 @@
       "last_checked": "2026-09-06T03:00:26.546Z"
     }
   ],
-  "active_incidents": [],
+  "active_incidents": [
+    {
+      "id": 49,
+      "service": "Salaaz Marketplace",
+      "started_at": "2026-09-06T21:24:55Z",
+      "url": "https://status.salaaz.com/incidents.html#incident-49"
+    }
+  ],
   "last_checked": "2026-09-06T03:00:26.546Z"
 }
