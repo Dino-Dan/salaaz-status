@@ -1,10 +1,17 @@
 {
   "salaaz-marketplace": {
-    "status": "up",
-    "consecutiveFailures": 0,
+    "status": "degraded",
+    "consecutiveFailures": 1,
     "publicDegraded": false,
-    "failing": [],
-    "detail": "products ok (20 products); categories ok (23 categories); certifications ok (1 certifications); discovery ok (8 selects, 8 trending); search ok (8 results); authed-route-responsive ok (401 as expected)",
-    "lastUpdated": "2026-09-05T18:12:15.579Z"
+    "failing": [
+      "products",
+      "categories",
+      "certifications",
+      "discovery",
+      "search",
+      "authed-route-responsive"
+    ],
+    "detail": "products: timed out after 15000ms; categories: timed out after 15000ms; certifications: timed out after 15000ms; discovery: timed out after 15000ms; search: timed out after 15000ms; authed-route-responsive: timed out after 15000ms",
+    "lastUpdated": "2026-09-06T20:11:03.884Z"
   }
 }
