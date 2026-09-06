@@ -1,12 +1,12 @@
 {
   "salaaz-marketplace": {
     "status": "degraded",
-    "consecutiveFailures": 45,
+    "consecutiveFailures": 46,
     "publicDegraded": true,
     "failing": [
       "authed-route-responsive"
     ],
     "detail": "authed-route-responsive: expected HTTP 401, got 429",
-    "lastUpdated": "2026-09-06T22:48:45.925Z"
+    "lastUpdated": "2026-09-06T22:50:59.596Z"
   }
 }
