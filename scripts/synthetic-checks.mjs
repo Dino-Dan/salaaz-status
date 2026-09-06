@@ -126,16 +126,22 @@ export const CHECKS = [
     id: 'authed-route-responsive',
     path: '/api/customers/me',
     critical: false,
-    expectStatus: 401,
+    expectStatus: [401, 429],
     // Named for what it actually proves. An earlier draft called this a Clerk
     // liveness probe, which it is NOT: /api/customers/me returns an identical
     // 401 in ~0.09s with or without a Bearer token, because the Clerk auth class
     // returns None rather than raising — Clerk is never consulted. What this DOES
     // catch is the authed-route-wedge class (SLZ-473), where authenticated routes
     // hang or 5xx while public routes keep returning 200.
+    //
+    // 429 is accepted too: this probe rides a shared egress IP (GitHub Actions /
+    // cron-job.org), so the backend's per-IP throttle occasionally fires on
+    // traffic that isn't ours. A fast 429 is not the authed-route-wedge failure
+    // mode — it's proof the route is alive and answering, which is all this check
+    // exists to verify. A hang or 5xx still fails it.
     headers: { Authorization: 'Bearer synthetic-monitor-probe' },
-    assert() {
-      return '401 as expected';
+    assert(status) {
+      return status === 429 ? '429 (rate-limited but responsive)' : '401 as expected';
     },
   },
 ];
@@ -167,10 +173,11 @@ export async function probe(check, { origin = DEFAULT_ORIGIN, timeoutMs = DEFAUL
   const ms = Date.now() - started;
 
   if (check.expectStatus) {
-    if (res.status !== check.expectStatus) {
-      throw new CheckError(`expected HTTP ${check.expectStatus}, got ${res.status}`);
+    const expected = Array.isArray(check.expectStatus) ? check.expectStatus : [check.expectStatus];
+    if (!expected.includes(res.status)) {
+      throw new CheckError(`expected HTTP ${expected.join(' or ')}, got ${res.status}`);
     }
-    return { detail: check.assert(), ms };
+    return { detail: check.assert(res.status), ms };
   }
 
   if (!res.ok) throw new CheckError(`HTTP ${res.status}`);

@@ -4,6 +4,29 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## September 6, 2026
+
+### False "Salaaz Marketplace is down" — authed-route probe misread a 429 as an outage
+**Services:** Salaaz Marketplace (public status only — the site itself was healthy throughout)  
+**Status:** Resolved
+
+- `authed-route-responsive` (`GET /api/customers/me`, part of the synthetic API
+  checks) started getting `429` instead of the expected `401`. The probe rides a
+  shared egress IP (GitHub Actions / cron-job.org), which occasionally trips the
+  backend's per-IP rate limit on traffic that isn't the monitor's own — a fast
+  `429` still proves the route is alive and answering, which is all this check
+  exists to verify.
+- Every other synthetic check (products, categories, certifications, discovery,
+  search) stayed healthy the whole time — this matched what manual checks of
+  salaaz.com showed.
+- `scripts/synthetic-checks.mjs` now accepts `401` or `429` on this probe; only a
+  hang or 5xx still fails it (the actual authed-route-wedge failure mode, SLZ-473,
+  this check exists to catch).
+- Closed the false public incident and its internal counterpart automatically on
+  the next healthy run — no manual issue action needed.
+
+---
+
 ## July 29, 2026
 
 ### Status Page Deployment — Removed the Stock Template Clobber

@@ -157,17 +157,22 @@ describe('authed-route-responsive', () => {
 
   it('S22 — fails on 5xx (the authed-route-wedge case this exists to catch)', async () => {
     await expect(run(byId('authed-route-responsive'), stubFetch({ status: 502, body: 'bad gateway' })))
-      .rejects.toThrow(/expected HTTP 401, got 502/);
+      .rejects.toThrow(/expected HTTP 401 or 429, got 502/);
   });
 
   it('S23 — fails if the route starts returning 200 (auth silently bypassed)', async () => {
     await expect(run(byId('authed-route-responsive'), stubFetch({ status: 200, body: { id: 1 } })))
-      .rejects.toThrow(/expected HTTP 401, got 200/);
+      .rejects.toThrow(/expected HTTP 401 or 429, got 200/);
   });
 
   it('S24 — fails on a hang', async () => {
     await expect(run(byId('authed-route-responsive'), stubFetch({ status: 401, delayMs: 500 }), { timeoutMs: 50 }))
       .rejects.toThrow(/timed out/);
+  });
+
+  it('S24b — passes on 429: rate-limited but still proves the route is alive, not the wedge failure', async () => {
+    const r = await run(byId('authed-route-responsive'), stubFetch({ status: 429, body: { detail: 'throttled' } }));
+    expect(r.detail).toBe('429 (rate-limited but responsive)');
   });
 });
 
