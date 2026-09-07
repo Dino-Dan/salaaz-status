@@ -4,17 +4,17 @@
     "url": "https://salaaz.com/",
     "icon": "https://icons.duckduckgo.com/ip3/salaaz.com.ico",
     "slug": "salaaz-marketplace",
-    "status": "down",
+    "status": "up",
     "uptime": "99.89%",
-    "uptimeDay": "91.25%",
-    "uptimeWeek": "98.67%",
+    "uptimeDay": "91.15%",
+    "uptimeWeek": "98.66%",
     "uptimeMonth": "99.67%",
     "uptimeYear": "99.89%",
-    "time": 266,
-    "timeDay": 537,
-    "timeWeek": 907,
-    "timeMonth": 474,
-    "timeYear": 266,
+    "time": 268,
+    "timeDay": 554,
+    "timeWeek": 881,
+    "timeMonth": 476,
+    "timeYear": 268,
     "dailyMinutesDown": {
       "2026-06-07": 15,
       "2026-08-01": 5,
@@ -23,7 +23,7 @@
       "2026-08-25": 10,
       "2026-09-02": 8,
       "2026-09-06": 126,
-      "2026-09-07": 0
+      "2026-09-07": 2
     }
   },
   {
