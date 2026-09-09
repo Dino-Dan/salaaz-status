@@ -34,9 +34,10 @@ function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingMinutes) {
     if (mins >= 720) return 'down';
     return 'degraded';
   }
-  // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
+  // No incident data to verify against (fetch failed) — fall back to the old numeric floor,
+  // kept in step with isQualifyingIncident's 10-minute noise floor.
   const mins = (dailyMinutesDown || {})[dateStr] || 0;
-  if (mins < 5) return 'up';
+  if (mins < 10) return 'up';
   if (mins >= 720) return 'down';
   return 'degraded';
 }
@@ -122,12 +123,12 @@ describe('dayStatus', () => {
     expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 0 })).toBe('up');
   });
 
-  it('T13 — returns "up" when 4 minutes down (under the 5-minute degraded floor)', () => {
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 4 })).toBe('up');
+  it('T13 — returns "up" when 9 minutes down (under the 10-minute degraded floor)', () => {
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 9 })).toBe('up');
   });
 
-  it('T14 — returns "degraded" at exactly 5 minutes when qualifyingMinutes is not provided (fetch-failure fallback: trust dailyMinutesDown alone)', () => {
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 })).toBe('degraded');
+  it('T14 — returns "degraded" at exactly 10 minutes when qualifyingMinutes is not provided (fetch-failure fallback: trust dailyMinutesDown alone)', () => {
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 10 })).toBe('degraded');
   });
 
   it('T15 — returns "up" at 5+ minutes when qualifyingMinutes is provided but does not include this date (rounded-up blip, no real incident on record)', () => {

@@ -4,6 +4,29 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## September 8, 2026 (policy)
+
+### Public noise floor raised from 5 to 10 minutes
+**Services:** All (display policy only)  
+**Status:** Resolved
+
+- Owner decision, prompted by the Sept 1 8-minute Salaaz Marketplace incident: outages under
+  10 minutes should not appear on the public status page at all — not in Past Incidents, not on
+  the 90-day uptime bar, not in the feed/API. Previously the floor was 5 minutes.
+- `isQualifyingIncident()`'s duration check moved from `>= 5 * 60 * 1000` to `>= 10 * 60 * 1000` in
+  all three places it's defined (`scripts/incidents-lib.mjs`, `status-page/index.html`,
+  `status-page/incidents.html`), plus the matching numeric fallback in `dayStatus()` (used only
+  when `incidents.json` fails to load).
+- The GitHub issue for a sub-10-minute incident still gets created, closed, and alerted internally
+  (Discord) exactly as before — this only changes what `status.salaaz.com` displays.
+- The Sept 1 8-minute incident (and any other already-recorded sub-10-minute incident) now simply
+  disappears from the public page, rather than needing to be recolored — this is expected, not a
+  data-loss bug.
+- Pinned in `tests/unit/feed.test.js` (3 new boundary cases) and `tests/unit/index-helpers.test.js`
+  (T13/T14 moved to the new 9/10-minute boundary).
+
+---
+
 ## September 8, 2026
 
 ### 90-day bar chart could show a day "Operational" despite a real incident on record for it

@@ -904,9 +904,10 @@
       if (mins >= 720) return 'down';
       return 'degraded';
     }
-    // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
+    // No incident data to verify against (fetch failed) — fall back to the old numeric floor,
+    // kept in step with isQualifyingIncident's 10-minute noise floor.
     const mins = (dailyMinutesDown || {})[dateStr] || 0;
-    if (mins < 5) return 'up';
+    if (mins < 10) return 'up';
     if (mins >= 720) return 'down';
     return 'degraded';
   }
@@ -1412,14 +1413,14 @@
     return m ? `${h}h ${m}m` : `${h}h`;
   }
 
-  // A "real" incident: resolved, and lasted at least 5 minutes precisely.
-  // Outages under 5 minutes are treated as noise (e.g. deploy blips) and never
+  // A "real" incident: resolved, and lasted at least 10 minutes precisely.
+  // Outages under 10 minutes are treated as noise (e.g. deploy blips) and never
   // shown — neither in the Past Incidents list nor as a degraded bar-chart day.
   // Shared by loadPastIncidents() and init()'s bar-chart data so the two never
   // disagree about which incidents are real.
   function isQualifyingIncident(issue) {
     return issue.state === 'closed' && !!issue.closed_at &&
-      (new Date(issue.closed_at) - new Date(issue.created_at)) >= 5 * 60 * 1000;
+      (new Date(issue.closed_at) - new Date(issue.created_at)) >= 10 * 60 * 1000;
   }
 
   // Served from a periodically-updated static snapshot (see .github/workflows/incidents-cache.yml)

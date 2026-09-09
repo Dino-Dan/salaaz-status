@@ -43,10 +43,10 @@ export function serviceNameOf(issue) {
     .trim();
 }
 
-/** Resolved, and lasted at least 5 minutes — sub-5-minute blips are noise. */
+/** Resolved, and lasted at least 10 minutes — sub-10-minute blips are noise. */
 export function isQualifyingIncident(issue) {
   return issue.state === 'closed' && !!issue.closed_at &&
-    (new Date(issue.closed_at) - new Date(issue.created_at)) >= 5 * 60 * 1000;
+    (new Date(issue.closed_at) - new Date(issue.created_at)) >= 10 * 60 * 1000;
 }
 
 /**

@@ -60,6 +60,18 @@ describe('isQualifyingIncident', () => {
     expect(isQualifyingIncident(issue({ closed_at: iso(4) }))).toBe(false);
   });
 
+  it('F08b — 9 minutes is still noise (under the 10-minute floor)', () => {
+    expect(isQualifyingIncident(issue({ closed_at: iso(9) }))).toBe(false);
+  });
+
+  it('F08c — 8 minutes is noise — the 2026-09-01 Salaaz Marketplace incident that set this policy', () => {
+    expect(isQualifyingIncident(issue({ closed_at: iso(8) }))).toBe(false);
+  });
+
+  it('F08d — exactly 10 minutes qualifies (the floor itself)', () => {
+    expect(isQualifyingIncident(issue({ closed_at: iso(10) }))).toBe(true);
+  });
+
   it('F09 — an open incident is not "qualifying" (but is still published)', () => {
     expect(isQualifyingIncident(issue({ state: 'open', closed_at: null }))).toBe(false);
   });
