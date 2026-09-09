@@ -1045,8 +1045,16 @@
     legend.className = 'bar-legend';
     legend.innerHTML = '<span>90 days ago</span><span>Today</span>';
 
-    // Uptime = (90 days − total downtime) / 90 days, clamped 0–100
-    const downMins = days.reduce((sum, d) => sum + d.mins, 0);
+    // Uptime = (90 days − total downtime) / 90 days, clamped 0–100.
+    // Summed from the raw dict (dm), NOT d.mins — d.mins prefers the precise
+    // qualifying-incident count for a day the dict missed, but the incident's
+    // minutes are still sitting in the dict under whichever day Upptime keyed
+    // them to. Summing d.mins would double-count that incident (once on its
+    // real day via the precise override, once on the dict's stray day via the
+    // fallback) instead of just moving it. The 90-day TOTAL is day-attribution-
+    // agnostic anyway, so the raw dict alone is already correct here — only the
+    // per-day color/tooltip need the precise, correctly-attributed override.
+    const downMins = days.reduce((sum, d) => sum + (dm[d.ds] || 0), 0);
     const uptime90 = Math.min(100, Math.max(0, (90 * 1440 - downMins) / (90 * 1440) * 100)).toFixed(2) + '%';
     const responseText = isDown
       ? '—'
