@@ -604,10 +604,10 @@
       });
 
       const ongoing  = issues.filter(function(i) { return i.state === 'open'; });
-      // Outages under 5 minutes are treated as noise (e.g. deploy blips) and never shown.
+      // Outages under 10 minutes are treated as noise (e.g. deploy blips) and never shown.
       const resolved = issues.filter(function(i) {
         return i.state === 'closed' &&
-          (new Date(i.closed_at) - new Date(i.created_at)) >= 5 * 60 * 1000;
+          (new Date(i.closed_at) - new Date(i.created_at)) >= 10 * 60 * 1000;
       });
 
       const ongoingSection = document.getElementById('ongoing-section');
