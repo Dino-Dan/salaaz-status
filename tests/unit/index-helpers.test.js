@@ -21,18 +21,22 @@ function formatDisplay(dateStr) {
     .toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
 }
 
-function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingDates) {
+function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingMinutes) {
   const d = new Date(dateStr + 'T00:00:00Z');
   if (!startDate || d < startDate) return 'nodata';
-  const mins = (dailyMinutesDown || {})[dateStr] || 0;
-  if (mins <= 0) return 'up';
-  if (qualifyingDates) {
-    // Precise incident data is available — trust it as the authority.
-    if (!qualifyingDates.has(dateStr)) return 'up';
-  } else if (mins < 5) {
-    // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
-    return 'up';
+  if (qualifyingMinutes) {
+    // Precise per-incident data is the authority in BOTH directions: a
+    // qualifying day is never "up" just because Upptime's UTC-keyed dict
+    // missed it, and a day with no qualifying incident is never "degraded"
+    // off Upptime's own rounding.
+    if (!qualifyingMinutes.has(dateStr)) return 'up';
+    const mins = qualifyingMinutes.get(dateStr);
+    if (mins >= 720) return 'down';
+    return 'degraded';
   }
+  // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
+  const mins = (dailyMinutesDown || {})[dateStr] || 0;
+  if (mins < 5) return 'up';
   if (mins >= 720) return 'down';
   return 'degraded';
 }
@@ -122,32 +126,42 @@ describe('dayStatus', () => {
     expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 4 })).toBe('up');
   });
 
-  it('T14 — returns "degraded" at exactly 5 minutes when qualifyingDates is not provided (fetch-failure fallback: trust dailyMinutesDown alone)', () => {
+  it('T14 — returns "degraded" at exactly 5 minutes when qualifyingMinutes is not provided (fetch-failure fallback: trust dailyMinutesDown alone)', () => {
     expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 })).toBe('degraded');
   });
 
-  it('T15 — returns "up" at 5+ minutes when qualifyingDates is provided but does not include this date (rounded-up blip, no real incident on record)', () => {
-    const qualifyingDates = new Set(['2026-05-09']); // some other date qualifies, not this one
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 }, qualifyingDates)).toBe('up');
+  it('T15 — returns "up" at 5+ minutes when qualifyingMinutes is provided but does not include this date (rounded-up blip, no real incident on record)', () => {
+    const qualifyingMinutes = new Map([['2026-05-09', 5]]); // some other date qualifies, not this one
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 }, qualifyingMinutes)).toBe('up');
   });
 
-  it('T16 — returns "degraded" at 5+ minutes when qualifyingDates includes this date (a real incident backs it)', () => {
-    const qualifyingDates = new Set(['2026-05-08']);
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 }, qualifyingDates)).toBe('degraded');
+  it('T16 — returns "degraded" at 5+ minutes when qualifyingMinutes includes this date (a real incident backs it)', () => {
+    const qualifyingMinutes = new Map([['2026-05-08', 5]]);
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 5 }, qualifyingMinutes)).toBe('degraded');
   });
 
-  it('T17 — returns "down" at exactly 720 minutes when qualifyingDates includes this date (half-day threshold)', () => {
-    const qualifyingDates = new Set(['2026-05-08']);
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 720 }, qualifyingDates)).toBe('down');
+  it('T17 — returns "down" at exactly 720 minutes when qualifyingMinutes includes this date (half-day threshold)', () => {
+    const qualifyingMinutes = new Map([['2026-05-08', 720]]);
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 720 }, qualifyingMinutes)).toBe('down');
   });
 
-  it('T18 — returns "down" when 1440 minutes down and qualifyingDates includes this date (full day)', () => {
-    const qualifyingDates = new Set(['2026-05-08']);
-    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 1440 }, qualifyingDates)).toBe('down');
+  it('T18 — returns "down" when 1440 minutes down and qualifyingMinutes includes this date (full day)', () => {
+    const qualifyingMinutes = new Map([['2026-05-08', 1440]]);
+    expect(dayStatus('2026-05-08', startDate, { '2026-05-08': 1440 }, qualifyingMinutes)).toBe('down');
   });
 
-  it('T19 — returns "up" when key is missing from dailyMinutesDown', () => {
+  it('T19 — returns "up" when key is missing from dailyMinutesDown and qualifyingMinutes is not provided', () => {
     expect(dayStatus('2026-05-10', startDate, { '2026-05-08': 60 })).toBe('up');
+  });
+
+  it('T19b — REGRESSION (2026-09-01/02 mismatch): a qualifying incident on this date is "degraded" even when dailyMinutesDown has no entry for it at all (Upptime keyed the minutes to the adjacent UTC day)', () => {
+    const qualifyingMinutes = new Map([['2026-05-08', 8]]);
+    expect(dayStatus('2026-05-08', startDate, {}, qualifyingMinutes)).toBe('degraded');
+  });
+
+  it('T19c — REGRESSION: same as above but the outage is long enough to cross the "down" threshold', () => {
+    const qualifyingMinutes = new Map([['2026-05-08', 720]]);
+    expect(dayStatus('2026-05-08', startDate, {}, qualifyingMinutes)).toBe('down');
   });
 });
 

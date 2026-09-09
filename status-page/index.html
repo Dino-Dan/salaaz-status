@@ -886,19 +886,27 @@
   }
 
   // ── Bar status for a given date ──
-  function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingDates) {
+  function dayStatus(dateStr, startDate, dailyMinutesDown, qualifyingMinutes) {
     const d = new Date(dateStr + 'T00:00:00Z');
     if (!startDate || d < startDate) return 'nodata';
-    const mins = (dailyMinutesDown || {})[dateStr] || 0;
-    if (mins <= 0) return 'up';
-    if (qualifyingDates) {
-      // Precise incident data is available — trust it as the authority on
-      // whether this day is real, rather than Upptime's rounded-up minute count.
-      if (!qualifyingDates.has(dateStr)) return 'up';
-    } else if (mins < 5) {
-      // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
-      return 'up';
+    if (qualifyingMinutes) {
+      // Precise per-incident data (exact created_at/closed_at deltas, bucketed by
+      // the SAME local date the bar chart and Past Incidents use) is the
+      // authority on whether this day is real — not Upptime's dailyMinutesDown,
+      // which is keyed by UTC and can land on the adjacent calendar day from the
+      // viewer's local date (e.g. a 00:39 UTC incident is still last night in
+      // North America — see SLZ, the 2026-09-01/02 mismatch). Trust it in BOTH
+      // directions: a qualifying day is never "up" just because the UTC-keyed
+      // dict missed it, and a day with no qualifying incident is never
+      // "degraded" off Upptime's own rounding.
+      if (!qualifyingMinutes.has(dateStr)) return 'up';
+      const mins = qualifyingMinutes.get(dateStr);
+      if (mins >= 720) return 'down';
+      return 'degraded';
     }
+    // No incident data to verify against (fetch failed) — fall back to the old numeric floor.
+    const mins = (dailyMinutesDown || {})[dateStr] || 0;
+    if (mins < 5) return 'up';
     if (mins >= 720) return 'down';
     return 'degraded';
   }
@@ -940,7 +948,7 @@
   }
 
   // ── Render one service card ──
-  function renderCard(service, startDate, lastUpdated, responseTime, qualifyingDates) {
+  function renderCard(service, startDate, lastUpdated, responseTime, qualifyingMinutes) {
     const today = localToday();
     const dm = service.dailyMinutesDown || {};
 
@@ -950,8 +958,11 @@
       const d = new Date(today);
       d.setDate(d.getDate() - i);
       const ds = localDateStr(d);
-      const status = dayStatus(ds, startDate, dm, qualifyingDates);
-      const mins = dm[ds] || 0;
+      const status = dayStatus(ds, startDate, dm, qualifyingMinutes);
+      // Prefer the precise per-incident minute count over Upptime's UTC-keyed
+      // dict — same reasoning as dayStatus above, and keeps the tooltip's
+      // minute count consistent with the color it's attached to.
+      const mins = (qualifyingMinutes && qualifyingMinutes.has(ds)) ? qualifyingMinutes.get(ds) : (dm[ds] || 0);
       days.push({ ds, status, mins });
     }
 
@@ -1298,18 +1309,24 @@
       ]);
       incidentsRaw = incidents;
 
-      // Per-service set of local YYYY-MM-DD dates with at least one qualifying
-      // (>=5 min precise, resolved) incident on record. The bar chart only shows
-      // a day as degraded/down when it's backed by a real incident here, so it
-      // never disagrees with the Past Incidents list about the same event.
+      // Per-service map of local YYYY-MM-DD date -> total minutes down, built
+      // from exact created_at/closed_at deltas of qualifying (>=5 min precise,
+      // resolved) incidents. The bar chart only shows a day as degraded/down
+      // when it's backed by a real incident here, so it never disagrees with
+      // the Past Incidents list about the same event — and it never MISSES one
+      // either, which a Set-of-dates version used to (a day with a qualifying
+      // incident but no dailyMinutesDown entry under that same local date
+      // rendered as silently "up"; see the 2026-09-01/02 UTC-vs-local mismatch).
       let qualifyingDatesByService = null;
       if (Array.isArray(incidentsRaw)) {
         qualifyingDatesByService = {};
         incidentsRaw.filter(i => isQualifyingIncident(i) && !hasExcludedLabel(i)).forEach(issue => {
           const name = extractServiceName(issue.title || '');
           const ds = localDateStr(new Date(issue.created_at));
-          if (!qualifyingDatesByService[name]) qualifyingDatesByService[name] = new Set();
-          qualifyingDatesByService[name].add(ds);
+          const mins = Math.round((new Date(issue.closed_at) - new Date(issue.created_at)) / 60000);
+          if (!qualifyingDatesByService[name]) qualifyingDatesByService[name] = new Map();
+          const prev = qualifyingDatesByService[name].get(ds) || 0;
+          qualifyingDatesByService[name].set(ds, prev + mins);
         });
       }
 
@@ -1346,10 +1363,10 @@
       const servicesEl = document.getElementById('services');
       servicesEl.innerHTML = '';
       visible.forEach((service, i) => {
-        const qualifyingDates = qualifyingDatesByService
-          ? (qualifyingDatesByService[service.name] || new Set())
+        const qualifyingMinutes = qualifyingDatesByService
+          ? (qualifyingDatesByService[service.name] || new Map())
           : null;
-        const card = renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated, yamlData[i].responseTime, qualifyingDates);
+        const card = renderCard(service, yamlData[i].startDate, yamlData[i].lastUpdated, yamlData[i].responseTime, qualifyingMinutes);
         if (service.slug === 'salaaz-marketplace') {
           appendDepsPanel(card, depsData);
         }

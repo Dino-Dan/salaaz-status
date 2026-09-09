@@ -4,6 +4,37 @@ All incidents and maintenance events for Salaaz services are recorded here.
 
 ---
 
+## September 8, 2026
+
+### 90-day bar chart could show a day "Operational" despite a real incident on record for it
+**Services:** Salaaz Marketplace (display only — the underlying incident history was always correct)  
+**Status:** Resolved
+
+- Reported: the incidents list showed a Salaaz Marketplace outage on September 1
+  (8 minutes), but that day's bar on the uptime chart rendered green
+  ("Operational").
+- Cause: Upptime writes `dailyMinutesDown` keyed by UTC date, while
+  `status-page/index.html` deliberately buckets the bar chart and the Past
+  Incidents list by the viewer's LOCAL date (see the September 1/2 backfill
+  fix below, which patched one occurrence of this by hand). The incident ran
+  03:12–03:20 UTC on Sep 2 — 23:12–23:20 EDT on Sep 1 for a North American
+  viewer — so it qualified as a Sep 1 incident everywhere except the one place
+  that mattered: `dailyMinutesDown["2026-09-01"]` didn't exist, and `dayStatus`
+  returned "up" the instant it saw no minutes for that key, before ever
+  consulting the precise incident data.
+- This was a recurring bug class, not a one-off: the September 1/2 fix
+  (`3131f904`) only re-keyed that single incident's JSON entry by hand.
+  `dayStatus` now checks the exact per-incident minute data FIRST whenever it's
+  available (built from real `created_at`/`closed_at` deltas, bucketed by the
+  same local date as everything else on the page) — a qualifying day is never
+  "up" just because Upptime's UTC-keyed dict missed it, and a day with no
+  qualifying incident is never "degraded" off Upptime's own rounding. No more
+  manual re-keying needed for future incidents that straddle the UTC/local
+  boundary.
+- Pinned in `tests/unit/index-helpers.test.js` (2 new regression cases).
+
+---
+
 ## September 6, 2026
 
 ### False "Salaaz Marketplace is down" — authed-route probe misread a 429 as an outage
