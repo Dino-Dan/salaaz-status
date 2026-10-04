@@ -13,22 +13,22 @@
       "name": "Salaaz Marketplace",
       "url": "https://salaaz.com/",
       "status": "up",
-      "response_time_ms": 544,
+      "response_time_ms": 444,
       "uptime_90d": 99.85,
       "monitored_since": "2026-05-08T00:00:00.000Z",
-      "last_checked": "2026-10-03T03:00:29.049Z"
+      "last_checked": "2026-10-04T03:00:35.920Z"
     },
     {
       "slug": "vendor-portal",
       "name": "Vendor Portal",
       "url": "https://vendor.salaaz.com/",
       "status": "up",
-      "response_time_ms": 202,
+      "response_time_ms": 242,
       "uptime_90d": 99.98,
       "monitored_since": "2026-05-08T00:00:00.000Z",
-      "last_checked": "2026-10-03T03:00:29.386Z"
+      "last_checked": "2026-10-04T03:00:36.202Z"
     }
   ],
   "active_incidents": [],
-  "last_checked": "2026-10-03T03:00:29.386Z"
+  "last_checked": "2026-10-04T03:00:36.202Z"
 }
