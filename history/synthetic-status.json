@@ -1,17 +1,10 @@
 {
   "salaaz-marketplace": {
-    "status": "degraded",
-    "consecutiveFailures": 1,
+    "status": "up",
+    "consecutiveFailures": 0,
     "publicDegraded": false,
-    "failing": [
-      "products",
-      "categories",
-      "certifications",
-      "discovery",
-      "search",
-      "authed-route-responsive"
-    ],
-    "detail": "products: HTTP 502; categories: HTTP 502; certifications: HTTP 502; discovery: HTTP 502; search: HTTP 502; authed-route-responsive: expected HTTP 401 or 429, got 502",
-    "lastUpdated": "2026-10-18T17:05:50.172Z"
+    "failing": [],
+    "detail": "products ok (20 products); categories ok (23 categories); certifications ok (2 certifications); discovery ok (9 selects, 9 trending); search ok (8 results); authed-route-responsive ok (401 as expected)",
+    "lastUpdated": "2026-10-18T17:10:25.087Z"
   }
 }
