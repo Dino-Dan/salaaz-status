@@ -1,7 +1,7 @@
 {
   "salaaz-marketplace": {
     "status": "degraded",
-    "consecutiveFailures": 26,
+    "consecutiveFailures": 27,
     "publicDegraded": true,
     "failing": [
       "products",
@@ -12,6 +12,6 @@
       "authed-route-responsive"
     ],
     "detail": "products: request failed: fetch failed; categories: request failed: fetch failed; certifications: request failed: fetch failed; discovery: request failed: fetch failed; search: request failed: fetch failed; authed-route-responsive: request failed: fetch failed",
-    "lastUpdated": "2026-11-01T15:15:50.000Z"
+    "lastUpdated": "2026-11-01T15:20:57.917Z"
   }
 }
