@@ -352,16 +352,16 @@
         "archived_by": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": true,
     "assignees": [
 
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2026-11-01T13:11:03Z",
-    "updated_at": "2026-11-01T13:11:04Z",
-    "closed_at": null,
+    "updated_at": "2026-11-01T15:45:30Z",
+    "closed_at": "2026-11-01T15:45:29Z",
     "assignee": null,
     "author_association": "OWNER",
     "active_lock_reason": null,
@@ -377,7 +377,27 @@
       "total_blocking": 0
     },
     "body": "In [`c59044d`](https://github.com/Dino-Dan/salaaz-status/commit/c59044dd6b6fcc4cd59dfefb1ec395a0cda3a711\n), Ethics Dashboard (https://ethics.salaaz.com/) was **down**:\n- HTTP code: 0\n- Response time: 0 ms\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/78/reactions",
       "total_count": 0,
@@ -392,7 +412,7 @@
     },
     "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/78/timeline",
     "performed_via_github_app": null,
-    "state_reason": null,
+    "state_reason": "completed",
     "pinned_comment": null
   },
   {
@@ -451,16 +471,16 @@
         "archived_by": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": false,
     "assignees": [
 
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2026-11-01T13:11:02Z",
-    "updated_at": "2026-11-01T13:11:02Z",
-    "closed_at": null,
+    "updated_at": "2026-11-01T15:45:37Z",
+    "closed_at": "2026-11-01T15:45:36Z",
     "assignee": null,
     "author_association": "OWNER",
     "active_lock_reason": null,
@@ -476,7 +496,27 @@
       "total_blocking": 0
     },
     "body": "Detected at 2026-11-01T13:11:01Z.\n\nFailing: products,categories,certifications,discovery,search,authed-route-responsive. products: request failed: fetch failed; categories: request failed: fetch failed; certifications: request failed: fetch failed; discovery: request failed: fetch failed; search: request failed: fetch failed; authed-route-responsive: request failed: fetch failed\n\n_Internal alert — filtered from status.salaaz.com. Closes automatically on recovery._",
-    "closed_by": null,
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/77/reactions",
       "total_count": 0,
@@ -491,7 +531,7 @@
     },
     "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/77/timeline",
     "performed_via_github_app": null,
-    "state_reason": null,
+    "state_reason": "completed",
     "pinned_comment": null
   },
   {
@@ -550,16 +590,16 @@
         "archived_by": null
       }
     ],
-    "state": "open",
+    "state": "closed",
     "locked": true,
     "assignees": [
 
     ],
     "milestone": null,
-    "comments": 0,
+    "comments": 1,
     "created_at": "2026-11-01T13:10:47Z",
-    "updated_at": "2026-11-01T13:10:49Z",
-    "closed_at": null,
+    "updated_at": "2026-11-01T15:45:26Z",
+    "closed_at": "2026-11-01T15:45:25Z",
     "assignee": null,
     "author_association": "OWNER",
     "active_lock_reason": null,
@@ -575,7 +615,27 @@
       "total_blocking": 0
     },
     "body": "In [`cdd4aec`](https://github.com/Dino-Dan/salaaz-status/commit/cdd4aec6fd40e829a7c37951c4fc72f0893aecc8\n), Vendor Portal (https://vendor.salaaz.com/) was **down**:\n- HTTP code: 0\n- Response time: 0 ms\n",
-    "closed_by": null,
+    "closed_by": {
+      "login": "Dino-Dan",
+      "id": 18146723,
+      "node_id": "MDQ6VXNlcjE4MTQ2NzIz",
+      "avatar_url": "https://avatars.githubusercontent.com/u/18146723?v=4",
+      "gravatar_id": "",
+      "url": "https://api.github.com/users/Dino-Dan",
+      "html_url": "https://github.com/Dino-Dan",
+      "followers_url": "https://api.github.com/users/Dino-Dan/followers",
+      "following_url": "https://api.github.com/users/Dino-Dan/following{/other_user}",
+      "gists_url": "https://api.github.com/users/Dino-Dan/gists{/gist_id}",
+      "starred_url": "https://api.github.com/users/Dino-Dan/starred{/owner}{/repo}",
+      "subscriptions_url": "https://api.github.com/users/Dino-Dan/subscriptions",
+      "organizations_url": "https://api.github.com/users/Dino-Dan/orgs",
+      "repos_url": "https://api.github.com/users/Dino-Dan/repos",
+      "events_url": "https://api.github.com/users/Dino-Dan/events{/privacy}",
+      "received_events_url": "https://api.github.com/users/Dino-Dan/received_events",
+      "type": "User",
+      "user_view_type": "public",
+      "site_admin": false
+    },
     "reactions": {
       "url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/76/reactions",
       "total_count": 0,
@@ -590,7 +650,7 @@
     },
     "timeline_url": "https://api.github.com/repos/Dino-Dan/salaaz-status/issues/76/timeline",
     "performed_via_github_app": null,
-    "state_reason": null,
+    "state_reason": "completed",
     "pinned_comment": null
   },
   {
