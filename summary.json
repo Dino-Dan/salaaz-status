@@ -13,10 +13,10 @@
       "name": "Salaaz Marketplace",
       "url": "https://salaaz.com/",
       "status": "up",
-      "response_time_ms": 519,
+      "response_time_ms": 1618,
       "uptime_90d": 99.85,
       "monitored_since": "2026-05-08T00:00:00.000Z",
-      "last_checked": "2026-11-27T04:50:20.280Z"
+      "last_checked": "2026-11-27T17:45:22.902Z"
     },
     {
       "slug": "vendor-portal",
@@ -30,5 +30,5 @@
     }
   ],
   "active_incidents": [],
-  "last_checked": "2026-11-27T04:50:20.542Z"
+  "last_checked": "2026-11-27T17:45:22.902Z"
 }
